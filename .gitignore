@@ -1,0 +1,64 @@
+# Environnements et secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+credentials/
+*.p12
+*.pfx
+*.keystore
+
+# PHP / Laravel (récursif : chaque microservice a son propre vendor/storage)
+**/vendor/
+**/node_modules/
+**/.phpunit.cache/
+**/.phpunit.result.cache
+**/.php-cs-fixer.cache
+**/.phpstan/
+**/.phpactor.yml
+**/storage/*.key
+**/storage/framework/cache/*
+**/storage/framework/sessions/*
+**/storage/framework/views/*
+**/bootstrap/cache/*.php
+**/public/build/
+**/public/hot
+
+# Frontend
+dist/
+coverage/
+.npm/
+.eslintcache
+*.tsbuildinfo
+
+# Journaux
+*.log
+**/logs/
+
+# Bases locales et données temporaires
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.backup
+
+# Docker et données locales
+**/postgres-data/
+**/rabbitmq-data/
+**/minio-data/
+**/garage-data/
+**/seaweedfs-data/
+**/keycloak-data/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Système
+.DS_Store
+Thumbs.db
+Desktop.ini

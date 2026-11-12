@@ -1,0 +1,85 @@
+asyncapi: 3.0.0
+info:
+  title: <Nom du service> — Contrat evenementiel
+  version: 0.1.0-draft
+  description: |
+    CONTRAT TYPE AsyncAPI 3.0 — a completer pour chaque microservice.
+    Regles (catalogue v1.1 §6) : exchange topic sigpe.events.v1,
+    routing keys domaine.action.vN, messages persistants, publisher
+    confirms, ack manuels, retry + DLQ, Outbox/Inbox, at-least-once.
+    Enveloppe obligatoire : contracts/json-schemas/enveloppe-evenementiel.schema.json.
+    Les evenements ci-dessous sont des EXEMPLES DE STRUCTURE, pas des
+    evenements metier valides — extraire les evenements reels du
+    catalogue/CDC avant tout codage.
+defaultContentType: application/json
+servers:
+  rabbitmq:
+    host: rabbitmq://rabbitmq:5672
+    protocol: amqp
+    description: Broker RabbitMQ (AMQP 0-9-1)
+channels:
+  assetEvents:
+    address: sigpe.events.v1/asset.registered.v1
+    title: File durable du consommateur pour asset.registered.v1
+    description: |
+      File durable du consommateur, liee a l'exchange topic
+      sigpe.events.v1 via la routing key asset.registered.v1.
+      En production, une file par consommateur et par flux.
+    messages:
+      assetRegisteredV1:
+        $ref: '#/components/messages/assetRegisteredV1'
+    bindings:
+      amqp:
+        bindingVersion: '0.3.0'
+        is: queue
+        queue:
+          name: sigpe.<service>.asset.registered.v1
+          durable: true
+          exclusive: false
+          autoDelete: false
+          vhost: /
+        # NOTE : le binding AMQP 0.3.0 ne permet pas de declarer
+        # simultanement exchange et queue sur un channel. Le channel
+        # represente ici la file durable du consommateur ; son binding
+        # vers l'exchange topic est configure cote broker (Phase 0
+        # infrastructure) :
+        #   exchange: sigpe.events.v1 (topic)
+        #   routing key: asset.registered.v1
+operations:
+  consumeAssetRegistered:
+    action: receive
+    channel:
+      $ref: '#/channels/assetEvents'
+    messages:
+      - $ref: '#/channels/assetEvents/messages/assetRegisteredV1'
+    description: |
+      Consommation idempotente via Inbox : verifier event_id avant
+      traitement, accuser manuellement, retry backoff puis DLQ.
+components:
+  messages:
+    assetRegisteredV1:
+      name: asset.registered
+      title: Bien enregistre (evenement_version 1)
+      contentType: application/json
+      headers:
+        type: object
+        properties:
+          type: { type: string, const: application/json }
+      payload:
+        $ref: '../json-schemas/enveloppe-evenementiel.schema.json'
+      examples:
+        - name: Exemple enveloppe (structure uniquement)
+          payload:
+            event_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f60
+            event_type: asset.registered
+            event_version: 1
+            occurred_at: '2026-11-12T10:00:00Z'
+            producer: asset-service
+            aggregate_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f61
+            correlation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f62
+            causation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f63
+            institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f64
+            actor:
+              type: user
+              id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f65
+            data: {}

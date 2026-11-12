@@ -1,0 +1,158 @@
+openapi: 3.1.0
+info:
+  title: <Nom du service> API
+  version: 0.1.0-draft
+  description: |
+    CONTRAT TYPE — a copier et completer pour chaque microservice.
+    Regles (catalogue v1.1 §5) : prefixe /api/v1, JSON, HTTPS, OIDC,
+    RBAC+ABAC, X-Correlation-ID/X-Request-ID, idempotence, RFC 9457.
+    Les endpoints ci-dessous sont des EXEMPLES de structure, pas des routes validees.
+  license:
+    name: Licence proprietaire — Gouvernement de la Republique togolaise
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: https://api.sigpe.local/api/v1
+    description: API Gateway (APISIX)
+tags:
+  - name: health
+    description: Sondes de sante du service
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Sonde de sante (sans authentification)
+      security: []
+      responses:
+        '200':
+          description: Service operationnel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [ok] }
+                  service: { type: string }
+                  version: { type: string }
+  # Exemple d'endpoint metier — A REMPLACER par les routes validees du catalogue :
+  # /<ressource>:
+  #   get:
+  #     operationId: list<Resources>
+  #     parameters:
+  #       - $ref: '#/components/parameters/Page'
+  #       - $ref: '#/components/parameters/PerPage'
+  #       - $ref: '#/components/parameters/CorrelationId'
+  #     responses:
+  #       '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Paginated' } } } }
+  #       '401': { $ref: '#/components/responses/Problem401' }
+  #       '403': { $ref: '#/components/responses/Problem403' }
+  #   post:
+  #     operationId: create<Resource>
+  #     parameters:
+  #       - $ref: '#/components/parameters/IdempotencyKey'
+  #       - $ref: '#/components/parameters/CorrelationId'
+  #     requestBody:
+  #       required: true
+  #       content: { application/json: { schema: { $ref: '#/components/schemas/<Resource>Create' } } }
+  #     responses:
+  #       '201': { description: Cree, headers: { ETag: { schema: { type: string } } } }
+  #       '409': { $ref: '#/components/responses/Problem409' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton OIDC emis par Keycloak
+  parameters:
+    CorrelationId:
+      name: X-Correlation-ID
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+    RequestId:
+      name: X-Request-ID
+      in: header
+      required: false
+      schema: { type: string }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Cle d'idempotence pour les operations sensibles
+      schema: { type: string, minLength: 8, maxLength: 128 }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PerPage:
+      name: per_page
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    IfMatch:
+      name: If-Match
+      in: header
+      required: false
+      schema: { type: string }
+      description: Controle de concurrence optimiste
+  responses:
+    Problem401:
+      description: Non authentifie
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem403:
+      description: Non autorise (RBAC/ABAC)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem409:
+      description: Conflit (doublon, etat incompatible, idempotence)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem422:
+      description: Erreur de validation
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+  schemas:
+    ProblemDetails:
+      type: object
+      required: [type, title, status, detail]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string, format: uri-reference }
+        code: { type: string, description: Code erreur metier SIGPE }
+        correlation_id: { type: string, format: uuid }
+    Paginated:
+      type: object
+      properties:
+        data: { type: array, items: { type: object } }
+        meta:
+          type: object
+          properties:
+            page: { type: integer }
+            per_page: { type: integer }
+            total: { type: integer }
+            last_page: { type: integer }
+        links:
+          type: object
+          properties:
+            first: { type: string, format: uri }
+            last: { type: string, format: uri }
+            prev: { type: ['string', 'null'], format: uri }
+            next: { type: ['string', 'null'], format: uri }
+    Money:
+      type: string
+      pattern: '^-?\d{1,15}(\.\d{1,2})?$'
+      description: Montant decimal en XOF, jamais de flottant
+    Uuid:
+      type: string
+      format: uuid
+      description: UUIDv7
+security:
+  - bearerAuth: []

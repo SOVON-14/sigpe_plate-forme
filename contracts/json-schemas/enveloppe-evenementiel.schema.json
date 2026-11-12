@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sigpe.local/contracts/json-schemas/enveloppe-evenementiel.schema.json",
+  "title": "Enveloppe evenementielle SIGPE",
+  "description": "Enveloppe obligatoire de tout evenement RabbitMQ (catalogue v1.1 §6.2). Les champs institutionnels et acteur sont renseignes lorsqu'ils sont pertinents. Aucun secret, mot de passe ou document confidentiel ne doit figurer dans data.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "event_type",
+    "event_version",
+    "occurred_at",
+    "producer",
+    "aggregate_id",
+    "correlation_id",
+    "causation_id",
+    "data"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUIDv7 unique de l'evenement. Cle d'idempotence pour l'Inbox."
+    },
+    "event_type": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)+$",
+      "description": "Nom metier sans version, ex. asset.registered. Le suffixe de version est porte par event_version et la routing key."
+    },
+    "event_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Version du contrat de l'evenement."
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Horodatage UTC ISO 8601 du fait metier."
+    },
+    "producer": {
+      "type": "string",
+      "enum": [
+        "identity-service",
+        "organization-service",
+        "asset-service",
+        "inventory-service",
+        "movement-service",
+        "workflow-service",
+        "maintenance-service",
+        "document-service",
+        "finance-service",
+        "reporting-service",
+        "audit-service",
+        "notification-service",
+        "acquisition-service"
+      ],
+      "description": "Service producteur."
+    },
+    "aggregate_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Identifiant de l'agregat metier concerne."
+    },
+    "correlation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Identifiant de correlation de l'operation d'origine (requete HTTP ou evenement parent)."
+    },
+    "causation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Identifiant de l'evenement ou commande ayant cause cet evenement."
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Institution concernee, si pertinent."
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["user", "service", "system", "scheduled"]
+        },
+        "id": { "type": "string", "format": "uuid" }
+      },
+      "description": "Acteur a l'origine du fait, si pertinent."
+    },
+    "data": {
+      "type": "object",
+      "description": "Charge utile specifique a l'evenement, validee par le JSON Schema dedie du event_type."
+    }
+  }
+}
