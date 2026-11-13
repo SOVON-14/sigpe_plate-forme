@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/asset-physical-state-changed.v1.schema.json",
+  "title": "asset.physical.state.changed — data (v1)",
+  "type": "object",
+  "required": [
+    "asset_id",
+    "institution_id",
+    "physical_state",
+    "previous_state"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "asset_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "physical_state": {
+      "type": "string",
+      "enum": [
+        "neuf",
+        "tres_bon",
+        "bon",
+        "moyen",
+        "mauvais",
+        "hors_service",
+        "irrecuperable"
+      ]
+    },
+    "previous_state": {
+      "type": "string",
+      "enum": [
+        "neuf",
+        "tres_bon",
+        "bon",
+        "moyen",
+        "mauvais",
+        "hors_service",
+        "irrecuperable"
+      ]
+    },
+    "reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/asset-rattachement-confirmed.v1.schema.json",
+  "title": "asset.rattachement.confirmed — data (v1)",
+  "type": "object",
+  "required": [
+    "asset_id",
+    "institution_id",
+    "previous_institution_id",
+    "patrimonial_code",
+    "previous_patrimonial_code"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "asset_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "previous_institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "patrimonial_code": {
+      "type": "string"
+    },
+    "previous_patrimonial_code": {
+      "type": "string"
+    }
+  }
+}

@@ -31,6 +31,11 @@ Référence : SIGPE-EVT-MATRIX-001 — Version 0.1 (squelette) — 12/11/2026
 | organization.unit.status_changed | organization.unit.status_changed.v1 | organization-service | asset-service, reporting-service, audit-service | Changement de statut d'une unité | CONTRACTÉ (draft) |
 | organization.position.created | organization.position.created.v1 | organization-service | audit-service | Création d'un poste organisationnel | CONTRACTÉ (draft) |
 | organization.position.responsible_changed | organization.position.responsible_changed.v1 | organization-service | audit-service, notification-service | Affectation/révocation d'un responsable de poste | CONTRACTÉ (draft) |
+| asset.registered | asset.registered.v1 | asset-service | movement-service, reporting-service, audit-service, notification-service | Enregistrement d'un bien au registre maître | CONTRACTÉ (draft) — voir asset-service.asyncapi.yaml |
+| asset.updated | asset.updated.v1 | asset-service | reporting-service, audit-service | Mise à jour des champs descriptifs d'une fiche | CONTRACTÉ (draft) |
+| asset.physical_state_changed | asset.physical_state_changed.v1 | asset-service | inventory-service, maintenance-service, reporting-service, audit-service | Changement d'état physique | CONTRACTÉ (draft) |
+| asset.status_changed | asset.status_changed.v1 | asset-service | reporting-service, audit-service, notification-service | Changement de statut administratif (en_reforme, sorti…) | CONTRACTÉ (draft) |
+| asset.rattachement_confirmed | asset.rattachement_confirmed.v1 | asset-service | movement-service, reporting-service, audit-service | Confirmation TEC-017 — nouveau code patrimonial attribué | CONTRACTÉ (draft) — **critique** : requis avant clôture transfert interministériel |
 
 ## Événements candidats identifiés dans les sources (non contractuels)
 

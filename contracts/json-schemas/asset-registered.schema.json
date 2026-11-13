@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/asset-registered.v1.schema.json",
+  "title": "asset.registered — data (v1)",
+  "type": "object",
+  "required": [
+    "asset_id",
+    "institution_id",
+    "patrimonial_code",
+    "designation",
+    "category_id",
+    "physical_state",
+    "entry_mode",
+    "value_unknown"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "asset_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "patrimonial_code": {
+      "type": "string"
+    },
+    "designation": {
+      "type": "string"
+    },
+    "category_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "subcategory_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "physical_state": {
+      "type": "string",
+      "enum": [
+        "neuf",
+        "tres_bon",
+        "bon",
+        "moyen",
+        "mauvais",
+        "hors_service",
+        "irrecuperable"
+      ]
+    },
+    "entry_mode": {
+      "type": "string",
+      "enum": [
+        "achat",
+        "construction",
+        "don",
+        "legs",
+        "transfert",
+        "mise_a_disposition",
+        "autre"
+      ]
+    },
+    "value_unknown": {
+      "type": "boolean"
+    }
+  }
+}

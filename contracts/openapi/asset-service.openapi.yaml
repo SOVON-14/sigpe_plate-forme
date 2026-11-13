@@ -1,0 +1,632 @@
+openapi: 3.1.0
+info:
+  title: Asset Service API
+  version: 1.0.0-draft
+  description: |
+    CONTRAT Asset Service — registre maître des biens patrimoniaux SIGPE.
+    Sources : catalogue technique v1.1 §3.2/§4.2/§6 (TEC-017), CDC v1.0
+    §4.3, §4.4, ADR-003 (references inter-services par UUID sans FK),
+    ADR-004 (UUIDv7), ADR-005 (RFC 9457).
+    Regles metier cles :
+    - Asset est le SEUL service creant asset_id et le code patrimonial ;
+      unicite (institution_id, code_patrimonial) ; asset_id immuable.
+    - Etat physique et statut administratif sont distincts.
+    - Valeur inconnue autorisee avec justification obligatoire.
+    - Sortie definitive exige le statut en_reforme (dossier Workflow).
+    - Transfert inter-ministeriel : Asset confirme le rattachement et
+      attribue le nouveau code AVANT la cloture Movement (TEC-017).
+    Statut : BROUILLON EN ATTENTE DE VALIDATION MOA.
+    Regles techniques : prefixe /api/v1, JSON, HTTPS, OIDC bearer,
+    RBAC+ABAC, X-Correlation-ID/X-Request-ID, idempotence, RFC 9457.
+  license:
+    name: Licence proprietaire — Gouvernement de la Republique togolaise
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: https://api.sigpe.local/api/v1
+    description: API Gateway (APISIX)
+tags:
+  - name: health
+    description: Sondes de sante
+  - name: categories
+    description: Categories nationales et sous-categories ministerielles
+  - name: assets
+    description: Fiches patrimoniales (registre maitre)
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Sonde de sante (sans authentification)
+      security: []
+      responses:
+        '200':
+          description: Service operationnel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [ok] }
+                  service: { type: string }
+                  version: { type: string }
+        '429':
+          description: Limitation de debit (APISIX)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '503':
+          description: Service indisponible
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+  /categories:
+    get:
+      tags: [categories]
+      operationId: listCategories
+      summary: Liste des categories patrimoniales nationales
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AssetCategory' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+  /categories/{categoryId}/subcategories:
+    get:
+      tags: [categories]
+      operationId: listSubcategories
+      summary: Sous-categories d'une categorie (nationales + ministerielles)
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: institution_id
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+          description: Filtre les sous-categories nationales + celles de l'institution
+      responses:
+        '200':
+          description: Sous-categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AssetSubcategory' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+    post:
+      tags: [categories]
+      operationId: createSubcategory
+      summary: Cree une sous-categorie ministerielle
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SubcategoryCreate' }
+      responses:
+        '201':
+          description: Sous-categorie creee
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AssetSubcategory' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /institutions/{institutionId}/assets:
+    get:
+      tags: [assets]
+      operationId: listAssets
+      summary: Liste paginee des biens d'une institution
+      parameters:
+        - $ref: '#/components/parameters/InstitutionId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/AdministrativeStatus' }
+        - name: physical_state
+          in: query
+          schema: { $ref: '#/components/schemas/PhysicalState' }
+        - name: category_id
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: organizational_unit_id
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: q
+          in: query
+          schema: { type: string }
+          description: Recherche sur designation ou code patrimonial
+      responses:
+        '200':
+          description: Page de biens
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Paginated'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Asset' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+    post:
+      tags: [assets]
+      operationId: registerAsset
+      summary: Enregistre un bien au registre maitre (asset_id + code patrimonial)
+      description: |
+        Appele par Acquisition Service pour les biens acceptes, ou par
+        un agent habilite pour une entree directe justifiee.
+        asset_id (UUIDv7) et code_patrimonial sont generes par Asset.
+      parameters:
+        - $ref: '#/components/parameters/InstitutionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssetRegister' }
+      responses:
+        '201':
+          description: Bien enregistre
+          headers:
+            ETag: { schema: { type: string } }
+            Location:
+              schema: { type: string, format: uri-reference }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Asset' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /assets/{assetId}:
+    get:
+      tags: [assets]
+      operationId: getAsset
+      summary: Detail d'une fiche patrimoniale
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Bien
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Asset' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+    patch:
+      tags: [assets]
+      operationId: updateAsset
+      summary: Met a jour les champs descriptifs (jamais asset_id ni code)
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssetUpdate' }
+      responses:
+        '200':
+          description: Bien mis a jour
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Asset' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /assets/{assetId}/status:
+    post:
+      tags: [assets]
+      operationId: changeAssetStatus
+      summary: Change le statut administratif (actif, provisoire, en_reforme, sorti)
+      description: |
+        La sortie definitive (sorti) exige le statut en_reforme prealable
+        (dossier de reforme valide par Workflow).
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssetStatusChange' }
+      responses:
+        '200':
+          description: Statut mis a jour
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Asset' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /assets/{assetId}/physical-state:
+    post:
+      tags: [assets]
+      operationId: changePhysicalState
+      summary: Change l'etat physique (distinct du statut administratif)
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PhysicalStateChange' }
+      responses:
+        '200':
+          description: Etat physique mis a jour
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Asset' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /assets/{assetId}/rattachement:
+    post:
+      tags: [assets]
+      operationId: confirmRattachement
+      summary: Confirme le changement de rattachement inter-ministeriel (TEC-017)
+      description: |
+        Appele par Movement Service lors d'un transfert interministeriel.
+        Asset change l'institution, attribue le NOUVEAU code patrimonial
+        et conserve asset_id + ancien code en historique.
+        Movement ne publie movement.interministerial_transfer.completed
+        qu'apres reception de l'evenement asset.rattachement_confirmed.
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RattachementConfirm' }
+      responses:
+        '200':
+          description: Rattachement confirme
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Asset' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /assets/{assetId}/histories:
+    get:
+      tags: [assets]
+      operationId: listAssetHistories
+      summary: Historique patrimonial d'un bien
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Page d'historique
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Paginated'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/AssetHistory' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton OIDC emis par Keycloak
+  parameters:
+    AssetId:
+      name: assetId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    CategoryId:
+      name: categoryId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    InstitutionId:
+      name: institutionId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    CorrelationId:
+      name: X-Correlation-ID
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+    RequestId:
+      name: X-Request-ID
+      in: header
+      required: false
+      schema: { type: string }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Cle d'idempotence pour les operations sensibles
+      schema: { type: string, minLength: 8, maxLength: 128 }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PerPage:
+      name: per_page
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    IfMatch:
+      name: If-Match
+      in: header
+      required: false
+      schema: { type: string }
+      description: Controle de concurrence optimiste
+  responses:
+    Problem401:
+      description: Non authentifie
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem403:
+      description: Non autorise (RBAC/ABAC — cloisonnement institutionnel)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem404:
+      description: Ressource introuvable
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem409:
+      description: Conflit (doublon, etat incompatible, idempotence)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem422:
+      description: Erreur de validation
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+  schemas:
+    ProblemDetails:
+      type: object
+      required: [type, title, status, detail]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string, format: uri-reference }
+        code: { type: string, description: Code erreur metier SIGPE }
+        correlation_id: { type: string, format: uuid }
+    Paginated:
+      type: object
+      properties:
+        data: { type: array, items: { type: object } }
+        meta:
+          type: object
+          properties:
+            page: { type: integer }
+            per_page: { type: integer }
+            total: { type: integer }
+            last_page: { type: integer }
+        links:
+          type: object
+          properties:
+            first: { type: string, format: uri }
+            last: { type: string, format: uri }
+            prev: { type: ['string', 'null'], format: uri }
+            next: { type: ['string', 'null'], format: uri }
+    Uuid:
+      type: string
+      format: uuid
+      description: UUIDv7
+    DateTime:
+      type: string
+      format: date-time
+    Date:
+      type: string
+      format: date
+    AssetCategory:
+      type: object
+      required: [id, code, label, is_system]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        code: { type: string, example: materiels_roulants }
+        label: { type: string }
+        description: { type: ['string', 'null'] }
+        is_system: { type: boolean, description: Categorie nationale protegee }
+    AssetSubcategory:
+      type: object
+      required: [id, category_id, code, label]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        category_id: { $ref: '#/components/schemas/Uuid' }
+        institution_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+          description: NULL = sous-categorie nationale
+        code: { type: string }
+        label: { type: string }
+    SubcategoryCreate:
+      type: object
+      required: [institution_id, code, label]
+      properties:
+        institution_id: { $ref: '#/components/schemas/Uuid' }
+        code: { type: string, minLength: 2, maxLength: 50, pattern: '^[a-z0-9_]+$' }
+        label: { type: string, minLength: 1, maxLength: 255 }
+    EntryMode:
+      type: string
+      enum: [achat, construction, don, legs, transfert, mise_a_disposition, autre]
+    PhysicalState:
+      type: string
+      enum: [neuf, tres_bon, bon, moyen, mauvais, hors_service, irreparable]
+      description: Etat physique national — distinct du statut administratif
+    AdministrativeStatus:
+      type: string
+      enum: [actif, provisoire, en_reforme, sorti]
+    Asset:
+      type: object
+      required: [id, institution_id, patrimonial_code, designation, entry_date, entry_mode, physical_state, administrative_status, created_at, updated_at]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+          description: asset_id — stable et immuable
+        institution_id: { $ref: '#/components/schemas/Uuid' }
+        organizational_unit_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+        category_id: { $ref: '#/components/schemas/Uuid' }
+        subcategory_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+        patrimonial_code:
+          type: string
+          example: PAT-2026-000123
+          description: Unique dans le perimetre de l'institution
+        designation: { type: string }
+        description: { type: ['string', 'null'] }
+        entry_date: { $ref: '#/components/schemas/Date' }
+        entry_mode: { $ref: '#/components/schemas/EntryMode' }
+        entry_reference: { type: ['string', 'null'] }
+        physical_state: { $ref: '#/components/schemas/PhysicalState' }
+        administrative_status: { $ref: '#/components/schemas/AdministrativeStatus' }
+        location: { type: ['string', 'null'] }
+        qr_token:
+          type: ['string', 'null']
+          description: Reference technique securisee pour les QR codes
+        technical_attributes:
+          type: ['object', 'null']
+          description: Attributs par categorie (vehicule, informatique, immobilier)
+        value_unknown: { type: boolean }
+        value_unknown_justification: { type: ['string', 'null'] }
+        registered_by: { $ref: '#/components/schemas/Uuid' }
+        created_at: { $ref: '#/components/schemas/DateTime' }
+        updated_at: { $ref: '#/components/schemas/DateTime' }
+    AssetRegister:
+      type: object
+      required: [category_id, designation, entry_date, entry_mode, physical_state]
+      properties:
+        organizational_unit_id: { $ref: '#/components/schemas/Uuid' }
+        category_id: { $ref: '#/components/schemas/Uuid' }
+        subcategory_id: { $ref: '#/components/schemas/Uuid' }
+        designation: { type: string, minLength: 1, maxLength: 255 }
+        description: { type: string, maxLength: 2000 }
+        entry_date: { $ref: '#/components/schemas/Date' }
+        entry_mode: { $ref: '#/components/schemas/EntryMode' }
+        entry_reference: { type: string, maxLength: 255 }
+        physical_state: { $ref: '#/components/schemas/PhysicalState' }
+        location: { type: string, maxLength: 500 }
+        technical_attributes: { type: object }
+        value_unknown: { type: boolean, default: false }
+        value_unknown_justification:
+          type: string
+          maxLength: 1000
+          description: Obligatoire si value_unknown = true
+    AssetUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        designation: { type: string, minLength: 1, maxLength: 255 }
+        description: { type: ['string', 'null'], maxLength: 2000 }
+        location: { type: ['string', 'null'], maxLength: 500 }
+        organizational_unit_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+        technical_attributes: { type: ['object', 'null'] }
+    AssetStatusChange:
+      type: object
+      required: [status]
+      properties:
+        status: { $ref: '#/components/schemas/AdministrativeStatus' }
+        motif: { type: string, maxLength: 500 }
+    PhysicalStateChange:
+      type: object
+      required: [physical_state]
+      properties:
+        physical_state: { $ref: '#/components/schemas/PhysicalState' }
+        motif: { type: string, maxLength: 500 }
+    RattachementConfirm:
+      type: object
+      required: [institution_id]
+      properties:
+        institution_id:
+          $ref: '#/components/schemas/Uuid'
+          description: Institution de destination (transfert approuve)
+        organizational_unit_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+    AssetHistory:
+      type: object
+      required: [id, asset_id, change_type, changed_at]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        asset_id: { $ref: '#/components/schemas/Uuid' }
+        institution_id: { $ref: '#/components/schemas/Uuid' }
+        change_type:
+          type: string
+          enum: [registered, updated, physical_state_changed, status_changed, rattachement_confirmed]
+        old_values: { type: ['object', 'null'] }
+        new_values: { type: ['object', 'null'] }
+        reason: { type: ['string', 'null'] }
+        changed_by: { $ref: '#/components/schemas/Uuid' }
+        changed_at: { $ref: '#/components/schemas/DateTime' }
+security:
+  - bearerAuth: []
