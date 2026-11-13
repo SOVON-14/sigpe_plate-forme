@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/identity-delegation-revoked.v1.schema.json",
+  "title": "identity.delegation.revoked — data (v1)",
+  "type": "object",
+  "required": ["delegator_functional_account_id", "beneficiary_functional_account_id"],
+  "additionalProperties": false,
+  "properties": {
+    "delegator_functional_account_id": { "type": "string", "format": "uuid" },
+    "beneficiary_functional_account_id": { "type": "string", "format": "uuid" },
+    "institution_id": { "type": ["string", "null"], "format": "uuid" }
+  }
+}

@@ -1,0 +1,678 @@
+openapi: 3.1.0
+info:
+  title: Identity Service API
+  version: 1.0.0-draft
+  description: |
+    CONTRAT Identity Service — comptes fonctionnels SIGPE, rôles métier,
+    permissions, délégations et habilitations effectives.
+    Sources : catalogue technique v1.1 (TEC-003), CDC v1.0 §4.1 et §7,
+    ADR-002 (Keycloak = authN, Identity = habilitations métier).
+    Statut : BROUILLON EN ATTENTE DE VALIDATION MOA.
+    Regles : prefixe /api/v1, JSON, HTTPS, OIDC bearer, RBAC+ABAC,
+    X-Correlation-ID/X-Request-ID, idempotence, RFC 9457.
+  license:
+    name: Licence proprietaire — Gouvernement de la Republique togolaise
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: https://api.sigpe.local/api/v1
+    description: API Gateway (APISIX)
+tags:
+  - name: health
+    description: Sondes de sante
+  - name: accounts
+    description: Comptes fonctionnels SIGPE (liés à l'identité Keycloak)
+  - name: roles
+    description: Rôles métier nationaux
+  - name: permissions
+    description: Permissions métier
+  - name: delegations
+    description: Délégations temporaires et révocables
+  - name: access
+    description: Habilitations effectives de l'appelant
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Sonde de sante (sans authentification)
+      security: []
+      responses:
+        '200':
+          description: Service operationnel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [ok] }
+                  service: { type: string }
+                  version: { type: string }
+        '429':
+          description: Limitation de debit (APISIX)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '503':
+          description: Service indisponible
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+  /accounts:
+    get:
+      tags: [accounts]
+      operationId: listAccounts
+      summary: Liste paginée des comptes fonctionnels
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/RequestId'
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/AccountStatus' }
+        - name: institution_id
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+          description: Filtre sur les comptes ayant une habilitation dans cette institution
+        - name: q
+          in: query
+          schema: { type: string }
+          description: Recherche sur display_name ou keycloak_sub
+      responses:
+        '200':
+          description: Page de comptes
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Paginated'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/FunctionalAccount' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+    post:
+      tags: [accounts]
+      operationId: createAccount
+      summary: Crée un compte fonctionnel rattaché à une identité Keycloak
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FunctionalAccountCreate' }
+      responses:
+        '201':
+          description: Compte créé
+          headers:
+            ETag: { schema: { type: string } }
+            Location:
+              schema: { type: string, format: uri-reference }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FunctionalAccount' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /accounts/{accountId}:
+    get:
+      tags: [accounts]
+      operationId: getAccount
+      summary: Détail d'un compte fonctionnel
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Compte
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FunctionalAccount' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+  /accounts/{accountId}/status:
+    post:
+      tags: [accounts]
+      operationId: changeAccountStatus
+      summary: Change le statut d'un compte (active, suspended, disabled)
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AccountStatusChange' }
+      responses:
+        '200':
+          description: Statut mis à jour
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FunctionalAccount' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /accounts/{accountId}/roles:
+    get:
+      tags: [accounts]
+      operationId: listAccountRoles
+      summary: Attributions de rôles d'un compte (avec périmètre)
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Page d'attributions
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Paginated'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/AccountRoleAssignment' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+    post:
+      tags: [accounts]
+      operationId: assignRole
+      summary: Attribue un rôle à un compte, optionnellement scopé et expirant
+      description: |
+        Règle CDC §7.3 : le créateur d'un compte ne peut pas
+        s'attribuer des permissions privilégiées (rôles admin_*).
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RoleAssignmentCreate' }
+      responses:
+        '201':
+          description: Attribution créée
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccountRoleAssignment' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /accounts/{accountId}/roles/{assignmentId}:
+    delete:
+      tags: [accounts]
+      operationId: revokeRoleAssignment
+      summary: Révoque une attribution de rôle
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+        - $ref: '#/components/parameters/AssignmentId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '204': { description: Attribution révoquée }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+  /roles:
+    get:
+      tags: [roles]
+      operationId: listRoles
+      summary: Liste des rôles métier
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Page de rôles
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Paginated'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Role' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+  /roles/{roleId}:
+    get:
+      tags: [roles]
+      operationId: getRole
+      summary: Détail d'un rôle et ses permissions
+      parameters:
+        - $ref: '#/components/parameters/RoleId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Rôle
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Role' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+  /permissions:
+    get:
+      tags: [permissions]
+      operationId: listPermissions
+      summary: Liste des permissions métier (domaine.action)
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - name: domain
+          in: query
+          schema: { type: string }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Page de permissions
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Paginated'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Permission' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+  /delegations:
+    get:
+      tags: [delegations]
+      operationId: listDelegations
+      summary: Liste des délégations (filtres délégant/bénéficiaire/statut)
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - name: delegator_id
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: beneficiary_id
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/DelegationStatus' }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Page de délégations
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Paginated'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Delegation' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+    post:
+      tags: [delegations]
+      operationId: createDelegation
+      summary: Crée une délégation temporaire et révocable
+      description: |
+        Le délégant doit détenir le rôle délégué sur le périmètre
+        concerné. Durée obligatoire, périmètre obligatoire.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DelegationCreate' }
+      responses:
+        '201':
+          description: Délégation créée
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Delegation' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /delegations/{delegationId}/revoke:
+    post:
+      tags: [delegations]
+      operationId: revokeDelegation
+      summary: Révoque une délégation active
+      parameters:
+        - $ref: '#/components/parameters/DelegationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                motif: { type: string, maxLength: 500 }
+      responses:
+        '200':
+          description: Délégation révoquée
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Delegation' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+  /me/permissions:
+    get:
+      tags: [access]
+      operationId: getMyPermissions
+      summary: Permissions effectives de l'appelant dans un contexte donné
+      description: |
+        Combine rôles attribués et délégations actives, filtrés par
+        institution et unité organisationnelle (RBAC + ABAC).
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: institution_id
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: organizational_unit_id
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+      responses:
+        '200':
+          description: Permissions effectives
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [account_id, permissions]
+                properties:
+                  account_id: { $ref: '#/components/schemas/Uuid' }
+                  permissions:
+                    type: array
+                    items: { type: string }
+        '401': { $ref: '#/components/responses/Problem401' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton OIDC emis par Keycloak
+  parameters:
+    AccountId:
+      name: accountId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    AssignmentId:
+      name: assignmentId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    RoleId:
+      name: roleId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    DelegationId:
+      name: delegationId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    CorrelationId:
+      name: X-Correlation-ID
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+    RequestId:
+      name: X-Request-ID
+      in: header
+      required: false
+      schema: { type: string }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Cle d'idempotence pour les operations sensibles
+      schema: { type: string, minLength: 8, maxLength: 128 }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PerPage:
+      name: per_page
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    IfMatch:
+      name: If-Match
+      in: header
+      required: false
+      schema: { type: string }
+      description: Controle de concurrence optimiste
+  responses:
+    Problem401:
+      description: Non authentifie
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem403:
+      description: Non autorise (RBAC/ABAC)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem404:
+      description: Ressource introuvable
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem409:
+      description: Conflit (doublon, etat incompatible, idempotence)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem422:
+      description: Erreur de validation
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+  schemas:
+    ProblemDetails:
+      type: object
+      required: [type, title, status, detail]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string, format: uri-reference }
+        code: { type: string, description: Code erreur metier SIGPE }
+        correlation_id: { type: string, format: uuid }
+    Paginated:
+      type: object
+      properties:
+        data: { type: array, items: { type: object } }
+        meta:
+          type: object
+          properties:
+            page: { type: integer }
+            per_page: { type: integer }
+            total: { type: integer }
+            last_page: { type: integer }
+        links:
+          type: object
+          properties:
+            first: { type: string, format: uri }
+            last: { type: string, format: uri }
+            prev: { type: ['string', 'null'], format: uri }
+            next: { type: ['string', 'null'], format: uri }
+    Uuid:
+      type: string
+      format: uuid
+      description: UUIDv7
+    DateTime:
+      type: string
+      format: date-time
+      description: Horodatage UTC ISO 8601
+    AccountStatus:
+      type: string
+      enum: [active, suspended, disabled]
+    DelegationStatus:
+      type: string
+      enum: [active, revoked, expired]
+    FunctionalAccount:
+      type: object
+      required: [id, keycloak_sub, display_name, status, created_at, updated_at]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        keycloak_sub:
+          type: string
+          description: Identifiant du sujet OIDC Keycloak (jamais le mot de passe)
+        display_name: { type: string }
+        status: { $ref: '#/components/schemas/AccountStatus' }
+        activated_at: { $ref: '#/components/schemas/DateTime' }
+        suspended_at: { $ref: '#/components/schemas/DateTime' }
+        created_by: { $ref: '#/components/schemas/Uuid' }
+        created_at: { $ref: '#/components/schemas/DateTime' }
+        updated_at: { $ref: '#/components/schemas/DateTime' }
+    FunctionalAccountCreate:
+      type: object
+      required: [keycloak_sub, display_name]
+      properties:
+        keycloak_sub: { type: string, minLength: 1, maxLength: 255 }
+        display_name: { type: string, minLength: 1, maxLength: 255 }
+    AccountStatusChange:
+      type: object
+      required: [status]
+      properties:
+        status: { $ref: '#/components/schemas/AccountStatus' }
+        motif: { type: string, maxLength: 500 }
+    Role:
+      type: object
+      required: [id, code, name, is_system]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        code: { type: string, example: gestionnaire_patrimoine }
+        name: { type: string }
+        description: { type: ['string', 'null'] }
+        is_system: { type: boolean }
+        permissions:
+          type: array
+          items: { $ref: '#/components/schemas/Permission' }
+    Permission:
+      type: object
+      required: [id, code, domain, action]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        code:
+          type: string
+          example: asset.read
+          description: Format domaine.action, niveau RBAC portés par action
+        domain: { type: string }
+        action: { type: string }
+        level:
+          type: ['string', 'null']
+          enum: [A, C, L, M, V, X, null]
+          description: Niveau RBAC de la matrice (Administer/Create/Read/Modify/Validate/eXecute)
+        description: { type: ['string', 'null'] }
+    AccountRoleAssignment:
+      type: object
+      required: [id, functional_account_id, role_id, granted_at]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        functional_account_id: { $ref: '#/components/schemas/Uuid' }
+        role_id: { $ref: '#/components/schemas/Uuid' }
+        institution_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+          description: NULL = périmètre national
+        organizational_unit_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+        granted_by: { $ref: '#/components/schemas/Uuid' }
+        granted_at: { $ref: '#/components/schemas/DateTime' }
+        expires_at:
+          anyOf:
+            - $ref: '#/components/schemas/DateTime'
+            - type: 'null'
+        revoked_at:
+          anyOf:
+            - $ref: '#/components/schemas/DateTime'
+            - type: 'null'
+        revoked_by: { $ref: '#/components/schemas/Uuid' }
+    RoleAssignmentCreate:
+      type: object
+      required: [role_id]
+      properties:
+        role_id: { $ref: '#/components/schemas/Uuid' }
+        institution_id: { $ref: '#/components/schemas/Uuid' }
+        organizational_unit_id: { $ref: '#/components/schemas/Uuid' }
+        expires_at: { $ref: '#/components/schemas/DateTime' }
+    Delegation:
+      type: object
+      required: [id, delegator_functional_account_id, beneficiary_functional_account_id, valid_from, valid_to, status]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        delegator_functional_account_id: { $ref: '#/components/schemas/Uuid' }
+        beneficiary_functional_account_id: { $ref: '#/components/schemas/Uuid' }
+        role_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+        institution_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+        organizational_unit_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+        valid_from: { $ref: '#/components/schemas/DateTime' }
+        valid_to: { $ref: '#/components/schemas/DateTime' }
+        status: { $ref: '#/components/schemas/DelegationStatus' }
+        revoked_at:
+          anyOf:
+            - $ref: '#/components/schemas/DateTime'
+            - type: 'null'
+        revoked_by: { $ref: '#/components/schemas/Uuid' }
+        motif: { type: ['string', 'null'] }
+        created_at: { $ref: '#/components/schemas/DateTime' }
+    DelegationCreate:
+      type: object
+      required: [beneficiary_functional_account_id, valid_from, valid_to]
+      properties:
+        beneficiary_functional_account_id: { $ref: '#/components/schemas/Uuid' }
+        role_id: { $ref: '#/components/schemas/Uuid' }
+        institution_id: { $ref: '#/components/schemas/Uuid' }
+        organizational_unit_id: { $ref: '#/components/schemas/Uuid' }
+        valid_from: { $ref: '#/components/schemas/DateTime' }
+        valid_to: { $ref: '#/components/schemas/DateTime' }
+        motif: { type: string, maxLength: 500 }
+security:
+  - bearerAuth: []

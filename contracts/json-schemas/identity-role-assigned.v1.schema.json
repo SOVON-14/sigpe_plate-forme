@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/identity-role-assigned.v1.schema.json",
+  "title": "identity.role.assigned — data (v1)",
+  "type": "object",
+  "required": ["functional_account_id", "role_code"],
+  "additionalProperties": false,
+  "properties": {
+    "functional_account_id": { "type": "string", "format": "uuid" },
+    "role_code": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "institution_id": { "type": ["string", "null"], "format": "uuid" },
+    "organizational_unit_id": { "type": ["string", "null"], "format": "uuid" },
+    "expires_at": { "type": ["string", "null"], "format": "date-time" }
+  }
+}

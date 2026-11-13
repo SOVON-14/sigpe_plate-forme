@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/identity-account-created.v1.schema.json",
+  "title": "identity.account.created — data (v1)",
+  "type": "object",
+  "required": ["keycloak_sub", "display_name", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "keycloak_sub": { "type": "string", "minLength": 1, "maxLength": 255 },
+    "display_name": { "type": "string", "minLength": 1, "maxLength": 255 },
+    "status": { "type": "string", "enum": ["active", "suspended", "disabled"] }
+  }
+}

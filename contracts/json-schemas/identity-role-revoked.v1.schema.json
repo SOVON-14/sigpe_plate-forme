@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/identity-role-revoked.v1.schema.json",
+  "title": "identity.role.revoked — data (v1)",
+  "type": "object",
+  "required": ["functional_account_id", "role_id"],
+  "additionalProperties": false,
+  "properties": {
+    "functional_account_id": { "type": "string", "format": "uuid" },
+    "role_id": { "type": "string", "format": "uuid" },
+    "institution_id": { "type": ["string", "null"], "format": "uuid" }
+  }
+}

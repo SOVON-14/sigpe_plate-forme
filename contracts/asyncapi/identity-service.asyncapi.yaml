@@ -1,0 +1,247 @@
+asyncapi: 3.0.0
+info:
+  title: Identity Service — Contrat événementiel
+  version: 1.0.0-draft
+  description: |
+    CONTRAT Identity Service — événements produits vers l'exchange
+    topic sigpe.events.v1 (AMQP 0-9-1).
+    Sources : catalogue v1.1 §6, ADR-006/ADR-007, enveloppe
+    contracts/json-schemas/enveloppe-evenementiel.schema.json.
+    Règles : messages persistants, publisher confirms, routing keys
+    domaine.action.vN, livraison at-least-once, consommateurs idempotents.
+    Statut : BROUILLON EN ATTENTE DE VALIDATION MOA.
+defaultContentType: application/json
+servers:
+  rabbitmq:
+    host: rabbitmq://rabbitmq:5672
+    protocol: amqp
+    description: Broker RabbitMQ (AMQP 0-9-1)
+channels:
+  accountCreated:
+    address: sigpe.events.v1/identity.account.created.v1
+    title: identity.account.created.v1
+    messages:
+      accountCreatedV1:
+        $ref: '#/components/messages/accountCreatedV1'
+  accountStatusChanged:
+    address: sigpe.events.v1/identity.account.status_changed.v1
+    title: identity.account.status_changed.v1
+    messages:
+      accountStatusChangedV1:
+        $ref: '#/components/messages/accountStatusChangedV1'
+  roleAssigned:
+    address: sigpe.events.v1/identity.role.assigned.v1
+    title: identity.role.assigned.v1
+    messages:
+      roleAssignedV1:
+        $ref: '#/components/messages/roleAssignedV1'
+  roleRevoked:
+    address: sigpe.events.v1/identity.role.revoked.v1
+    title: identity.role.revoked.v1
+    messages:
+      roleRevokedV1:
+        $ref: '#/components/messages/roleRevokedV1'
+  delegationCreated:
+    address: sigpe.events.v1/identity.delegation.created.v1
+    title: identity.delegation.created.v1
+    messages:
+      delegationCreatedV1:
+        $ref: '#/components/messages/delegationCreatedV1'
+  delegationRevoked:
+    address: sigpe.events.v1/identity.delegation.revoked.v1
+    title: identity.delegation.revoked.v1
+    messages:
+      delegationRevokedV1:
+        $ref: '#/components/messages/delegationRevokedV1'
+operations:
+  publishAccountCreated:
+    action: send
+    channel:
+      $ref: '#/channels/accountCreated'
+    messages:
+      - $ref: '#/channels/accountCreated/messages/accountCreatedV1'
+  publishAccountStatusChanged:
+    action: send
+    channel:
+      $ref: '#/channels/accountStatusChanged'
+    messages:
+      - $ref: '#/channels/accountStatusChanged/messages/accountStatusChangedV1'
+  publishRoleAssigned:
+    action: send
+    channel:
+      $ref: '#/channels/roleAssigned'
+    messages:
+      - $ref: '#/channels/roleAssigned/messages/roleAssignedV1'
+  publishRoleRevoked:
+    action: send
+    channel:
+      $ref: '#/channels/roleRevoked'
+    messages:
+      - $ref: '#/channels/roleRevoked/messages/roleRevokedV1'
+  publishDelegationCreated:
+    action: send
+    channel:
+      $ref: '#/channels/delegationCreated'
+    messages:
+      - $ref: '#/channels/delegationCreated/messages/delegationCreatedV1'
+  publishDelegationRevoked:
+    action: send
+    channel:
+      $ref: '#/channels/delegationRevoked'
+    messages:
+      - $ref: '#/channels/delegationRevoked/messages/delegationRevokedV1'
+components:
+  messages:
+    accountCreatedV1:
+      name: identity.account.created
+      title: Compte fonctionnel créé (event_version 1)
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/enveloppe-evenementiel.schema.json'
+      examples:
+        - name: Exemple enveloppe
+          payload:
+            event_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f60
+            event_type: identity.account.created
+            event_version: 1
+            occurred_at: '2026-11-13T10:00:00Z'
+            producer: identity-service
+            aggregate_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f61
+            correlation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f62
+            causation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f63
+            actor:
+              type: user
+              id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f65
+            data:
+              keycloak_sub: a1b2c3d4-0000-7000-8000-000000000001
+              display_name: Agent Inventaire Douala
+              status: active
+    accountStatusChangedV1:
+      name: identity.account.status_changed
+      title: Statut de compte modifié (event_version 1)
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/enveloppe-evenementiel.schema.json'
+      examples:
+        - name: Exemple enveloppe
+          payload:
+            event_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f70
+            event_type: identity.account.status_changed
+            event_version: 1
+            occurred_at: '2026-11-13T10:05:00Z'
+            producer: identity-service
+            aggregate_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f61
+            correlation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f62
+            causation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f60
+            actor:
+              type: user
+              id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f66
+            data:
+              from: active
+              to: suspended
+    roleAssignedV1:
+      name: identity.role.assigned
+      title: Rôle attribué à un compte (event_version 1)
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/enveloppe-evenementiel.schema.json'
+      examples:
+        - name: Exemple enveloppe
+          payload:
+            event_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f71
+            event_type: identity.role.assigned
+            event_version: 1
+            occurred_at: '2026-11-13T10:10:00Z'
+            producer: identity-service
+            aggregate_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f72
+            correlation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f62
+            causation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f60
+            institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f64
+            actor:
+              type: user
+              id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f66
+            data:
+              functional_account_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f61
+              role_code: gestionnaire_patrimoine
+              institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f64
+              organizational_unit_id: null
+              expires_at: null
+    roleRevokedV1:
+      name: identity.role.revoked
+      title: Attribution de rôle révoquée (event_version 1)
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/enveloppe-evenementiel.schema.json'
+      examples:
+        - name: Exemple enveloppe
+          payload:
+            event_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f73
+            event_type: identity.role.revoked
+            event_version: 1
+            occurred_at: '2026-11-13T10:15:00Z'
+            producer: identity-service
+            aggregate_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f72
+            correlation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f62
+            causation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f60
+            institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f64
+            actor:
+              type: user
+              id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f66
+            data:
+              functional_account_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f61
+              role_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f74
+              institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f64
+    delegationCreatedV1:
+      name: identity.delegation.created
+      title: Délégation créée (event_version 1)
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/enveloppe-evenementiel.schema.json'
+      examples:
+        - name: Exemple enveloppe
+          payload:
+            event_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f75
+            event_type: identity.delegation.created
+            event_version: 1
+            occurred_at: '2026-11-13T10:20:00Z'
+            producer: identity-service
+            aggregate_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f76
+            correlation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f62
+            causation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f60
+            institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f64
+            actor:
+              type: user
+              id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f61
+            data:
+              delegator_functional_account_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f61
+              beneficiary_functional_account_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f77
+              role_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f74
+              institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f64
+              organizational_unit_id: null
+              valid_from: '2026-11-14T00:00:00Z'
+              valid_to: '2026-11-21T00:00:00Z'
+    delegationRevokedV1:
+      name: identity.delegation.revoked
+      title: Délégation révoquée (event_version 1)
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/enveloppe-evenementiel.schema.json'
+      examples:
+        - name: Exemple enveloppe
+          payload:
+            event_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f78
+            event_type: identity.delegation.revoked
+            event_version: 1
+            occurred_at: '2026-11-13T10:25:00Z'
+            producer: identity-service
+            aggregate_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f76
+            correlation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f62
+            causation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f60
+            institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f64
+            actor:
+              type: user
+              id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f66
+            data:
+              delegator_functional_account_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f61
+              beneficiary_functional_account_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f77
+              institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f64

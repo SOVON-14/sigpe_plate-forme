@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/identity-account-status-changed.v1.schema.json",
+  "title": "identity.account.status_changed — data (v1)",
+  "type": "object",
+  "required": ["from", "to"],
+  "additionalProperties": false,
+  "properties": {
+    "from": { "type": "string", "enum": ["active", "suspended", "disabled"] },
+    "to": { "type": "string", "enum": ["active", "suspended", "disabled"] }
+  }
+}

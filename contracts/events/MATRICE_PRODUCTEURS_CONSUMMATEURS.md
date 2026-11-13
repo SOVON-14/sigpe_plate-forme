@@ -18,6 +18,12 @@ Référence : SIGPE-EVT-MATRIX-001 — Version 0.1 (squelette) — 12/11/2026
 | *(exemple)* movement.transfer.requested | movement.transfer.requested.v1 | movement-service | workflow-service, asset-service | Demande de transfert interministeriel | PROPOSÉ |
 | *(exemple)* asset.attachment.confirmed | asset.attachment.confirmed.v1 | asset-service | movement-service | Confirmation du changement de rattachement | PROPOSÉ — requis par TEC-017 |
 | *(exemple)* movement.interministerial_transfer.completed | movement.interministerial_transfer.completed.v1 | movement-service | reporting-service, audit-service, notification-service | Clôture après confirmation Asset | PROPOSÉ |
+| identity.account.created | identity.account.created.v1 | identity-service | audit-service, notification-service | Création d'un compte fonctionnel | CONTRACTÉ (draft) — voir identity-service.asyncapi.yaml |
+| identity.account.status_changed | identity.account.status_changed.v1 | identity-service | audit-service, notification-service | Suspension/désactivation de compte | CONTRACTÉ (draft) |
+| identity.role.assigned | identity.role.assigned.v1 | identity-service | audit-service | Attribution de rôle (périmètre + expiration) | CONTRACTÉ (draft) |
+| identity.role.revoked | identity.role.revoked.v1 | identity-service | audit-service | Révocation d'attribution de rôle | CONTRACTÉ (draft) |
+| identity.delegation.created | identity.delegation.created.v1 | identity-service | audit-service, notification-service | Création d'une délégation | CONTRACTÉ (draft) |
+| identity.delegation.revoked | identity.delegation.revoked.v1 | identity-service | audit-service, notification-service | Révocation d'une délégation | CONTRACTÉ (draft) |
 
 ## Événements candidats identifiés dans les sources (non contractuels)
 

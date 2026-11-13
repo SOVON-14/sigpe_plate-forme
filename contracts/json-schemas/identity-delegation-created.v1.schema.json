@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/identity-delegation-created.v1.schema.json",
+  "title": "identity.delegation.created — data (v1)",
+  "type": "object",
+  "required": ["delegator_functional_account_id", "beneficiary_functional_account_id", "valid_from", "valid_to"],
+  "additionalProperties": false,
+  "properties": {
+    "delegator_functional_account_id": { "type": "string", "format": "uuid" },
+    "beneficiary_functional_account_id": { "type": "string", "format": "uuid" },
+    "role_id": { "type": ["string", "null"], "format": "uuid" },
+    "institution_id": { "type": ["string", "null"], "format": "uuid" },
+    "organizational_unit_id": { "type": ["string", "null"], "format": "uuid" },
+    "valid_from": { "type": "string", "format": "date-time" },
+    "valid_to": { "type": "string", "format": "date-time" }
+  }
+}
