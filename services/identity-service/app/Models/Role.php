@@ -28,7 +28,7 @@ class Role extends Model
 
     public function permissions(): BelongsToMany
     {
-        return $this->belongsToMany(Permission::class, 'role_permission')->withTimestamps();
+        return $this->belongsToMany(Permission::class, 'role_permission');
     }
 
     public function accountRoles(): HasMany
