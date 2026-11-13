@@ -36,6 +36,12 @@ Référence : SIGPE-EVT-MATRIX-001 — Version 0.1 (squelette) — 12/11/2026
 | asset.physical_state_changed | asset.physical_state_changed.v1 | asset-service | inventory-service, maintenance-service, reporting-service, audit-service | Changement d'état physique | CONTRACTÉ (draft) |
 | asset.status_changed | asset.status_changed.v1 | asset-service | reporting-service, audit-service, notification-service | Changement de statut administratif (en_reforme, sorti…) | CONTRACTÉ (draft) |
 | asset.rattachement_confirmed | asset.rattachement_confirmed.v1 | asset-service | movement-service, reporting-service, audit-service | Confirmation TEC-017 — nouveau code patrimonial attribué | CONTRACTÉ (draft) — **critique** : requis avant clôture transfert interministériel |
+| inventory.campaign_created | inventory.campaign_created.v1 | inventory-service | reporting-service, audit-service, notification-service | Création d'une campagne d'inventaire | CONTRACTÉ (draft) — voir inventory-service.asyncapi.yaml |
+| inventory.campaign_status_changed | inventory.campaign_status_changed.v1 | inventory-service | reporting-service, audit-service, notification-service | Transition de statut (in_progress, under_review, closed, cancelled) | CONTRACTÉ (draft) |
+| inventory.agent_assigned | inventory.agent_assigned.v1 | inventory-service | audit-service, notification-service | Affectation d'un agent d'inventaire | CONTRACTÉ (draft) |
+| inventory.agent_unassigned | inventory.agent_unassigned.v1 | inventory-service | audit-service, notification-service | Désaffectation d'un agent d'inventaire | CONTRACTÉ (draft) |
+| inventory.finding_recorded | inventory.finding_recorded.v1 | inventory-service | reporting-service, audit-service, asset-service | Constat enregistré (trouvé / non trouvé, anomalie éventuelle) | CONTRACTÉ (draft) |
+| inventory.finding_verified | inventory.finding_verified.v1 | inventory-service | reporting-service, audit-service, movement-service, notification-service | Rapprochement contrôlé du constat | CONTRACTÉ (draft) |
 
 ## Événements candidats identifiés dans les sources (non contractuels)
 

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/inventory-campaign-created.v1.schema.json",
+  "title": "inventory.campaign_created — data (v1)",
+  "type": "object",
+  "required": [
+    "campaign_id",
+    "institution_id",
+    "designation",
+    "type",
+    "period_start",
+    "period_end",
+    "responsible_account_id"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "campaign_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "designation": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "general_annual",
+        "periodic",
+        "exceptional"
+      ]
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "responsible_account_id": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

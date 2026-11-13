@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/inventory-campaign-status-changed.v1.schema.json",
+  "title": "inventory.campaign_status_changed — data (v1)",
+  "type": "object",
+  "required": [
+    "campaign_id",
+    "institution_id",
+    "status",
+    "previous_status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "campaign_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "in_progress",
+        "under_review",
+        "closed",
+        "cancelled"
+      ]
+    },
+    "previous_status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "in_progress",
+        "under_review",
+        "closed",
+        "cancelled"
+      ]
+    },
+    "motif": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

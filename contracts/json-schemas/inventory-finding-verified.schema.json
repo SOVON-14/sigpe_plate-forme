@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/inventory-finding-verified.v1.schema.json",
+  "title": "inventory.finding_verified — data (v1)",
+  "type": "object",
+  "required": [
+    "finding_id",
+    "campaign_id",
+    "institution_id",
+    "decision",
+    "previous_status",
+    "verification_status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "finding_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "campaign_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "asset_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "confirmed",
+        "rejected",
+        "resolved"
+      ]
+    },
+    "previous_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "rejected",
+        "resolved"
+      ]
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "rejected",
+        "resolved"
+      ]
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

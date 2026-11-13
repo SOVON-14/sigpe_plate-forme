@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/inventory-finding-recorded.v1.schema.json",
+  "title": "inventory.finding_recorded — data (v1)",
+  "type": "object",
+  "required": [
+    "finding_id",
+    "campaign_id",
+    "institution_id",
+    "result",
+    "identification_method"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "finding_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "campaign_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "asset_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "free_reference": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "result": {
+      "type": "string",
+      "enum": [
+        "trouve",
+        "non_trouve"
+      ]
+    },
+    "anomaly_type": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "endommage",
+        "mal_localise",
+        "non_enregistre",
+        "mal_identifie",
+        "utilisation_non_declaree",
+        "autre",
+        null
+      ]
+    },
+    "identification_method": {
+      "type": "string",
+      "enum": [
+        "qr_code",
+        "manual"
+      ]
+    },
+    "location_found": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "custodian_observed": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

@@ -1,0 +1,702 @@
+openapi: 3.1.0
+info:
+  title: Inventory Service API
+  version: 1.0.0-draft
+  description: |
+    CONTRAT Inventory Service — campagnes d'inventaire et constats SIGPE.
+    Sources : CDC v1.0 §4.6, §2.3 (agent d'inventaire), catalogue technique
+    v1.1 §3.2/§6, ADR-003 (references inter-services par UUID sans FK),
+    ADR-004 (UUIDv7), ADR-005 (RFC 9457).
+    Regles metier cles :
+    - Inventaire en ligne obligatoire ; identification par QR code ou
+      saisie manuelle avec enregistrement immediat.
+    - Detection : biens manquants, non enregistres, mal localises,
+      endommages, mal identifies, utilises par un agent non declare.
+    - Aucune suppression automatique d'un bien non retrouve ; le constat
+      est instruit par rapprochement controle (verification).
+    - Chaque campagne precise : responsable, periode, perimetre,
+      agents affectes et rapport final d'ecarts.
+    - Les references asset_id / organisational_unit_id / compte fonctionnel
+      sont des UUID logiques sans cle etrangere (ownership Asset,
+      Organization, Identity).
+    Statut : BROUILLON EN ATTENTE DE VALIDATION MOA.
+    Regles techniques : prefixe /api/v1, JSON, HTTPS, OIDC bearer,
+    RBAC+ABAC, X-Correlation-ID/X-Request-ID, idempotence, RFC 9457.
+  license:
+    name: Licence proprietaire — Gouvernement de la Republique togolaise
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: https://api.sigpe.local/api/v1
+    description: API Gateway (APISIX)
+tags:
+  - name: health
+    description: Sondes de sante
+  - name: campaigns
+    description: Campagnes d'inventaire
+  - name: agents
+    description: Agents affectes aux campagnes
+  - name: findings
+    description: Constats d'inventaire
+  - name: reports
+    description: Rapports d'ecarts
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Sonde de sante (sans authentification)
+      security: []
+      responses:
+        '200':
+          description: Service operationnel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [ok] }
+                  service: { type: string }
+                  version: { type: string }
+        '429':
+          description: Limitation de debit (APISIX)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '503':
+          description: Service indisponible
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+  /institutions/{institutionId}/inventory-campaigns:
+    get:
+      tags: [campaigns]
+      operationId: listCampaigns
+      summary: Liste des campagnes d'inventaire d'une institution
+      parameters:
+        - $ref: '#/components/parameters/InstitutionId'
+        - name: type
+          in: query
+          schema: { $ref: '#/components/schemas/CampaignType' }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/CampaignStatus' }
+        - name: period_from
+          in: query
+          schema: { $ref: '#/components/schemas/Date' }
+        - name: period_to
+          in: query
+          schema: { $ref: '#/components/schemas/Date' }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Campagnes paginees
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Campaign' }
+                  meta: { $ref: '#/components/schemas/PaginatedMeta' }
+                  links: { $ref: '#/components/schemas/PaginatedLinks' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+    post:
+      tags: [campaigns]
+      operationId: createCampaign
+      summary: Cree une campagne d'inventaire (draft)
+      parameters:
+        - $ref: '#/components/parameters/InstitutionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CampaignCreate' }
+      responses:
+        '201':
+          description: Campagne creee
+          headers:
+            Idempotent-Replay:
+              schema: { type: string }
+              description: 'true si reponse rejouee (idempotence)'
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Campaign' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /inventory-campaigns/{campaignId}:
+    get:
+      tags: [campaigns]
+      operationId: getCampaign
+      summary: Detail d'une campagne
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+      responses:
+        '200':
+          description: Campagne
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Campaign' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+  /inventory-campaigns/{campaignId}/status:
+    post:
+      tags: [campaigns]
+      operationId: changeCampaignStatus
+      summary: Transition de statut de campagne
+      description: |
+        Transitions autorisees :
+        draft → in_progress (demarrage) ; in_progress → under_review ;
+        under_review → closed (cloture + generation du rapport d'ecarts)
+        ou → in_progress (reouverture controlee) ; toute etape →
+        cancelled (annulation motivee). Aucune transition depuis closed.
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CampaignStatusChange' }
+      responses:
+        '200':
+          description: Campagne mise a jour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Campaign' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /inventory-campaigns/{campaignId}/agents:
+    get:
+      tags: [agents]
+      operationId: listCampaignAgents
+      summary: Agents affectes a la campagne
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+      responses:
+        '200':
+          description: Agents
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/CampaignAgent' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+    post:
+      tags: [agents]
+      operationId: assignCampaignAgent
+      summary: Affecte un agent d'inventaire a la campagne
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CampaignAgentAssign' }
+      responses:
+        '201':
+          description: Agent affecte
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/CampaignAgent' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /inventory-campaigns/{campaignId}/agents/{agentId}:
+    delete:
+      tags: [agents]
+      operationId: unassignCampaignAgent
+      summary: Retire un agent de la campagne (desaffectation motivee)
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/AgentId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                motif: { type: string, maxLength: 500 }
+      responses:
+        '204':
+          description: Agent retire
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+  /inventory-campaigns/{campaignId}/findings:
+    get:
+      tags: [findings]
+      operationId: listFindings
+      summary: Constats de la campagne (filtres result/anomaly_type/verification_status)
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - name: result
+          in: query
+          schema: { $ref: '#/components/schemas/FindingResult' }
+        - name: anomaly_type
+          in: query
+          schema: { $ref: '#/components/schemas/AnomalyType' }
+        - name: verification_status
+          in: query
+          schema: { $ref: '#/components/schemas/VerificationStatus' }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Constats pagines
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Finding' }
+                  meta: { $ref: '#/components/schemas/PaginatedMeta' }
+                  links: { $ref: '#/components/schemas/PaginatedLinks' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+    post:
+      tags: [findings]
+      operationId: recordFinding
+      summary: Enregistre immediatement un constat (QR code ou saisie manuelle)
+      description: |
+        Enregistrement en ligne obligatoire. Un constat peut referencer
+        un asset_id connu (asset localise) ou un bien NON enregistre
+        (asset_id absent, reference libre obligatoire). Aucune
+        suppression automatique : le resultat 'non_trouve' declenche
+        une instruction par rapprochement controle.
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FindingRecord' }
+      responses:
+        '201':
+          description: Constat enregistre
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Finding' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /findings/{findingId}:
+    get:
+      tags: [findings]
+      operationId: getFinding
+      summary: Detail d'un constat
+      parameters:
+        - $ref: '#/components/parameters/FindingId'
+      responses:
+        '200':
+          description: Constat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Finding' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+  /findings/{findingId}/verify:
+    post:
+      tags: [findings]
+      operationId: verifyFinding
+      summary: Rapprochement controle du constat (responsable de campagne)
+      description: |
+        Decision du responsable sur le constat : confirme l'anomalie,
+        rejette (faux positif motive) ou classe comme resolu apres
+        instruction. Le rapprochement est exige avant cloture de
+        campagne pour les constats en attente.
+      parameters:
+        - $ref: '#/components/parameters/FindingId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FindingVerify' }
+      responses:
+        '200':
+          description: Constat instruit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Finding' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /inventory-campaigns/{campaignId}/report:
+    get:
+      tags: [reports]
+      operationId: getCampaignReport
+      summary: Rapport final d'ecarts de la campagne
+      description: |
+        Rapport calcule a la demande : denombrement des constats par
+        resultat et type d'anomalie, constats en attente de verification,
+        taux de couverture. La campagne closee expose son rapport fige.
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+      responses:
+        '200':
+          description: Rapport d'ecarts
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CampaignReport' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton OIDC emis par Keycloak
+  parameters:
+    CampaignId:
+      name: campaignId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    FindingId:
+      name: findingId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    AgentId:
+      name: agentId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    InstitutionId:
+      name: institutionId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Cle d'idempotence pour les operations sensibles
+      schema: { type: string, minLength: 8, maxLength: 128 }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PerPage:
+      name: per_page
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    IfMatch:
+      name: If-Match
+      in: header
+      required: false
+      schema: { type: string }
+      description: Controle de concurrence optimiste
+  responses:
+    Problem401:
+      description: Non authentifie
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem403:
+      description: Non autorise (RBAC/ABAC — cloisonnement institutionnel)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem404:
+      description: Ressource introuvable
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem409:
+      description: Conflit (doublon, etat incompatible, idempotence)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem422:
+      description: Erreur de validation
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+  schemas:
+    ProblemDetails:
+      type: object
+      required: [type, title, status, detail]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string, format: uri-reference }
+        code: { type: string, description: Code erreur metier SIGPE }
+        correlation_id: { type: string, format: uuid }
+    PaginatedMeta:
+      type: object
+      properties:
+        page: { type: integer }
+        per_page: { type: integer }
+        total: { type: integer }
+        last_page: { type: integer }
+    PaginatedLinks:
+      type: object
+      properties:
+        first: { type: string, format: uri }
+        last: { type: string, format: uri }
+        prev: { type: ['string', 'null'], format: uri }
+        next: { type: ['string', 'null'], format: uri }
+    Uuid:
+      type: string
+      format: uuid
+      description: UUIDv7
+    DateTime:
+      type: string
+      format: date-time
+    Date:
+      type: string
+      format: date
+    CampaignType:
+      type: string
+      enum: [general_annual, periodic, exceptional]
+      description: Inventaire general annuel, campagne periodique configurable ou exceptionnelle
+    CampaignStatus:
+      type: string
+      enum: [draft, in_progress, under_review, closed, cancelled]
+    FindingResult:
+      type: string
+      enum: [trouve, non_trouve]
+      description: Bien localise ou non retrouve lors du releve
+    AnomalyType:
+      type: string
+      enum: [endommage, mal_localise, non_enregistre, mal_identifie, utilisation_non_declaree, autre]
+      description: Type d'anomalie detectee (CDC §4.6)
+    VerificationStatus:
+      type: string
+      enum: [pending, confirmed, rejected, resolved]
+      description: Rapprochement controle du constat
+    Campaign:
+      type: object
+      required: [id, institution_id, designation, type, status, period_start, period_end, responsible_account_id, created_at, updated_at]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        institution_id: { $ref: '#/components/schemas/Uuid' }
+        designation: { type: string }
+        type: { $ref: '#/components/schemas/CampaignType' }
+        status: { $ref: '#/components/schemas/CampaignStatus' }
+        period_start: { $ref: '#/components/schemas/Date' }
+        period_end: { $ref: '#/components/schemas/Date' }
+        responsible_account_id:
+          $ref: '#/components/schemas/Uuid'
+          description: Compte fonctionnel responsable (reference Identity)
+        organizational_unit_ids:
+          type: array
+          items: { $ref: '#/components/schemas/Uuid' }
+          description: Perimetre de la campagne (references Organization)
+        location:
+          type: ['string', 'null']
+          description: Filtre geographique/physique optionnel
+        counters:
+          type: object
+          properties:
+            expected: { type: integer }
+            recorded: { type: integer }
+            anomalies: { type: integer }
+            pending_verification: { type: integer }
+        created_by: { $ref: '#/components/schemas/Uuid' }
+        created_at: { $ref: '#/components/schemas/DateTime' }
+        updated_at: { $ref: '#/components/schemas/DateTime' }
+    CampaignCreate:
+      type: object
+      required: [designation, type, period_start, period_end, responsible_account_id]
+      properties:
+        designation: { type: string, minLength: 1, maxLength: 255 }
+        type: { $ref: '#/components/schemas/CampaignType' }
+        period_start: { $ref: '#/components/schemas/Date' }
+        period_end: { $ref: '#/components/schemas/Date' }
+        responsible_account_id: { $ref: '#/components/schemas/Uuid' }
+        organizational_unit_ids:
+          type: array
+          items: { $ref: '#/components/schemas/Uuid' }
+          maxItems: 500
+        location: { type: string, maxLength: 500 }
+    CampaignStatusChange:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [in_progress, under_review, closed, cancelled]
+        motif: { type: string, maxLength: 500 }
+    CampaignAgent:
+      type: object
+      required: [id, campaign_id, functional_account_id, assigned_by, assigned_at]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        campaign_id: { $ref: '#/components/schemas/Uuid' }
+        functional_account_id:
+          $ref: '#/components/schemas/Uuid'
+          description: Compte fonctionnel de l'agent d'inventaire (reference Identity)
+        assigned_by: { $ref: '#/components/schemas/Uuid' }
+        assigned_at: { $ref: '#/components/schemas/DateTime' }
+        revoked_at:
+          anyOf:
+            - $ref: '#/components/schemas/DateTime'
+            - type: 'null'
+        revoked_by:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+    CampaignAgentAssign:
+      type: object
+      required: [functional_account_id]
+      properties:
+        functional_account_id: { $ref: '#/components/schemas/Uuid' }
+    Finding:
+      type: object
+      required: [id, campaign_id, result, identification_method, verification_status, recorded_by, recorded_at]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        campaign_id: { $ref: '#/components/schemas/Uuid' }
+        institution_id: { $ref: '#/components/schemas/Uuid' }
+        asset_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+          description: Reference Asset — NULL pour un bien non enregistre
+        free_reference:
+          type: ['string', 'null']
+          description: Reference libre (QR scanne hors registre, saisie manuelle)
+        designation_found:
+          type: ['string', 'null']
+          description: Designation relevee sur le terrain
+        result: { $ref: '#/components/schemas/FindingResult' }
+        anomaly_type:
+          anyOf:
+            - $ref: '#/components/schemas/AnomalyType'
+            - type: 'null'
+        identification_method:
+          type: string
+          enum: [qr_code, manual]
+        location_found:
+          type: ['string', 'null']
+          description: Localisation relevee sur le terrain
+        custodian_observed:
+          type: ['string', 'null']
+          description: Agent declare/utilisateur observe (pour utilisation_non_declaree)
+        notes: { type: ['string', 'null'] }
+        verification_status: { $ref: '#/components/schemas/VerificationStatus' }
+        verified_by:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+        verified_at:
+          anyOf:
+            - $ref: '#/components/schemas/DateTime'
+            - type: 'null'
+        verification_notes: { type: ['string', 'null'] }
+        recorded_by: { $ref: '#/components/schemas/Uuid' }
+        recorded_at: { $ref: '#/components/schemas/DateTime' }
+    FindingRecord:
+      type: object
+      required: [result, identification_method]
+      properties:
+        asset_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+        free_reference: { type: string, maxLength: 255 }
+        designation_found: { type: string, maxLength: 255 }
+        result: { $ref: '#/components/schemas/FindingResult' }
+        anomaly_type: { $ref: '#/components/schemas/AnomalyType' }
+        identification_method:
+          type: string
+          enum: [qr_code, manual]
+        location_found: { type: string, maxLength: 500 }
+        custodian_observed: { type: string, maxLength: 255 }
+        notes: { type: string, maxLength: 2000 }
+    FindingVerify:
+      type: object
+      required: [decision]
+      properties:
+        decision:
+          type: string
+          enum: [confirmed, rejected, resolved]
+        notes: { type: string, maxLength: 2000 }
+    CampaignReport:
+      type: object
+      required: [campaign_id, institution_id, generated_at, totals, by_result, by_anomaly, pending_verification]
+      properties:
+        campaign_id: { $ref: '#/components/schemas/Uuid' }
+        institution_id: { $ref: '#/components/schemas/Uuid' }
+        generated_at: { $ref: '#/components/schemas/DateTime' }
+        totals:
+          type: object
+          properties:
+            expected: { type: integer }
+            recorded: { type: integer }
+            found: { type: integer }
+            not_found: { type: integer }
+            anomalies: { type: integer }
+        by_result:
+          type: object
+          additionalProperties: { type: integer }
+        by_anomaly:
+          type: object
+          additionalProperties: { type: integer }
+        pending_verification:
+          type: array
+          items: { $ref: '#/components/schemas/Uuid' }
+          description: Identifiants des constats en attente de rapprochement
+security:
+  - bearerAuth: []
