@@ -42,6 +42,10 @@ Référence : SIGPE-EVT-MATRIX-001 — Version 0.1 (squelette) — 12/11/2026
 | inventory.agent_unassigned | inventory.agent_unassigned.v1 | inventory-service | audit-service, notification-service | Désaffectation d'un agent d'inventaire | CONTRACTÉ (draft) |
 | inventory.finding_recorded | inventory.finding_recorded.v1 | inventory-service | reporting-service, audit-service, asset-service | Constat enregistré (trouvé / non trouvé, anomalie éventuelle) | CONTRACTÉ (draft) |
 | inventory.finding_verified | inventory.finding_verified.v1 | inventory-service | reporting-service, audit-service, movement-service, notification-service | Rapprochement contrôlé du constat | CONTRACTÉ (draft) |
+| workflow.template_created | workflow.template_created.v1 | workflow-service | audit-service | Création d'un workflow (national ou adaptation) | CONTRACTÉ (draft) — voir workflow-service.asyncapi.yaml |
+| workflow.instance_started | workflow.instance_started.v1 | workflow-service | audit-service, notification-service | Démarrage d'un circuit d'approbation | CONTRACTÉ (draft) |
+| workflow.task_decided | workflow.task_decided.v1 | workflow-service | audit-service, notification-service | Décision sur une tâche d'approbation | CONTRACTÉ (draft) |
+| workflow.instance_completed | workflow.instance_completed.v1 | workflow-service | movement-service, acquisition-service, maintenance-service, reporting-service, audit-service, notification-service | Clôture d'instance — outcome approved/rejected/cancelled (**critique** : débloque l'opération métier) | CONTRACTÉ (draft) |
 
 ## Événements candidats identifiés dans les sources (non contractuels)
 

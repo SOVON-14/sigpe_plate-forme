@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/workflow-instance-completed.v1.schema.json",
+  "title": "workflow.instance_completed — data (v1)",
+  "type": "object",
+  "required": [
+    "instance_id",
+    "workflow_id",
+    "institution_id",
+    "operation_type",
+    "operation_ref",
+    "outcome",
+    "decided_by",
+    "decided_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "instance_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "workflow_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "operation_type": {
+      "type": "string",
+      "enum": [
+        "acquisition",
+        "movement",
+        "transfer",
+        "loan",
+        "reforme",
+        "maintenance",
+        "inventory",
+        "document",
+        "finance",
+        "other"
+      ]
+    },
+    "operation_ref": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "rejected",
+        "cancelled",
+        "correction_requested"
+      ]
+    },
+    "decided_by": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "decision_comment": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

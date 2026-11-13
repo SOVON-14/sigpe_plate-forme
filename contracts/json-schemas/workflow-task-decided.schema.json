@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/workflow-task-decided.v1.schema.json",
+  "title": "workflow.task_decided — data (v1)",
+  "type": "object",
+  "required": [
+    "task_id",
+    "instance_id",
+    "institution_id",
+    "operation_type",
+    "operation_ref",
+    "step_name",
+    "decision",
+    "is_delegated"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "instance_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "operation_type": {
+      "type": "string",
+      "enum": [
+        "acquisition",
+        "movement",
+        "transfer",
+        "loan",
+        "reforme",
+        "maintenance",
+        "inventory",
+        "document",
+        "finance",
+        "other"
+      ]
+    },
+    "operation_ref": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "step_name": {
+      "type": "string"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "approve",
+        "reject",
+        "request_correction"
+      ]
+    },
+    "is_delegated": {
+      "type": "boolean"
+    },
+    "comment": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

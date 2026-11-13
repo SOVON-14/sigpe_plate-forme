@@ -1,0 +1,643 @@
+openapi: 3.1.0
+info:
+  title: Workflow Service API
+  version: 1.0.0-draft
+  description: |
+    CONTRAT Workflow Service — circuits de validation et approbations SIGPE.
+    Sources : CDC v1.0 §4.10, §3.3, catalogue technique v1.1 §3.2/§6,
+    ADR-003 (references inter-services par UUID sans FK),
+    ADR-004 (UUIDv7), ADR-005 (RFC 9457).
+    Regles metier cles :
+    - Bibliotheque de workflows nationaux (institution_id NULL,
+      proteges) adaptables par ministere ; les etapes nationales
+      obligatoires ne sont pas supprimables dans une adaptation.
+    - Approbations sequentielles par groupes ou paralleles dans un
+      groupe ; modes de decision par etape.
+    - Decisions : approuve, refuse, demande de correction — avec motif
+      et historique ; aucune approbation automatique a l'expiration
+      d'un delai (les SLA produisent des rappels/escalades, pas des
+      decisions).
+    - Delegations temporaires controlees via les habilitations Identity
+      (claim de delegation dans le jeton).
+    - Les references operation_ref (mouvement, acquisition, sortie...)
+      sont des UUID logiques sans cle etrangere.
+    Statut : BROUILLON EN ATTENTE DE VALIDATION MOA.
+    Regles techniques : prefixe /api/v1, JSON, HTTPS, OIDC bearer,
+    RBAC+ABAC, X-Correlation-ID/X-Request-ID, idempotence, RFC 9457.
+  license:
+    name: Licence proprietaire — Gouvernement de la Republique togolaise
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: https://api.sigpe.local/api/v1
+    description: API Gateway (APISIX)
+tags:
+  - name: health
+    description: Sondes de sante
+  - name: templates
+    description: Bibliotheque de workflows
+  - name: instances
+    description: Instances de circuits d'approbation
+  - name: tasks
+    description: Taches d'approbation
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Sonde de sante (sans authentification)
+      security: []
+      responses:
+        '200':
+          description: Service operationnel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [ok] }
+                  service: { type: string }
+                  version: { type: string }
+        '429':
+          description: Limitation de debit (APISIX)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '503':
+          description: Service indisponible
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+  /workflows:
+    get:
+      tags: [templates]
+      operationId: listWorkflows
+      summary: Liste les workflows (nationaux + adaptations de l'institution)
+      parameters:
+        - name: domain
+          in: query
+          schema: { $ref: '#/components/schemas/OperationDomain' }
+        - name: status
+          in: query
+          schema: { type: string, enum: [draft, active, archived] }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Workflows pagines
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Workflow' }
+                  meta: { $ref: '#/components/schemas/PaginatedMeta' }
+                  links: { $ref: '#/components/schemas/PaginatedLinks' }
+        '401': { $ref: '#/components/responses/Problem401' }
+    post:
+      tags: [templates]
+      operationId: createWorkflow
+      summary: Cree un workflow (adaptation ministerielle ou workflow national)
+      description: |
+        institution_id NULL dans le corps = workflow national (permission
+        centrale requise) ; sinon adaptation de l'institution appelante.
+        Les etapes marquee is_national_obligatory=true sont preservees
+        dans toute adaptation.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkflowCreate' }
+      responses:
+        '201':
+          description: Workflow cree
+          headers:
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Workflow' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /workflows/{workflowId}:
+    get:
+      tags: [templates]
+      operationId: getWorkflow
+      summary: Detail d'un workflow avec ses etapes
+      parameters:
+        - $ref: '#/components/parameters/WorkflowId'
+      responses:
+        '200':
+          description: Workflow
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Workflow' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+  /workflow-instances:
+    get:
+      tags: [instances]
+      operationId: listInstances
+      summary: Liste les instances de circuits (filtres par domaine/statut/operation)
+      parameters:
+        - name: operation_type
+          in: query
+          schema: { $ref: '#/components/schemas/OperationDomain' }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/InstanceStatus' }
+        - name: operation_ref
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: institution_id
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Instances paginees
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/WorkflowInstance' }
+                  meta: { $ref: '#/components/schemas/PaginatedMeta' }
+                  links: { $ref: '#/components/schemas/PaginatedLinks' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+    post:
+      tags: [instances]
+      operationId: startInstance
+      summary: Demarre un circuit d'approbation pour une operation
+      description: |
+        Appele par le service metier (Movement, Acquisition...) ou par un
+        utilisateur habilite. L'instance fige la version du workflow au
+        moment du demarrage ; les taches sont creees pour le premier
+        groupe d'etapes.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InstanceStart' }
+      responses:
+        '201':
+          description: Instance demarree
+          headers:
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/WorkflowInstance' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /workflow-instances/{instanceId}:
+    get:
+      tags: [instances]
+      operationId: getInstance
+      summary: Detail d'une instance avec progression
+      parameters:
+        - $ref: '#/components/parameters/InstanceId'
+      responses:
+        '200':
+          description: Instance
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/WorkflowInstance' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+  /workflow-instances/{instanceId}/cancel:
+    post:
+      tags: [instances]
+      operationId: cancelInstance
+      summary: Annule une instance en cours (motif obligatoire)
+      parameters:
+        - $ref: '#/components/parameters/InstanceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [motif]
+              properties:
+                motif: { type: string, minLength: 3, maxLength: 500 }
+      responses:
+        '200':
+          description: Instance annulee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/WorkflowInstance' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /workflow-instances/{instanceId}/tasks:
+    get:
+      tags: [tasks]
+      operationId: listInstanceTasks
+      summary: Taches de l'instance (filtrable par statut)
+      parameters:
+        - $ref: '#/components/parameters/InstanceId'
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/TaskStatus' }
+      responses:
+        '200':
+          description: Taches
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Task' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+  /tasks/{taskId}:
+    get:
+      tags: [tasks]
+      operationId: getTask
+      summary: Detail d'une tache d'approbation
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          description: Tache
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Task' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+  /tasks/{taskId}/decision:
+    post:
+      tags: [tasks]
+      operationId: decideTask
+      summary: Decide une tache (approuver, refuser, demander correction)
+      description: |
+        Seul l'assigne (ou un delegue temporaire habilite via Identity)
+        peut decider. 'request_correction' renvoie l'operation au
+        demandeur sans cloturer l'instance ; 'reject' rejette l'instance
+        ; 'approve' fait progresser le circuit. Motif obligatoire pour
+        reject et request_correction.
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TaskDecision' }
+      responses:
+        '200':
+          description: Tache decidee + etat de l'instance
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      task: { $ref: '#/components/schemas/Task' }
+                      instance: { $ref: '#/components/schemas/WorkflowInstance' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton OIDC emis par Keycloak
+  parameters:
+    WorkflowId:
+      name: workflowId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    InstanceId:
+      name: instanceId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Cle d'idempotence pour les operations sensibles
+      schema: { type: string, minLength: 8, maxLength: 128 }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PerPage:
+      name: per_page
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    IfMatch:
+      name: If-Match
+      in: header
+      required: false
+      schema: { type: string }
+      description: Controle de concurrence optimiste
+  responses:
+    Problem401:
+      description: Non authentifie
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem403:
+      description: Non autorise (RBAC/ABAC)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem404:
+      description: Ressource introuvable
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem409:
+      description: Conflit (etat incompatible, idempotence)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem422:
+      description: Erreur de validation
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+  schemas:
+    ProblemDetails:
+      type: object
+      required: [type, title, status, detail]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string, format: uri-reference }
+        code: { type: string, description: Code erreur metier SIGPE }
+        correlation_id: { type: string, format: uuid }
+    PaginatedMeta:
+      type: object
+      properties:
+        page: { type: integer }
+        per_page: { type: integer }
+        total: { type: integer }
+        last_page: { type: integer }
+    PaginatedLinks:
+      type: object
+      properties:
+        first: { type: string, format: uri }
+        last: { type: string, format: uri }
+        prev: { type: ['string', 'null'], format: uri }
+        next: { type: ['string', 'null'], format: uri }
+    Uuid:
+      type: string
+      format: uuid
+      description: UUIDv7
+    DateTime:
+      type: string
+      format: date-time
+    OperationDomain:
+      type: string
+      enum: [acquisition, movement, transfer, loan, reforme, maintenance, inventory, document, finance, other]
+    WorkflowStatus:
+      type: string
+      enum: [draft, active, archived]
+    InstanceStatus:
+      type: string
+      enum: [pending, in_progress, approved, rejected, correction_requested, cancelled]
+    TaskStatus:
+      type: string
+      enum: [pending, approved, rejected, correction_requested, cancelled]
+    TaskDecisionValue:
+      type: string
+      enum: [approve, reject, request_correction]
+    AssigneeType:
+      type: string
+      enum: [role, position, account]
+      description: role = code de role RBAC ; position = UUID poste Organization ; account = UUID compte fonctionnel Identity
+    StepMode:
+      type: string
+      enum: [all, any]
+      description: all = unanimite dans le groupe ; any = une decision suffit
+    WorkflowStep:
+      type: object
+      required: [id, step_group, name, assignee_type, assignee_ref, mode, sequence]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        step_group:
+          type: integer
+          minimum: 1
+          description: Groupe sequentiel — les groupes s'enchainent, les etapes d'un groupe sont paralleles
+        sequence:
+          type: integer
+          minimum: 1
+          description: Ordre dans le groupe
+        name: { type: string }
+        assignee_type: { $ref: '#/components/schemas/AssigneeType' }
+        assignee_ref:
+          type: string
+          description: Code role, UUID position ou UUID compte selon assignee_type
+        mode: { $ref: '#/components/schemas/StepMode' }
+        sla_hours:
+          type: ['integer', 'null']
+          minimum: 1
+          description: Delai cible — produit rappels/escalades, jamais d'approbation automatique
+        is_national_obligatory:
+          type: boolean
+          description: Etape nationale obligatoire — non supprimable dans une adaptation
+    Workflow:
+      type: object
+      required: [id, domain, code, name, version, status, institution_id, steps, created_at, updated_at]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        institution_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+          description: NULL = workflow national (bibliotheque centrale)
+        parent_workflow_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+          description: Workflow national adapte (traçabilite)
+        domain: { $ref: '#/components/schemas/OperationDomain' }
+        code: { type: string, example: transfert_interministeriel_v1 }
+        name: { type: string }
+        description: { type: ['string', 'null'] }
+        version: { type: integer, minimum: 1 }
+        status: { $ref: '#/components/schemas/WorkflowStatus' }
+        steps:
+          type: array
+          items: { $ref: '#/components/schemas/WorkflowStep' }
+        created_by: { $ref: '#/components/schemas/Uuid' }
+        created_at: { $ref: '#/components/schemas/DateTime' }
+        updated_at: { $ref: '#/components/schemas/DateTime' }
+    WorkflowCreate:
+      type: object
+      required: [domain, code, name, steps]
+      properties:
+        institution_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+          description: Omis/NULL = national (droits centraux) ; sinon adaptation
+        parent_workflow_id: { $ref: '#/components/schemas/Uuid' }
+        domain: { $ref: '#/components/schemas/OperationDomain' }
+        code: { type: string, minLength: 2, maxLength: 100, pattern: '^[a-z0-9_-]+$' }
+        name: { type: string, minLength: 1, maxLength: 255 }
+        description: { type: string, maxLength: 2000 }
+        status: { $ref: '#/components/schemas/WorkflowStatus' }
+        steps:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [step_group, name, assignee_type, assignee_ref, mode]
+            properties:
+              step_group: { type: integer, minimum: 1 }
+              sequence: { type: integer, minimum: 1 }
+              name: { type: string, minLength: 1, maxLength: 255 }
+              assignee_type: { $ref: '#/components/schemas/AssigneeType' }
+              assignee_ref: { type: string, minLength: 1, maxLength: 255 }
+              mode: { $ref: '#/components/schemas/StepMode' }
+              sla_hours: { type: integer, minimum: 1 }
+              is_national_obligatory: { type: boolean, default: false }
+    WorkflowInstance:
+      type: object
+      required: [id, workflow_id, institution_id, operation_type, operation_ref, status, started_by, created_at, updated_at]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        workflow_id: { $ref: '#/components/schemas/Uuid' }
+        workflow_version: { type: integer, description: Version figee au demarrage }
+        institution_id: { $ref: '#/components/schemas/Uuid' }
+        operation_type: { $ref: '#/components/schemas/OperationDomain' }
+        operation_ref:
+          $ref: '#/components/schemas/Uuid'
+          description: UUID de l'operation approuvee (mouvement, acquisition...)
+        status: { $ref: '#/components/schemas/InstanceStatus' }
+        current_step_group: { type: ['integer', 'null'] }
+        progress:
+          type: object
+          properties:
+            total_groups: { type: integer }
+            completed_groups: { type: integer }
+            total_tasks: { type: integer }
+            decided_tasks: { type: integer }
+        started_by: { $ref: '#/components/schemas/Uuid' }
+        decided_outcome:
+          anyOf:
+            - { type: string, enum: [approved, rejected, cancelled] }
+            - type: 'null'
+        decided_by:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+        decided_at:
+          anyOf:
+            - $ref: '#/components/schemas/DateTime'
+            - type: 'null'
+        decision_comment: { type: ['string', 'null'] }
+        created_at: { $ref: '#/components/schemas/DateTime' }
+        updated_at: { $ref: '#/components/schemas/DateTime' }
+    InstanceStart:
+      type: object
+      required: [workflow_id, institution_id, operation_type, operation_ref]
+      properties:
+        workflow_id: { $ref: '#/components/schemas/Uuid' }
+        institution_id: { $ref: '#/components/schemas/Uuid' }
+        operation_type: { $ref: '#/components/schemas/OperationDomain' }
+        operation_ref: { $ref: '#/components/schemas/Uuid' }
+        context:
+          type: object
+          description: Donnees contextuelles figees pour les approbateurs (montant, motif...)
+    Task:
+      type: object
+      required: [id, instance_id, step_id, step_group, step_name, assignee_type, assignee_ref, mode, status, sla_due_at, created_at]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        instance_id: { $ref: '#/components/schemas/Uuid' }
+        step_id: { $ref: '#/components/schemas/Uuid' }
+        step_group: { type: integer }
+        step_name: { type: string }
+        assignee_type: { $ref: '#/components/schemas/AssigneeType' }
+        assignee_ref: { type: string }
+        mode: { $ref: '#/components/schemas/StepMode' }
+        sla_hours: { type: ['integer', 'null'] }
+        sla_due_at:
+          anyOf:
+            - $ref: '#/components/schemas/DateTime'
+            - type: 'null'
+        status: { $ref: '#/components/schemas/TaskStatus' }
+        is_delegated: { type: boolean, description: Decision prise via delegation temporaire Identity }
+        decided_by:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+        decided_at:
+          anyOf:
+            - $ref: '#/components/schemas/DateTime'
+            - type: 'null'
+        decision_comment: { type: ['string', 'null'] }
+        created_at: { $ref: '#/components/schemas/DateTime' }
+        updated_at: { $ref: '#/components/schemas/DateTime' }
+    TaskDecision:
+      type: object
+      required: [decision]
+      properties:
+        decision: { $ref: '#/components/schemas/TaskDecisionValue' }
+        comment:
+          type: string
+          maxLength: 2000
+          description: Obligatoire pour reject et request_correction
+security:
+  - bearerAuth: []

@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/workflow-template-created.v1.schema.json",
+  "title": "workflow.template_created — data (v1)",
+  "type": "object",
+  "required": [
+    "workflow_id",
+    "domain",
+    "code",
+    "name",
+    "version",
+    "status",
+    "steps_count"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "workflow_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "parent_workflow_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "domain": {
+      "type": "string",
+      "enum": [
+        "acquisition",
+        "movement",
+        "transfer",
+        "loan",
+        "reforme",
+        "maintenance",
+        "inventory",
+        "document",
+        "finance",
+        "other"
+      ]
+    },
+    "code": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "version": {
+      "type": "integer"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "archived"
+      ]
+    },
+    "steps_count": {
+      "type": "integer"
+    }
+  }
+}

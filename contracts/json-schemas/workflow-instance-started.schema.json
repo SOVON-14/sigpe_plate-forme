@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/workflow-instance-started.v1.schema.json",
+  "title": "workflow.instance_started — data (v1)",
+  "type": "object",
+  "required": [
+    "instance_id",
+    "workflow_id",
+    "workflow_version",
+    "institution_id",
+    "operation_type",
+    "operation_ref",
+    "started_by"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "instance_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "workflow_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "workflow_version": {
+      "type": "integer"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "operation_type": {
+      "type": "string",
+      "enum": [
+        "acquisition",
+        "movement",
+        "transfer",
+        "loan",
+        "reforme",
+        "maintenance",
+        "inventory",
+        "document",
+        "finance",
+        "other"
+      ]
+    },
+    "operation_ref": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "started_by": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}
