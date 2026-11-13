@@ -1,0 +1,298 @@
+asyncapi: 3.0.0
+info:
+  title: Organization Service — Contrat événementiel
+  version: 1.0.0-draft
+  description: |
+    CONTRAT Organization Service — événements produits vers l'exchange
+    topic sigpe.events.v1 (AMQP 0-9-1).
+    Sources : catalogue v1.1 §6, ADR-006/ADR-007, CDC v1.0 §4.2,
+    enveloppe contracts/json-schemas/enveloppe-evenementiel.schema.json.
+    Règles : messages persistants, publisher confirms, routing keys
+    domaine.action.vN, livraison at-least-once, consommateurs idempotents.
+    Statut : BROUILLON EN ATTENTE DE VALIDATION MOA.
+defaultContentType: application/json
+servers:
+  rabbitmq:
+    host: rabbitmq://rabbitmq:5672
+    protocol: amqp
+    description: Broker RabbitMQ (AMQP 0-9-1)
+channels:
+  institutionCreated:
+    address: sigpe.events.v1/organization.institution.created.v1
+    title: organization.institution.created.v1
+    messages:
+      institutionCreatedV1:
+        $ref: '#/components/messages/institutionCreatedV1'
+  institutionStatusChanged:
+    address: sigpe.events.v1/organization.institution.status_changed.v1
+    title: organization.institution.status_changed.v1
+    messages:
+      institutionStatusChangedV1:
+        $ref: '#/components/messages/institutionStatusChangedV1'
+  unitCreated:
+    address: sigpe.events.v1/organization.unit.created.v1
+    title: organization.unit.created.v1
+    messages:
+      unitCreatedV1:
+        $ref: '#/components/messages/unitCreatedV1'
+  unitUpdated:
+    address: sigpe.events.v1/organization.unit.updated.v1
+    title: organization.unit.updated.v1
+    messages:
+      unitUpdatedV1:
+        $ref: '#/components/messages/unitUpdatedV1'
+  unitStatusChanged:
+    address: sigpe.events.v1/organization.unit.status_changed.v1
+    title: organization.unit.status_changed.v1
+    messages:
+      unitStatusChangedV1:
+        $ref: '#/components/messages/unitStatusChangedV1'
+  positionCreated:
+    address: sigpe.events.v1/organization.position.created.v1
+    title: organization.position.created.v1
+    messages:
+      positionCreatedV1:
+        $ref: '#/components/messages/positionCreatedV1'
+  positionResponsibleChanged:
+    address: sigpe.events.v1/organization.position.responsible_changed.v1
+    title: organization.position.responsible_changed.v1
+    messages:
+      positionResponsibleChangedV1:
+        $ref: '#/components/messages/positionResponsibleChangedV1'
+operations:
+  publishInstitutionCreated:
+    action: send
+    channel:
+      $ref: '#/channels/institutionCreated'
+    messages:
+      - $ref: '#/channels/institutionCreated/messages/institutionCreatedV1'
+  publishInstitutionStatusChanged:
+    action: send
+    channel:
+      $ref: '#/channels/institutionStatusChanged'
+    messages:
+      - $ref: '#/channels/institutionStatusChanged/messages/institutionStatusChangedV1'
+  publishUnitCreated:
+    action: send
+    channel:
+      $ref: '#/channels/unitCreated'
+    messages:
+      - $ref: '#/channels/unitCreated/messages/unitCreatedV1'
+  publishUnitUpdated:
+    action: send
+    channel:
+      $ref: '#/channels/unitUpdated'
+    messages:
+      - $ref: '#/channels/unitUpdated/messages/unitUpdatedV1'
+  publishUnitStatusChanged:
+    action: send
+    channel:
+      $ref: '#/channels/unitStatusChanged'
+    messages:
+      - $ref: '#/channels/unitStatusChanged/messages/unitStatusChangedV1'
+  publishPositionCreated:
+    action: send
+    channel:
+      $ref: '#/channels/positionCreated'
+    messages:
+      - $ref: '#/channels/positionCreated/messages/positionCreatedV1'
+  publishPositionResponsibleChanged:
+    action: send
+    channel:
+      $ref: '#/channels/positionResponsibleChanged'
+    messages:
+      - $ref: '#/channels/positionResponsibleChanged/messages/positionResponsibleChangedV1'
+components:
+  messages:
+    institutionCreatedV1:
+      name: organization.institution.created
+      title: Institution créée (event_version 1)
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/enveloppe-evenementiel.schema.json'
+      examples:
+        - name: Exemple enveloppe
+          payload:
+            event_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f80
+            event_type: organization.institution.created
+            event_version: 1
+            occurred_at: '2026-11-13T11:00:00Z'
+            producer: organization-service
+            aggregate_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f81
+            correlation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f82
+            causation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f83
+            actor:
+              type: user
+              id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f84
+            data:
+              institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f81
+              code: MINISTERE-FINANCES
+              name: Ministère des Finances
+              type: ministere
+              status: active
+    institutionStatusChangedV1:
+      name: organization.institution.status_changed
+      title: Statut d'institution modifié (event_version 1)
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/enveloppe-evenementiel.schema.json'
+      examples:
+        - name: Exemple enveloppe
+          payload:
+            event_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f85
+            event_type: organization.institution.status_changed
+            event_version: 1
+            occurred_at: '2026-11-13T11:05:00Z'
+            producer: organization-service
+            aggregate_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f81
+            correlation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f82
+            causation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f80
+            institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f81
+            actor:
+              type: user
+              id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f84
+            data:
+              institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f81
+              status: suspended
+              previous_status: active
+              reason: Réorganisation en cours
+    unitCreatedV1:
+      name: organization.unit.created
+      title: Unité organisationnelle créée (event_version 1)
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/enveloppe-evenementiel.schema.json'
+      examples:
+        - name: Exemple enveloppe
+          payload:
+            event_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f86
+            event_type: organization.unit.created
+            event_version: 1
+            occurred_at: '2026-11-13T11:10:00Z'
+            producer: organization-service
+            aggregate_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f87
+            correlation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f82
+            causation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f80
+            institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f81
+            actor:
+              type: user
+              id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f84
+            data:
+              unit_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f87
+              institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f81
+              parent_id: null
+              unit_type_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f88
+              code: DAF
+              name: Direction des Affaires Financières
+              status: active
+    unitUpdatedV1:
+      name: organization.unit.updated
+      title: Unité réorganisée — renommage, déplacement ou changement de chef (event_version 1)
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/enveloppe-evenementiel.schema.json'
+      examples:
+        - name: Exemple enveloppe
+          payload:
+            event_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f89
+            event_type: organization.unit.updated
+            event_version: 1
+            occurred_at: '2026-11-13T11:20:00Z'
+            producer: organization-service
+            aggregate_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f87
+            correlation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f82
+            causation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f86
+            institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f81
+            actor:
+              type: user
+              id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f84
+            data:
+              unit_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f87
+              institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f81
+              change: moved
+              old:
+                parent_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f90
+              new:
+                parent_id: null
+    unitStatusChangedV1:
+      name: organization.unit.status_changed
+      title: Statut d'unité modifié (event_version 1)
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/enveloppe-evenementiel.schema.json'
+      examples:
+        - name: Exemple enveloppe
+          payload:
+            event_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f91
+            event_type: organization.unit.status_changed
+            event_version: 1
+            occurred_at: '2026-11-13T11:25:00Z'
+            producer: organization-service
+            aggregate_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f87
+            correlation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f82
+            causation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f86
+            institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f81
+            actor:
+              type: user
+              id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f84
+            data:
+              unit_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f87
+              institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f81
+              status: suspended
+              previous_status: active
+              reason: Réorganisation
+    positionCreatedV1:
+      name: organization.position.created
+      title: Poste organisationnel créé (event_version 1)
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/enveloppe-evenementiel.schema.json'
+      examples:
+        - name: Exemple enveloppe
+          payload:
+            event_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f92
+            event_type: organization.position.created
+            event_version: 1
+            occurred_at: '2026-11-13T11:30:00Z'
+            producer: organization-service
+            aggregate_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f93
+            correlation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f82
+            causation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f86
+            institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f81
+            actor:
+              type: user
+              id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f84
+            data:
+              position_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f93
+              unit_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f87
+              institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f81
+              code: CHEF-DAF
+              title: Chef de la Direction des Affaires Financières
+              status: active
+    positionResponsibleChangedV1:
+      name: organization.position.responsible_changed
+      title: Responsable d'un poste modifié (event_version 1)
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/enveloppe-evenementiel.schema.json'
+      examples:
+        - name: Exemple enveloppe
+          payload:
+            event_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f94
+            event_type: organization.position.responsible_changed
+            event_version: 1
+            occurred_at: '2026-11-13T11:35:00Z'
+            producer: organization-service
+            aggregate_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f93
+            correlation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f82
+            causation_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f92
+            institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f81
+            actor:
+              type: user
+              id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f84
+            data:
+              position_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f93
+              unit_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f87
+              institution_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f81
+              functional_account_id: 019a3f2e-7b1c-7d4e-9f2a-1b2c3d4e5f95
+              previous_account_id: null

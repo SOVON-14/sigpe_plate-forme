@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/organization-position-created.v1.schema.json",
+  "title": "organization.position.created — data (v1)",
+  "type": "object",
+  "required": [
+    "position_id",
+    "unit_id",
+    "institution_id",
+    "code",
+    "title",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "position_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "unit_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "code": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "disabled"
+      ]
+    }
+  }
+}

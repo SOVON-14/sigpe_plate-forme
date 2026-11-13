@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/organization-institution-created.v1.schema.json",
+  "title": "organization.institution.created — data (v1)",
+  "type": "object",
+  "required": [
+    "institution_id",
+    "code",
+    "name",
+    "type",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "code": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "administration_centrale",
+        "ministere",
+        "autre"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "disabled"
+      ]
+    }
+  }
+}

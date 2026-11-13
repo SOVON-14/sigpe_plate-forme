@@ -1,0 +1,810 @@
+openapi: 3.1.0
+info:
+  title: Organization Service API
+  version: 1.0.0-draft
+  description: |
+    CONTRAT Organization Service — institutions, structures organisationnelles
+    dynamiques, types d'unités, postes et responsables, historique.
+    Sources : catalogue technique v1.1, CDC v1.0 §2.2 et §4.2, ADR-003
+    (isolation des bases, references inter-services par UUID sans FK),
+    ADR-004 (UUIDv7).
+    Regles metier : creation/activation/desactivation d'institution reservee
+    a l'Administrateur principal ; arborescence d'unites sans nombre fixe
+    de niveaux ; historisation des reorganisations et changements de
+    responsables.
+    Statut : BROUILLON EN ATTENTE DE VALIDATION MOA.
+    Regles techniques : prefixe /api/v1, JSON, HTTPS, OIDC bearer, RBAC+ABAC,
+    X-Correlation-ID/X-Request-ID, idempotence, RFC 9457.
+  license:
+    name: Licence proprietaire — Gouvernement de la Republique togolaise
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: https://api.sigpe.local/api/v1
+    description: API Gateway (APISIX)
+tags:
+  - name: health
+    description: Sondes de sante
+  - name: institutions
+    description: Institutions (administration centrale, ministeres)
+  - name: unit-types
+    description: Types d'unites organisationnelles configurables
+  - name: units
+    description: Unites organisationnelles hierarchiques
+  - name: positions
+    description: Postes organisationnels et responsables
+  - name: histories
+    description: Historique des reorganisations
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Sonde de sante (sans authentification)
+      security: []
+      responses:
+        '200':
+          description: Service operationnel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [ok] }
+                  service: { type: string }
+                  version: { type: string }
+        '429':
+          description: Limitation de debit (APISIX)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '503':
+          description: Service indisponible
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+  /institutions:
+    get:
+      tags: [institutions]
+      operationId: listInstitutions
+      summary: Liste paginee des institutions
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/RequestId'
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/InstitutionStatus' }
+        - name: type
+          in: query
+          schema: { type: string }
+        - name: q
+          in: query
+          schema: { type: string }
+          description: Recherche sur code ou name
+      responses:
+        '200':
+          description: Page d'institutions
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Paginated'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Institution' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+    post:
+      tags: [institutions]
+      operationId: createInstitution
+      summary: Cree une institution (reserve a l'Administrateur principal)
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InstitutionCreate' }
+      responses:
+        '201':
+          description: Institution creee
+          headers:
+            ETag: { schema: { type: string } }
+            Location:
+              schema: { type: string, format: uri-reference }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Institution' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /institutions/{institutionId}:
+    get:
+      tags: [institutions]
+      operationId: getInstitution
+      summary: Detail d'une institution
+      parameters:
+        - $ref: '#/components/parameters/InstitutionId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Institution
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Institution' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+  /institutions/{institutionId}/status:
+    post:
+      tags: [institutions]
+      operationId: changeInstitutionStatus
+      summary: Active, suspend ou desactive logiquement une institution
+      description: Reserve a l'Administrateur principal (CDC §2.3).
+      parameters:
+        - $ref: '#/components/parameters/InstitutionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InstitutionStatusChange' }
+      responses:
+        '200':
+          description: Statut mis a jour
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Institution' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /institutions/{institutionId}/unit-types:
+    get:
+      tags: [unit-types]
+      operationId: listUnitTypes
+      summary: Types d'unites visibles pour une institution (nationaux + locaux)
+      parameters:
+        - $ref: '#/components/parameters/InstitutionId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Liste des types d'unites
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/UnitType' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+    post:
+      tags: [unit-types]
+      operationId: createUnitType
+      summary: Cree un type d'unite local a l'institution
+      parameters:
+        - $ref: '#/components/parameters/InstitutionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UnitTypeCreate' }
+      responses:
+        '201':
+          description: Type d'unite cree
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UnitType' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /institutions/{institutionId}/units:
+    get:
+      tags: [units]
+      operationId: listUnits
+      summary: Arborescence des unites d'une institution
+      parameters:
+        - $ref: '#/components/parameters/InstitutionId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: parent_id
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+          description: Filtre sur les enfants directs d'une unite
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/UnitStatus' }
+        - name: depth
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 10 }
+          description: Profondeur maximale de l'arbre retourne (defaut illimite)
+      responses:
+        '200':
+          description: Unites de l'institution
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/OrganizationalUnit' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+    post:
+      tags: [units]
+      operationId: createUnit
+      summary: Cree une unite organisationnelle dans l'arborescence
+      parameters:
+        - $ref: '#/components/parameters/InstitutionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UnitCreate' }
+      responses:
+        '201':
+          description: Unite creee
+          headers:
+            ETag: { schema: { type: string } }
+            Location:
+              schema: { type: string, format: uri-reference }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrganizationalUnit' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /units/{unitId}:
+    get:
+      tags: [units]
+      operationId: getUnit
+      summary: Detail d'une unite avec son chemin hierarchique
+      parameters:
+        - $ref: '#/components/parameters/UnitId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Unite
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrganizationalUnit' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+    patch:
+      tags: [units]
+      operationId: renameUnit
+      summary: Renomme une unite (reorganisation tracée)
+      parameters:
+        - $ref: '#/components/parameters/UnitId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UnitRename' }
+      responses:
+        '200':
+          description: Unite renommee
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrganizationalUnit' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /units/{unitId}/move:
+    post:
+      tags: [units]
+      operationId: moveUnit
+      summary: Re-rattache une unite a une nouvelle unite parente
+      description: |
+        Aucun nombre fixe de niveaux (CDC §2.2). Le service refuse les
+        cycles hierarchiques, les rattachements vers une autre institution
+        et vers une unite inactive.
+      parameters:
+        - $ref: '#/components/parameters/UnitId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UnitMove' }
+      responses:
+        '200':
+          description: Unite deplacee
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrganizationalUnit' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /units/{unitId}/status:
+    post:
+      tags: [units]
+      operationId: changeUnitStatus
+      summary: Change le statut d'une unite
+      parameters:
+        - $ref: '#/components/parameters/UnitId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UnitStatusChange' }
+      responses:
+        '200':
+          description: Statut mis a jour
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrganizationalUnit' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /units/{unitId}/positions:
+    get:
+      tags: [positions]
+      operationId: listPositions
+      summary: Postes d'une unite
+      parameters:
+        - $ref: '#/components/parameters/UnitId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Postes de l'unite
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Position' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+    post:
+      tags: [positions]
+      operationId: createPosition
+      summary: Cree un poste organisationnel dans une unite
+      parameters:
+        - $ref: '#/components/parameters/UnitId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PositionCreate' }
+      responses:
+        '201':
+          description: Poste cree
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Position' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /units/{unitId}/head:
+    post:
+      tags: [units]
+      operationId: setUnitHead
+      summary: Designe le poste de direction (chef) d'une unite
+      parameters:
+        - $ref: '#/components/parameters/UnitId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UnitHead' }
+      responses:
+        '200':
+          description: Chef d'unite designe
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrganizationalUnit' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /positions/{positionId}/responsible:
+    post:
+      tags: [positions]
+      operationId: assignResponsible
+      summary: Affecte un compte fonctionnel (Identity) a un poste
+      description: |
+        Le compte est reference par UUIDv7 ; aucune cle etrangere
+        inter-services (ADR-003). L'affectation est historisee.
+      parameters:
+        - $ref: '#/components/parameters/PositionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ResponsibleAssign' }
+      responses:
+        '200':
+          description: Responsable affecte
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Position' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+    delete:
+      tags: [positions]
+      operationId: revokeResponsible
+      summary: Libere le poste de son responsable
+      parameters:
+        - $ref: '#/components/parameters/PositionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '200':
+          description: Poste libere
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Position' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+  /institutions/{institutionId}/histories:
+    get:
+      tags: [histories]
+      operationId: listHistories
+      summary: Historique des reorganisations d'une institution
+      parameters:
+        - $ref: '#/components/parameters/InstitutionId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: entity_type
+          in: query
+          schema: { type: string, enum: [institution, organizational_unit, position, unit_type] }
+        - name: entity_id
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+      responses:
+        '200':
+          description: Page d'entrees d'historique
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Paginated'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/OrganizationHistory' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton OIDC emis par Keycloak
+  parameters:
+    InstitutionId:
+      name: institutionId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    UnitId:
+      name: unitId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    PositionId:
+      name: positionId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    CorrelationId:
+      name: X-Correlation-ID
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+    RequestId:
+      name: X-Request-ID
+      in: header
+      required: false
+      schema: { type: string }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Cle d'idempotence pour les operations sensibles
+      schema: { type: string, minLength: 8, maxLength: 128 }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PerPage:
+      name: per_page
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    IfMatch:
+      name: If-Match
+      in: header
+      required: false
+      schema: { type: string }
+      description: Controle de concurrence optimiste
+  responses:
+    Problem401:
+      description: Non authentifie
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem403:
+      description: Non autorise (RBAC/ABAC)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem404:
+      description: Ressource introuvable
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem409:
+      description: Conflit (doublon, etat incompatible, cycle, idempotence)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Problem422:
+      description: Erreur de validation
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+  schemas:
+    ProblemDetails:
+      type: object
+      required: [type, title, status, detail]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string, format: uri-reference }
+        code: { type: string, description: Code erreur metier SIGPE }
+        correlation_id: { type: string, format: uuid }
+    Paginated:
+      type: object
+      properties:
+        data: { type: array, items: { type: object } }
+        meta:
+          type: object
+          properties:
+            page: { type: integer }
+            per_page: { type: integer }
+            total: { type: integer }
+            last_page: { type: integer }
+        links:
+          type: object
+          properties:
+            first: { type: string, format: uri }
+            last: { type: string, format: uri }
+            prev: { type: ['string', 'null'], format: uri }
+            next: { type: ['string', 'null'], format: uri }
+    Uuid:
+      type: string
+      format: uuid
+      description: UUIDv7
+    DateTime:
+      type: string
+      format: date-time
+      description: Horodatage UTC ISO 8601
+    InstitutionStatus:
+      type: string
+      enum: [active, suspended, disabled]
+    UnitStatus:
+      type: string
+      enum: [active, suspended, disabled]
+    Institution:
+      type: object
+      required: [id, code, name, type, status, created_at, updated_at]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        code: { type: string, example: 'MINISTERE-FINANCES' }
+        name: { type: string }
+        type:
+          type: string
+          enum: [administration_centrale, ministere, autre]
+        status: { $ref: '#/components/schemas/InstitutionStatus' }
+        description: { type: ['string', 'null'] }
+        activated_at: { $ref: '#/components/schemas/DateTime' }
+        suspended_at: { $ref: '#/components/schemas/DateTime' }
+        created_by: { $ref: '#/components/schemas/Uuid' }
+        created_at: { $ref: '#/components/schemas/DateTime' }
+        updated_at: { $ref: '#/components/schemas/DateTime' }
+    InstitutionCreate:
+      type: object
+      required: [code, name]
+      properties:
+        code: { type: string, minLength: 2, maxLength: 50, pattern: '^[A-Z0-9-]+$' }
+        name: { type: string, minLength: 1, maxLength: 255 }
+        type: { type: string, enum: [administration_centrale, ministere, autre], default: ministere }
+        description: { type: string, maxLength: 2000 }
+    InstitutionStatusChange:
+      type: object
+      required: [status]
+      properties:
+        status: { $ref: '#/components/schemas/InstitutionStatus' }
+        motif: { type: string, maxLength: 500 }
+    UnitType:
+      type: object
+      required: [id, code, label]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        institution_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+          description: NULL = type national partage
+        code: { type: string, example: direction }
+        label: { type: string }
+        is_system: { type: boolean }
+    UnitTypeCreate:
+      type: object
+      required: [code, label]
+      properties:
+        code: { type: string, minLength: 2, maxLength: 50, pattern: '^[a-z0-9_]+$' }
+        label: { type: string, minLength: 1, maxLength: 255 }
+    OrganizationalUnit:
+      type: object
+      required: [id, institution_id, unit_type_id, code, name, status, created_at, updated_at]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        institution_id: { $ref: '#/components/schemas/Uuid' }
+        parent_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+        unit_type_id: { $ref: '#/components/schemas/Uuid' }
+        code: { type: string }
+        name: { type: string }
+        status: { $ref: '#/components/schemas/UnitStatus' }
+        head_position_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+        created_at: { $ref: '#/components/schemas/DateTime' }
+        updated_at: { $ref: '#/components/schemas/DateTime' }
+    UnitCreate:
+      type: object
+      required: [unit_type_id, code, name]
+      properties:
+        unit_type_id: { $ref: '#/components/schemas/Uuid' }
+        parent_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+        code: { type: string, minLength: 2, maxLength: 50 }
+        name: { type: string, minLength: 1, maxLength: 255 }
+    UnitRename:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 255 }
+        motif: { type: string, maxLength: 500 }
+    UnitMove:
+      type: object
+      properties:
+        parent_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+          description: NULL = rattachement a la racine de l'institution
+        motif: { type: string, maxLength: 500 }
+    UnitStatusChange:
+      type: object
+      required: [status]
+      properties:
+        status: { $ref: '#/components/schemas/UnitStatus' }
+        motif: { type: string, maxLength: 500 }
+    UnitHead:
+      type: object
+      required: [position_id]
+      properties:
+        position_id: { $ref: '#/components/schemas/Uuid' }
+    Position:
+      type: object
+      required: [id, organizational_unit_id, code, title, status, created_at, updated_at]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        organizational_unit_id: { $ref: '#/components/schemas/Uuid' }
+        code: { type: string }
+        title: { type: string }
+        functional_account_id:
+          anyOf:
+            - $ref: '#/components/schemas/Uuid'
+            - type: 'null'
+          description: Compte fonctionnel Identity (reference sans FK)
+        status:
+          type: string
+          enum: [active, suspended, disabled]
+        assigned_at: { $ref: '#/components/schemas/DateTime' }
+        created_at: { $ref: '#/components/schemas/DateTime' }
+        updated_at: { $ref: '#/components/schemas/DateTime' }
+    PositionCreate:
+      type: object
+      required: [code, title]
+      properties:
+        code: { type: string, minLength: 2, maxLength: 50 }
+        title: { type: string, minLength: 1, maxLength: 255 }
+    ResponsibleAssign:
+      type: object
+      required: [functional_account_id]
+      properties:
+        functional_account_id:
+          $ref: '#/components/schemas/Uuid'
+          description: UUID du compte fonctionnel (Identity Service)
+        motif: { type: string, maxLength: 500 }
+    OrganizationHistory:
+      type: object
+      required: [id, entity_type, entity_id, change_type, changed_at]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        entity_type:
+          type: string
+          enum: [institution, organizational_unit, position, unit_type]
+        entity_id: { $ref: '#/components/schemas/Uuid' }
+        institution_id: { $ref: '#/components/schemas/Uuid' }
+        change_type:
+          type: string
+          enum: [created, status_changed, moved, renamed, responsible_changed, type_changed]
+        old_values: { type: ['object', 'null'] }
+        new_values: { type: ['object', 'null'] }
+        reason: { type: ['string', 'null'] }
+        changed_by: { $ref: '#/components/schemas/Uuid' }
+        changed_at: { $ref: '#/components/schemas/DateTime' }
+security:
+  - bearerAuth: []

@@ -24,6 +24,13 @@ Référence : SIGPE-EVT-MATRIX-001 — Version 0.1 (squelette) — 12/11/2026
 | identity.role.revoked | identity.role.revoked.v1 | identity-service | audit-service | Révocation d'attribution de rôle | CONTRACTÉ (draft) |
 | identity.delegation.created | identity.delegation.created.v1 | identity-service | audit-service, notification-service | Création d'une délégation | CONTRACTÉ (draft) |
 | identity.delegation.revoked | identity.delegation.revoked.v1 | identity-service | audit-service, notification-service | Révocation d'une délégation | CONTRACTÉ (draft) |
+| organization.institution.created | organization.institution.created.v1 | organization-service | asset-service, reporting-service, audit-service, notification-service | Création d'une institution | CONTRACTÉ (draft) — voir organization-service.asyncapi.yaml |
+| organization.institution.status_changed | organization.institution.status_changed.v1 | organization-service | asset-service, reporting-service, audit-service, notification-service | Activation/suspension/désactivation d'institution | CONTRACTÉ (draft) |
+| organization.unit.created | organization.unit.created.v1 | organization-service | asset-service, reporting-service, audit-service | Création d'une unité organisationnelle | CONTRACTÉ (draft) |
+| organization.unit.updated | organization.unit.updated.v1 | organization-service | asset-service, reporting-service, audit-service | Réorganisation (renommage, déplacement, changement de chef) | CONTRACTÉ (draft) |
+| organization.unit.status_changed | organization.unit.status_changed.v1 | organization-service | asset-service, reporting-service, audit-service | Changement de statut d'une unité | CONTRACTÉ (draft) |
+| organization.position.created | organization.position.created.v1 | organization-service | audit-service | Création d'un poste organisationnel | CONTRACTÉ (draft) |
+| organization.position.responsible_changed | organization.position.responsible_changed.v1 | organization-service | audit-service, notification-service | Affectation/révocation d'un responsable de poste | CONTRACTÉ (draft) |
 
 ## Événements candidats identifiés dans les sources (non contractuels)
 

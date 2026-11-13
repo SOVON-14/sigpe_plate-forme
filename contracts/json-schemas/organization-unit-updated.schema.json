@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/organization-unit-updated.v1.schema.json",
+  "title": "organization.unit.updated — data (v1)",
+  "type": "object",
+  "required": [
+    "unit_id",
+    "institution_id",
+    "change",
+    "old",
+    "new"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "unit_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "change": {
+      "type": "string",
+      "enum": [
+        "renamed",
+        "moved",
+        "head_changed"
+      ]
+    },
+    "old": {
+      "type": "object"
+    },
+    "new": {
+      "type": "object"
+    }
+  }
+}

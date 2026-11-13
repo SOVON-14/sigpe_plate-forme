@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/organization-unit-status-changed.v1.schema.json",
+  "title": "organization.unit.status.changed — data (v1)",
+  "type": "object",
+  "required": [
+    "unit_id",
+    "institution_id",
+    "status",
+    "previous_status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "unit_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "disabled"
+      ]
+    },
+    "previous_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "disabled"
+      ]
+    },
+    "reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

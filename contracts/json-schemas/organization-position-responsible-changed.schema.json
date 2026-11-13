@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/organization-position-responsible-changed.v1.schema.json",
+  "title": "organization.position.responsible.changed — data (v1)",
+  "type": "object",
+  "required": [
+    "position_id",
+    "unit_id",
+    "institution_id",
+    "functional_account_id",
+    "previous_account_id"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "position_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "unit_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "functional_account_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "previous_account_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    }
+  }
+}
