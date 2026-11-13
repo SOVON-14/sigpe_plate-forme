@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('outbox_messages', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('event_type', 100);
-            $table->string('event_version', 10)->default('v1');
+            $table->unsignedTinyInteger('event_version')->default(1);
             $table->string('aggregate_type', 100);
             $table->uuid('aggregate_id');
             $table->json('payload');

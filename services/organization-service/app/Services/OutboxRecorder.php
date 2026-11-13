@@ -25,7 +25,7 @@ class OutboxRecorder
     ): OutboxMessage {
         return OutboxMessage::create([
             'event_type' => $eventType,
-            'event_version' => 'v1',
+            'event_version' => 1,
             'aggregate_type' => $aggregateType,
             'aggregate_id' => $aggregateId,
             'payload' => $payload,
