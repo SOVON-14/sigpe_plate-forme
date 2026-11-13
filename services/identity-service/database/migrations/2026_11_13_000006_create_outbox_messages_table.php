@@ -22,10 +22,12 @@ return new class extends Migration
             $table->timestamp('occurred_at');
             $table->string('status')->default('pending')->index();
             $table->unsignedInteger('attempts')->default(0);
+            $table->timestamp('next_attempt_at')->nullable();
             $table->timestamp('published_at')->nullable();
             $table->timestamps();
 
             $table->index(['status', 'occurred_at']);
+            $table->index(['status', 'next_attempt_at']);
             $table->index('aggregate_type');
         });
     }

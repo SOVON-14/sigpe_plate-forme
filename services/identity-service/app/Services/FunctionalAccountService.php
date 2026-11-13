@@ -34,7 +34,7 @@ class FunctionalAccountService
                 $correlationId,
                 null,
                 null,
-                $createdBy !== null ? ['type' => 'account', 'id' => $createdBy] : null,
+                $createdBy !== null ? ['type' => 'user', 'id' => $createdBy] : null,
             );
 
             return $account;
@@ -70,7 +70,7 @@ class FunctionalAccountService
                 $correlationId,
                 null,
                 null,
-                $actorId !== null ? ['type' => 'account', 'id' => $actorId] : null,
+                $actorId !== null ? ['type' => 'user', 'id' => $actorId] : null,
             );
 
             return $account;

@@ -69,7 +69,7 @@ class DelegationService
                 $correlationId,
                 null,
                 $institutionId,
-                ['type' => 'account', 'id' => $delegator->id],
+                ['type' => 'user', 'id' => $delegator->id],
             );
 
             return $delegation;
@@ -103,7 +103,7 @@ class DelegationService
                 $correlationId,
                 null,
                 $delegation->institution_id,
-                ['type' => 'account', 'id' => $revokedBy],
+                ['type' => 'user', 'id' => $revokedBy],
             );
 
             return $delegation;

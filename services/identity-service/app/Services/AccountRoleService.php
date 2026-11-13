@@ -68,7 +68,7 @@ class AccountRoleService
                 $correlationId,
                 null,
                 $institutionId,
-                $grantedBy !== null ? ['type' => 'account', 'id' => $grantedBy] : null,
+                $grantedBy !== null ? ['type' => 'user', 'id' => $grantedBy] : null,
             );
 
             return $accountRole;
@@ -101,7 +101,7 @@ class AccountRoleService
                 $correlationId,
                 null,
                 $accountRole->institution_id,
-                ['type' => 'account', 'id' => $revokedBy],
+                ['type' => 'user', 'id' => $revokedBy],
             );
 
             return $accountRole;

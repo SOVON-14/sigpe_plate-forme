@@ -27,6 +27,7 @@ class OutboxMessage extends Model
         'occurred_at',
         'status',
         'attempts',
+        'next_attempt_at',
         'published_at',
     ];
 
@@ -36,12 +37,19 @@ class OutboxMessage extends Model
             'payload' => 'array',
             'actor' => 'array',
             'occurred_at' => 'datetime',
+            'next_attempt_at' => 'datetime',
             'published_at' => 'datetime',
         ];
     }
 
     public function scopePending(Builder $query): Builder
     {
-        return $query->where('status', self::STATUS_PENDING);
+        return $query->where('status', self::STATUS_PENDING)
+            ->where(fn ($q) => $q->whereNull('next_attempt_at')->orWhere('next_attempt_at', '<=', now()));
+    }
+
+    public function scopeClaimable(Builder $query): Builder
+    {
+        return $query->pending()->orderBy('occurred_at');
     }
 }

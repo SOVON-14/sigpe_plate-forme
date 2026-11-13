@@ -19,13 +19,16 @@ class OutboxRecorder
         ?string $institutionId = null,
         ?array $actor = null,
     ): OutboxMessage {
+        $correlationId ??= (string) Str::uuid7();
+        $causationId ??= $correlationId;
+
         return OutboxMessage::create([
             'event_type' => $eventType,
             'event_version' => 1,
             'aggregate_type' => $aggregateType,
             'aggregate_id' => $aggregateId,
             'payload' => $payload,
-            'correlation_id' => $correlationId ?? (string) Str::uuid7(),
+            'correlation_id' => $correlationId,
             'causation_id' => $causationId,
             'institution_id' => $institutionId,
             'actor' => $actor,
