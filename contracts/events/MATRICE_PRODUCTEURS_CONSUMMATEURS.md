@@ -46,6 +46,15 @@ Référence : SIGPE-EVT-MATRIX-001 — Version 0.1 (squelette) — 12/11/2026
 | workflow.instance_started | workflow.instance_started.v1 | workflow-service | audit-service, notification-service | Démarrage d'un circuit d'approbation | CONTRACTÉ (draft) |
 | workflow.task_decided | workflow.task_decided.v1 | workflow-service | audit-service, notification-service | Décision sur une tâche d'approbation | CONTRACTÉ (draft) |
 | workflow.instance_completed | workflow.instance_completed.v1 | workflow-service | movement-service, acquisition-service, maintenance-service, reporting-service, audit-service, notification-service | Clôture d'instance — outcome approved/rejected/cancelled (**critique** : débloque l'opération métier) | CONTRACTÉ (draft) |
+| movement.custody.assigned | movement.custody.assigned.v1 | movement-service | asset-service, reporting-service, audit-service, notification-service | Garde / affectation creee ou transferee | CONTRACTÉ (draft) — voir movement-service.asyncapi.yaml |
+| movement.internal_transfer.completed | movement.internal_transfer.completed.v1 | movement-service | reporting-service, audit-service, notification-service | Transfert interne termine (code patrimonial inchange) | CONTRACTÉ (draft) |
+| movement.interministerial_transfer.requested | movement.interministerial_transfer.requested.v1 | movement-service | workflow-service, audit-service, notification-service | Transfert interministeriel soumis aux validations | CONTRACTÉ (draft) |
+| movement.interministerial_transfer.completed | movement.interministerial_transfer.completed.v1 | movement-service | reporting-service, audit-service, notification-service | Cloture TEC-017 — uniquement apres asset.rattachement_confirmed | CONTRACTÉ (draft) — **critique** |
+| movement.loan.requested | movement.loan.requested.v1 | movement-service | workflow-service, audit-service, notification-service | Demande de pret deposee | CONTRACTÉ (draft) |
+| movement.loan.activated | movement.loan.activated.v1 | movement-service | reporting-service, audit-service, notification-service | Pret actif apres validations | CONTRACTÉ (draft) |
+| movement.loan.returned | movement.loan.returned.v1 | movement-service | reporting-service, audit-service, notification-service | Pret restitue (is_late renseigne) | CONTRACTÉ (draft) |
+| movement.shared_right.granted | movement.shared_right.granted.v1 | movement-service | reporting-service, audit-service, notification-service | Droit d'usage accorde sur bien partage | CONTRACTÉ (draft) |
+| movement.shared_right.terminated | movement.shared_right.terminated.v1 | movement-service | reporting-service, audit-service, notification-service | Droit d'usage suspendu ou termine | CONTRACTÉ (draft) |
 
 ## Événements candidats identifiés dans les sources (non contractuels)
 

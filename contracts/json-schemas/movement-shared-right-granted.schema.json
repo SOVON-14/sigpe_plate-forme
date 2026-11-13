@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/movement-shared-right-granted.v1.schema.json",
+  "title": "movement.shared_right.granted — data (v1)",
+  "type": "object",
+  "required": [
+    "shared_right_id",
+    "asset_id",
+    "responsible_institution_id",
+    "beneficiary_institution_id",
+    "usage_scope"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "shared_right_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "asset_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "responsible_institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "beneficiary_institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "usage_scope": {
+      "type": "string"
+    },
+    "valid_from": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "valid_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "convention_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

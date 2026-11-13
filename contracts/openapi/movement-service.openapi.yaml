@@ -1,0 +1,932 @@
+openapi: 3.1.0
+info:
+  title: Movement Service API
+  version: 1.0.0-draft
+  description: |
+    CONTRAT Movement Service — affectations, gardiens, transferts,
+    prets et droits d'usage des biens partages SIGPE.
+    Sources : CDC v1.0 §3.2, §3.5, §4.7, §4.16, catalogue technique
+    v1.1 §3.1/§3.2/§6.4/§7, ADR-003 (references inter-services par
+    UUID sans FK), ADR-004 (UUIDv7), ADR-005 (RFC 9457).
+    Regles metier cles :
+    - Movement est le SEUL service qui gere les operations de
+      mouvement : affectations (3 niveaux : institution, unite,
+      agent), distinction responsable administratif / gardien
+      physique / utilisateurs autorises, transferts internes et
+      interministeriels, prets temporaires, biens partages.
+    - Transfert interne : meme institution, code patrimonial
+      inchange ; confirmation de sortie par l'unite d'origine puis
+      confirmation de reception par l'unite destinataire.
+    - Transfert interministeriel (TEC-017) : validation Workflow,
+      confirmation de reception, PUIS commande de changement de
+      rattachement a Asset. REGLE ABSOLUE : Movement ne peut pas
+      cloturer tant que Asset n'a pas confirme le changement de
+      rattachement et l'attribution du nouveau code
+      (asset.rattachement_confirmed). Si Asset est indisponible,
+      l'operation reste dans l'etat pending_asset_confirmation et
+      reprend de maniere idempotente.
+    - Pret temporaire : aucune modification de propriete ni
+      d'identifiant ; convention, gardien designe, conditions,
+      echeance, restitution, prolongation motivee, incident.
+    - Bien partage : fiche unique chez Asset ; Movement gere les
+      beneficiaires, droits d'usage, periodes et responsibilities.
+    - asset_id, institution_id, unit_id, account_id sont des UUID
+      de reference SANS cle etrangere inter-services.
+    - Consommateurs attendus : asset.rattachement_confirmed,
+      workflow.instance_completed (approbations).
+    Statut : BROUILLON EN ATTENTE DE VALIDATION MOA.
+    Regles techniques : prefixe /api/v1, JSON, HTTPS, OIDC bearer,
+    RBAC+ABAC, X-Correlation-ID/X-Request-ID, idempotence, RFC 9457.
+  license:
+    name: Licence proprietaire — Gouvernement de la Republique togolaise
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: https://api.sigpe.local/api/v1
+    description: API Gateway (APISIX)
+tags:
+  - name: health
+    description: Sondes de sante
+  - name: custody
+    description: Gardes et affectations courantes
+  - name: operations
+    description: Operations de mouvement
+  - name: shared-rights
+    description: Droits d'usage des biens partages
+  - name: history
+    description: Historique des mouvements
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Sonde de sante (sans authentification)
+      security: []
+      responses:
+        '200':
+          description: Service operationnel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [ok] }
+                  service: { type: string }
+                  version: { type: string }
+        '429':
+          description: Limitation de debit (APISIX)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '503':
+          description: Service indisponible
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+  /custody:
+    get:
+      tags: [custody]
+      operationId: listCustody
+      summary: Liste les gardes actuelles (filtre par bien, detenteur, role)
+      parameters:
+        - name: asset_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: holder_type
+          in: query
+          schema: { $ref: '#/components/schemas/HolderType' }
+        - name: holder_ref
+          in: query
+          schema: { type: string, format: uuid }
+        - name: custody_role
+          in: query
+          schema: { $ref: '#/components/schemas/CustodyRole' }
+        - name: institution_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: per_page
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: Gardes courantes paginees
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/CustodyRecord' }
+                  meta: { $ref: '#/components/schemas/PaginationMeta' }
+                  links: { $ref: '#/components/schemas/PaginationLinks' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [custody]
+      operationId: createCustody
+      summary: Affecte un bien (responsable administratif, gardien ou utilisateur autorise)
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CustodyCreate' }
+      responses:
+        '201':
+          description: Garde creee
+          headers:
+            Location:
+              schema: { type: string }
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/CustodyRecord' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /custody/{id}/close:
+    post:
+      tags: [custody]
+      operationId: closeCustody
+      summary: Cloture une garde (fin d'affectation, depart agent...)
+      parameters:
+        - $ref: '#/components/parameters/CustodyId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CustodyClose' }
+      responses:
+        '200':
+          description: Garde cloturee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/CustodyRecord' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /operations:
+    get:
+      tags: [operations]
+      operationId: listOperations
+      summary: Liste les operations de mouvement
+      parameters:
+        - name: type
+          in: query
+          schema: { $ref: '#/components/schemas/OperationType' }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/OperationStatus' }
+        - name: asset_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: institution_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: operation_ref
+          in: query
+          description: Reference logique externe (dossier workflow, acquisition...)
+          schema: { type: string, format: uuid }
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: per_page
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: Operations paginees
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/MovementOperation' }
+                  meta: { $ref: '#/components/schemas/PaginationMeta' }
+                  links: { $ref: '#/components/schemas/PaginationLinks' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [operations]
+      operationId: createOperation
+      summary: Cree une operation de mouvement (affectation, transfert, pret)
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OperationCreate' }
+      responses:
+        '201':
+          description: Operation creee
+          headers:
+            Location:
+              schema: { type: string }
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/MovementOperation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /operations/{id}:
+    get:
+      tags: [operations]
+      operationId: getOperation
+      summary: Detail d'une operation (biens, gardes, etapes, workflow)
+      parameters:
+        - $ref: '#/components/parameters/OperationId'
+      responses:
+        '200':
+          description: Operation detaillee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/MovementOperationDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /operations/{id}/submit:
+    post:
+      tags: [operations]
+      operationId: submitOperation
+      summary: Soumet l'operation au circuit Workflow requis
+      parameters:
+        - $ref: '#/components/parameters/OperationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workflow_id: { type: string, format: uuid }
+                context: { type: object }
+      responses:
+        '200':
+          description: Operation soumise (workflow_instance_id renseigne)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/MovementOperation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /operations/{id}/confirm-departure:
+    post:
+      tags: [operations]
+      operationId: confirmDeparture
+      summary: Confirmation de sortie par l'unite d'origine (transferts)
+      parameters:
+        - $ref: '#/components/parameters/OperationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OperationConfirmation' }
+      responses:
+        '200':
+          description: Sortie confirmee, etat avance
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/MovementOperation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /operations/{id}/confirm-reception:
+    post:
+      tags: [operations]
+      operationId: confirmReception
+      summary: Confirmation de reception par la destination (transferts)
+      description: |
+        Pour un transfert interministeriel, la confirmation de
+        reception declenche la commande de changement de
+        rattachement vers Asset (TEC-017). L'operation passe en
+        pending_asset_confirmation et ne peut etre cloturee qu'apres
+        reception de l'evenement asset.rattachement_confirmed.
+      parameters:
+        - $ref: '#/components/parameters/OperationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OperationConfirmation' }
+      responses:
+        '200':
+          description: Reception confirmee, etat avance
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/MovementOperation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /operations/{id}/return:
+    post:
+      tags: [operations]
+      operationId: returnOperation
+      summary: Declare la restitution d'un pret (ou retour anticipe)
+      parameters:
+        - $ref: '#/components/parameters/OperationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OperationConfirmation' }
+      responses:
+        '200':
+          description: Pret restitue, etat returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/MovementOperation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /operations/{id}/incident:
+    post:
+      tags: [operations]
+      operationId: reportIncident
+      summary: Declare une perte, un vol ou un dommage pendant un pret
+      description: Bloque les changements sensibles et ouvre la procedure contradictoire (CDC §4.7).
+      parameters:
+        - $ref: '#/components/parameters/OperationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IncidentReport' }
+      responses:
+        '200':
+          description: Incident enregistre
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/MovementOperation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /operations/{id}/cancel:
+    post:
+      tags: [operations]
+      operationId: cancelOperation
+      summary: Annule une operation non terminee (motif obligatoire)
+      parameters:
+        - $ref: '#/components/parameters/OperationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [motif]
+              properties:
+                motif: { type: string, minLength: 3, maxLength: 500 }
+      responses:
+        '200':
+          description: Operation annulee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/MovementOperation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /operations/{id}/history:
+    get:
+      tags: [history]
+      operationId: getOperationHistory
+      summary: Historique complet d'une operation (traces avant/apres)
+      parameters:
+        - $ref: '#/components/parameters/OperationId'
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: per_page
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: Historique pagine
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/MovementHistoryEntry' }
+                  meta: { $ref: '#/components/schemas/PaginationMeta' }
+                  links: { $ref: '#/components/schemas/PaginationLinks' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /assets/{assetId}/movements:
+    get:
+      tags: [history]
+      operationId: listAssetMovements
+      summary: Historique des mouvements d'un bien (gardes + operations)
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: per_page
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: Mouvements du bien, chronologiques
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AssetMovementEntry' }
+                  meta: { $ref: '#/components/schemas/PaginationMeta' }
+                  links: { $ref: '#/components/schemas/PaginationLinks' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /shared-rights:
+    get:
+      tags: [shared-rights]
+      operationId: listSharedRights
+      summary: Liste les droits d'usage des biens partages
+      parameters:
+        - name: asset_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: beneficiary_institution_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/SharedRightStatus' }
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: per_page
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: Droits d'usage pagines
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/SharedRight' }
+                  meta: { $ref: '#/components/schemas/PaginationMeta' }
+                  links: { $ref: '#/components/schemas/PaginationLinks' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [shared-rights]
+      operationId: createSharedRight
+      summary: Declare un beneficiaire et ses droits d'usage sur un bien partage
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SharedRightCreate' }
+      responses:
+        '201':
+          description: Droit d'usage cree
+          headers:
+            Location:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/SharedRight' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /shared-rights/{id}/suspend:
+    post:
+      tags: [shared-rights]
+      operationId: suspendSharedRight
+      summary: Suspend temporairement un droit d'usage (motif obligatoire)
+      parameters:
+        - $ref: '#/components/parameters/SharedRightId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [motif]
+              properties:
+                motif: { type: string, minLength: 3, maxLength: 500 }
+      responses:
+        '200':
+          description: Droit suspendu
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/SharedRight' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /shared-rights/{id}/terminate:
+    post:
+      tags: [shared-rights]
+      operationId: terminateSharedRight
+      summary: Termine definitivement un droit d'usage (motif obligatoire)
+      parameters:
+        - $ref: '#/components/parameters/SharedRightId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [motif]
+              properties:
+                motif: { type: string, minLength: 3, maxLength: 500 }
+      responses:
+        '200':
+          description: Droit termine
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/SharedRight' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton OIDC Keycloak (realm sigpe)
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Cle d'idempotence (UUID recommande) pour les mutations sensibles
+      schema: { type: string, minLength: 8, maxLength: 128 }
+    CustodyId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    OperationId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    SharedRightId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  responses:
+    Unauthorized:
+      description: Non authentifie
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Forbidden:
+      description: Permission ou perimetre institutionnel insuffisant
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Conflict:
+      description: Conflit metier (etat, unicite, sequence interdite)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    ValidationError:
+      description: Erreur de validation des champs
+      content:
+        application/problem+json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ProblemDetails'
+              - type: object
+                properties:
+                  errors: { type: object }
+  schemas:
+    ProblemDetails:
+      type: object
+      required: [type, title, status, detail, code]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        correlation_id: { type: string, format: uuid }
+        errors: { type: object }
+    PaginationMeta:
+      type: object
+      properties:
+        page: { type: integer }
+        per_page: { type: integer }
+        total: { type: integer }
+        last_page: { type: integer }
+    PaginationLinks:
+      type: object
+      properties:
+        first: { type: [string, 'null']}
+        last: { type: [string, 'null']}
+        prev: { type: [string, 'null']}
+        next: { type: [string, 'null']}
+    HolderType:
+      type: string
+      enum: [institution, organizational_unit, account]
+      description: "Niveau de detention : institution, unite organisationnelle ou agent"
+    CustodyRole:
+      type: string
+      enum: [administrative_responsible, physical_custodian, authorized_user]
+      description: Role du detenteur (CDC §4.7 — trois roles distincts)
+    OperationType:
+      type: string
+      enum: [assignment, internal_transfer, interministerial_transfer, loan]
+    OperationStatus:
+      type: string
+      enum:
+        - draft
+        - pending_validation
+        - pending_departure
+        - pending_reception
+        - pending_asset_confirmation
+        - active
+        - return_pending
+        - completed
+        - returned
+        - cancelled
+        - rejected
+        - incident_reported
+      description: |
+        Machine a etats : draft -> pending_validation (workflow) ->
+        pending_departure -> pending_reception ->
+        pending_asset_confirmation (interministerial uniquement,
+        TEC-017) -> completed/returned. Pret : pending_validation ->
+        active -> return_pending -> returned ; incident_reported
+        ouvre la procedure contradictoire.
+    SharedRightStatus:
+      type: string
+      enum: [active, suspended, terminated]
+    CustodyRecord:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        asset_id: { type: string, format: uuid }
+        institution_id: { type: string, format: uuid }
+        holder_type: { $ref: '#/components/schemas/HolderType' }
+        holder_ref: { type: string, format: uuid }
+        custody_role: { $ref: '#/components/schemas/CustodyRole' }
+        valid_from: { type: string, format: date-time }
+        valid_to: { type: [string, 'null'], format: date-time }
+        source_operation_id: { type: [string, 'null'], format: uuid }
+        created_by: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }
+    CustodyCreate:
+      type: object
+      required: [asset_id, holder_type, holder_ref, custody_role]
+      properties:
+        asset_id: { type: string, format: uuid }
+        institution_id: { type: string, format: uuid }
+        holder_type: { $ref: '#/components/schemas/HolderType' }
+        holder_ref: { type: string, format: uuid }
+        custody_role: { $ref: '#/components/schemas/CustodyRole' }
+        valid_from: { type: string, format: date-time }
+        motif: { type: string, maxLength: 500 }
+    CustodyClose:
+      type: object
+      required: [motif]
+      properties:
+        motif: { type: string, minLength: 3, maxLength: 500 }
+        valid_to: { type: string, format: date-time }
+    MovementOperation:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        type: { $ref: '#/components/schemas/OperationType' }
+        status: { $ref: '#/components/schemas/OperationStatus' }
+        institution_id: { type: string, format: uuid, description: Institution d'origine }
+        destination_institution_id: { type: [string, 'null'], format: uuid }
+        origin_unit_id: { type: [string, 'null'], format: uuid }
+        destination_unit_id: { type: [string, 'null'], format: uuid }
+        asset_ids: { type: array, items: { type: string, format: uuid } }
+        workflow_instance_id: { type: [string, 'null'], format: uuid }
+        operation_ref: { type: [string, 'null'], format: uuid }
+        motif: { type: [string, 'null']}
+        loan_start_at: { type: [string, 'null'], format: date-time }
+        loan_end_at: { type: [string, 'null'], format: date-time }
+        custodian_account_id: { type: [string, 'null'], format: uuid }
+        convention_ref: { type: [string, 'null']}
+        conditions: { type: [string, 'null']}
+        decided_by: { type: [string, 'null'], format: uuid }
+        decided_at: { type: [string, 'null'], format: date-time }
+        decision_comment: { type: [string, 'null']}
+        created_by: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    MovementOperationDetail:
+      allOf:
+        - $ref: '#/components/schemas/MovementOperation'
+        - type: object
+          properties:
+            assets:
+              type: array
+              items:
+                type: object
+                properties:
+                  asset_id: { type: string, format: uuid }
+                  patrimonial_code: { type: [string, 'null'], description: Code fige a la creation (Asset reste proprietaire) }
+            custodies:
+              type: array
+              items: { $ref: '#/components/schemas/CustodyRecord' }
+            steps:
+              type: array
+              items:
+                type: object
+                properties:
+                  key: { type: string }
+                  label: { type: string }
+                  status: { type: string }
+                  completed_at: { type: [string, 'null'], format: date-time }
+                  confirmed_by: { type: [string, 'null'], format: uuid }
+    OperationCreate:
+      type: object
+      required: [type, asset_ids]
+      properties:
+        type: { $ref: '#/components/schemas/OperationType' }
+        asset_ids:
+          type: array
+          minItems: 1
+          items: { type: string, format: uuid }
+        destination_institution_id: { type: string, format: uuid }
+        origin_unit_id: { type: string, format: uuid }
+        destination_unit_id: { type: string, format: uuid }
+        operation_ref: { type: string, format: uuid }
+        motif: { type: string, maxLength: 1000 }
+        require_workflow: { type: boolean, default: false, description: Soumettre a un circuit Workflow a la creation }
+        workflow_id: { type: string, format: uuid }
+        loan_start_at: { type: string, format: date-time }
+        loan_end_at: { type: string, format: date-time }
+        custodian_account_id: { type: string, format: uuid }
+        convention_ref: { type: string, maxLength: 255 }
+        conditions: { type: string, maxLength: 4000 }
+        custody_role: { $ref: '#/components/schemas/CustodyRole', description: Role de la garde creee (assignment) }
+        holder_type: { $ref: '#/components/schemas/HolderType' }
+        holder_ref: { type: string, format: uuid }
+    OperationConfirmation:
+      type: object
+      properties:
+        comment: { type: string, maxLength: 2000 }
+        received_state_note: { type: string, maxLength: 2000, description: Etat constate a la reception }
+    IncidentReport:
+      type: object
+      required: [incident_type, description]
+      properties:
+        incident_type:
+          type: string
+          enum: [loss, theft, damage, other]
+        description: { type: string, minLength: 10, maxLength: 4000 }
+        evidence_refs:
+          type: array
+          items: { type: string, format: uuid, description: References Document Service }
+    MovementHistoryEntry:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        entity_type: { type: string, enum: [operation, custody] }
+        entity_id: { type: string, format: uuid }
+        action: { type: string }
+        before: { type: [object, 'null']}
+        after: { type: [object, 'null']}
+        actor: { type: object }
+        motif: { type: [string, 'null']}
+        occurred_at: { type: string, format: date-time }
+    AssetMovementEntry:
+      type: object
+      properties:
+        kind: { type: string, enum: [custody, operation] }
+        occurred_at: { type: string, format: date-time }
+        operation_id: { type: [string, 'null'], format: uuid }
+        operation_type: { $ref: '#/components/schemas/OperationType' }
+        status: { type: [string, 'null']}
+        holder_type: { $ref: '#/components/schemas/HolderType' }
+        holder_ref: { type: [string, 'null'], format: uuid }
+        custody_role: { $ref: '#/components/schemas/CustodyRole' }
+        motif: { type: [string, 'null']}
+    SharedRight:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        asset_id: { type: string, format: uuid }
+        responsible_institution_id: { type: string, format: uuid, description: Institution responsable de la fiche }
+        beneficiary_institution_id: { type: string, format: uuid }
+        usage_scope: { type: string, maxLength: 500, description: Droits d'usage accordes }
+        responsibilities: { type: [string, 'null'], description: Repartition des responsabilites et couts }
+        valid_from: { type: string, format: date-time }
+        valid_to: { type: [string, 'null'], format: date-time }
+        convention_ref: { type: [string, 'null']}
+        status: { $ref: '#/components/schemas/SharedRightStatus' }
+        created_by: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    SharedRightCreate:
+      type: object
+      required: [asset_id, responsible_institution_id, beneficiary_institution_id, usage_scope]
+      properties:
+        asset_id: { type: string, format: uuid }
+        responsible_institution_id: { type: string, format: uuid }
+        beneficiary_institution_id: { type: string, format: uuid }
+        usage_scope: { type: string, minLength: 3, maxLength: 500 }
+        responsibilities: { type: string, maxLength: 2000 }
+        valid_from: { type: string, format: date-time }
+        valid_to: { type: string, format: date-time }
+        convention_ref: { type: string, maxLength: 255 }

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/movement-loan-returned.v1.schema.json",
+  "title": "movement.loan.returned — data (v1)",
+  "type": "object",
+  "required": [
+    "operation_id",
+    "lender_institution_id",
+    "borrower_institution_id",
+    "asset_ids"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "operation_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "lender_institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "borrower_institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "asset_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      }
+    },
+    "returned_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_late": {
+      "type": "boolean"
+    }
+  }
+}

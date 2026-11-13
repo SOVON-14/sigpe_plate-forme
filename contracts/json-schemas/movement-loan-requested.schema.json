@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/movement-loan-requested.v1.schema.json",
+  "title": "movement.loan.requested — data (v1)",
+  "type": "object",
+  "required": [
+    "operation_id",
+    "lender_institution_id",
+    "borrower_institution_id",
+    "asset_ids",
+    "loan_end_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "operation_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "lender_institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "borrower_institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "asset_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      }
+    },
+    "loan_start_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "loan_end_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "custodian_account_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "convention_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "workflow_instance_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    }
+  }
+}

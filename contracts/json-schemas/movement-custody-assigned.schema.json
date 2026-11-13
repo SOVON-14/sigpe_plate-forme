@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/movement-custody-assigned.v1.schema.json",
+  "title": "movement.custody.assigned — data (v1)",
+  "type": "object",
+  "required": [
+    "custody_id",
+    "asset_id",
+    "institution_id",
+    "holder_type",
+    "holder_ref",
+    "custody_role"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "custody_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "asset_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "holder_type": {
+      "type": "string",
+      "enum": [
+        "institution",
+        "organizational_unit",
+        "account"
+      ]
+    },
+    "holder_ref": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "custody_role": {
+      "type": "string",
+      "enum": [
+        "administrative_responsible",
+        "physical_custodian",
+        "authorized_user"
+      ]
+    },
+    "valid_from": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_operation_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    }
+  }
+}

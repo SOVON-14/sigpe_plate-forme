@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/movement-interministerial-transfer-completed.v1.schema.json",
+  "title": "movement.interministerial_transfer.completed — data (v1)",
+  "type": "object",
+  "required": [
+    "operation_id",
+    "origin_institution_id",
+    "destination_institution_id",
+    "asset_ids",
+    "new_patrimonial_codes"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "operation_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "origin_institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "destination_institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "asset_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      }
+    },
+    "new_patrimonial_codes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

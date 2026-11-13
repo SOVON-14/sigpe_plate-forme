@@ -1,0 +1,294 @@
+asyncapi: 3.0.0
+info:
+  title: Movement Service — Contrat événementiel
+  version: 1.0.0-draft
+  description: |
+    CONTRAT Movement Service — événements produits vers l'exchange
+    topic sigpe.events.v1 (AMQP 0-9-1).
+    Sources : CDC v1.0 §3.2, §4.7, §4.16, catalogue technique v1.1
+    §3.1/§3.2/§6.4/§7, ADR-006/ADR-007,
+    enveloppe contracts/json-schemas/enveloppe-evenementiel.schema.json.
+    Règles : messages persistants, publisher confirms, routing keys
+    domaine.action.vN, livraison at-least-once, consommateurs idempotents.
+    movement.interministerial_transfer.completed est l'événement
+    critique : il ne peut être publié qu'APRÈS confirmation par Asset
+    du changement de rattachement et de l'attribution du nouveau code
+    (asset.rattachement_confirmed) — règle absolue TEC-017.
+    Consommateurs attendus (côté Movement) :
+    asset.rattachement_confirmed, workflow.instance_completed.
+    Statut : BROUILLON EN ATTENTE DE VALIDATION MOA.
+defaultContentType: application/json
+servers:
+  rabbitmq:
+    host: rabbitmq://rabbitmq:5672
+    protocol: amqp
+    description: Broker RabbitMQ (AMQP 0-9-1)
+channels:
+  custodyAssigned:
+    address: sigpe.events.v1/movement.custody.assigned.v1
+    title: movement.custody.assigned.v1
+    messages:
+      custodyAssignedV1:
+        $ref: '#/components/messages/custodyAssignedV1'
+  internalTransferCompleted:
+    address: sigpe.events.v1/movement.internal_transfer.completed.v1
+    title: movement.internal_transfer.completed.v1
+    messages:
+      internalTransferCompletedV1:
+        $ref: '#/components/messages/internalTransferCompletedV1'
+  interministerialTransferRequested:
+    address: sigpe.events.v1/movement.interministerial_transfer.requested.v1
+    title: movement.interministerial_transfer.requested.v1
+    messages:
+      interministerialTransferRequestedV1:
+        $ref: '#/components/messages/interministerialTransferRequestedV1'
+  interministerialTransferCompleted:
+    address: sigpe.events.v1/movement.interministerial_transfer.completed.v1
+    title: movement.interministerial_transfer.completed.v1
+    messages:
+      interministerialTransferCompletedV1:
+        $ref: '#/components/messages/interministerialTransferCompletedV1'
+  loanRequested:
+    address: sigpe.events.v1/movement.loan.requested.v1
+    title: movement.loan.requested.v1
+    messages:
+      loanRequestedV1:
+        $ref: '#/components/messages/loanRequestedV1'
+  loanActivated:
+    address: sigpe.events.v1/movement.loan.activated.v1
+    title: movement.loan.activated.v1
+    messages:
+      loanActivatedV1:
+        $ref: '#/components/messages/loanActivatedV1'
+  loanReturned:
+    address: sigpe.events.v1/movement.loan.returned.v1
+    title: movement.loan.returned.v1
+    messages:
+      loanReturnedV1:
+        $ref: '#/components/messages/loanReturnedV1'
+  sharedRightGranted:
+    address: sigpe.events.v1/movement.shared_right.granted.v1
+    title: movement.shared_right.granted.v1
+    messages:
+      sharedRightGrantedV1:
+        $ref: '#/components/messages/sharedRightGrantedV1'
+  sharedRightTerminated:
+    address: sigpe.events.v1/movement.shared_right.terminated.v1
+    title: movement.shared_right.terminated.v1
+    messages:
+      sharedRightTerminatedV1:
+        $ref: '#/components/messages/sharedRightTerminatedV1'
+operations:
+  publishCustodyAssigned:
+    action: send
+    channel:
+      $ref: '#/channels/custodyAssigned'
+    messages:
+      - $ref: '#/channels/custodyAssigned/messages/custodyAssignedV1'
+  publishInternalTransferCompleted:
+    action: send
+    channel:
+      $ref: '#/channels/internalTransferCompleted'
+    messages:
+      - $ref: '#/channels/internalTransferCompleted/messages/internalTransferCompletedV1'
+  publishInterministerialTransferRequested:
+    action: send
+    channel:
+      $ref: '#/channels/interministerialTransferRequested'
+    messages:
+      - $ref: '#/channels/interministerialTransferRequested/messages/interministerialTransferRequestedV1'
+  publishInterministerialTransferCompleted:
+    action: send
+    channel:
+      $ref: '#/channels/interministerialTransferCompleted'
+    messages:
+      - $ref: '#/channels/interministerialTransferCompleted/messages/interministerialTransferCompletedV1'
+  publishLoanRequested:
+    action: send
+    channel:
+      $ref: '#/channels/loanRequested'
+    messages:
+      - $ref: '#/channels/loanRequested/messages/loanRequestedV1'
+  publishLoanActivated:
+    action: send
+    channel:
+      $ref: '#/channels/loanActivated'
+    messages:
+      - $ref: '#/channels/loanActivated/messages/loanActivatedV1'
+  publishLoanReturned:
+    action: send
+    channel:
+      $ref: '#/channels/loanReturned'
+    messages:
+      - $ref: '#/channels/loanReturned/messages/loanReturnedV1'
+  publishSharedRightGranted:
+    action: send
+    channel:
+      $ref: '#/channels/sharedRightGranted'
+    messages:
+      - $ref: '#/channels/sharedRightGranted/messages/sharedRightGrantedV1'
+  publishSharedRightTerminated:
+    action: send
+    channel:
+      $ref: '#/channels/sharedRightTerminated'
+    messages:
+      - $ref: '#/channels/sharedRightTerminated/messages/sharedRightTerminatedV1'
+components:
+  messages:
+    custodyAssignedV1:
+      name: movement.custody.assigned.v1
+      title: Garde / affectation creee
+      contentType: application/json
+      headers:
+        type: object
+        properties:
+          event_type: { type: string }
+          event_version: { type: integer }
+          correlation_id: { type: string }
+      payload:
+        type: object
+        required: [custody_id, asset_id, institution_id, holder_type, holder_ref, custody_role]
+        properties:
+          custody_id: { type: string, format: uuid }
+          asset_id: { type: string, format: uuid }
+          institution_id: { type: string, format: uuid }
+          holder_type: { type: string, enum: [institution, organizational_unit, account] }
+          holder_ref: { type: string, format: uuid }
+          custody_role: { type: string, enum: [administrative_responsible, physical_custodian, authorized_user] }
+          valid_from: { type: string, format: date-time }
+          source_operation_id: { type: string, format: uuid, nullable: true }
+    internalTransferCompletedV1:
+      name: movement.internal_transfer.completed.v1
+      title: Transfert interne termine
+      contentType: application/json
+      payload:
+        type: object
+        required: [operation_id, institution_id, asset_ids]
+        properties:
+          operation_id: { type: string, format: uuid }
+          institution_id: { type: string, format: uuid }
+          asset_ids:
+            type: array
+            items: { type: string, format: uuid }
+          origin_unit_id: { type: string, format: uuid, nullable: true }
+          destination_unit_id: { type: string, format: uuid, nullable: true }
+          completed_at: { type: string, format: date-time }
+    interministerialTransferRequestedV1:
+      name: movement.interministerial_transfer.requested.v1
+      title: Transfert interministeriel soumis aux validations
+      contentType: application/json
+      payload:
+        type: object
+        required: [operation_id, origin_institution_id, destination_institution_id, asset_ids, workflow_instance_id]
+        properties:
+          operation_id: { type: string, format: uuid }
+          origin_institution_id: { type: string, format: uuid }
+          destination_institution_id: { type: string, format: uuid }
+          asset_ids:
+            type: array
+            items: { type: string, format: uuid }
+          workflow_instance_id: { type: string, format: uuid }
+          motif: { type: string, nullable: true }
+    interministerialTransferCompletedV1:
+      name: movement.interministerial_transfer.completed.v1
+      title: Transfert interministerial cloture (post-confirmation Asset)
+      contentType: application/json
+      description: Publie uniquement apres asset.rattachement_confirmed (TEC-017).
+      payload:
+        type: object
+        required: [operation_id, origin_institution_id, destination_institution_id, asset_ids, new_patrimonial_codes]
+        properties:
+          operation_id: { type: string, format: uuid }
+          origin_institution_id: { type: string, format: uuid }
+          destination_institution_id: { type: string, format: uuid }
+          asset_ids:
+            type: array
+            items: { type: string, format: uuid }
+          new_patrimonial_codes:
+            type: object
+            additionalProperties: { type: string }
+            description: Correspondance asset_id -> nouveau code patrimonial confirme par Asset
+          completed_at: { type: string, format: date-time }
+    loanRequestedV1:
+      name: movement.loan.requested.v1
+      title: Demande de pret deposee
+      contentType: application/json
+      payload:
+        type: object
+        required: [operation_id, lender_institution_id, borrower_institution_id, asset_ids, loan_end_at]
+        properties:
+          operation_id: { type: string, format: uuid }
+          lender_institution_id: { type: string, format: uuid }
+          borrower_institution_id: { type: string, format: uuid }
+          asset_ids:
+            type: array
+            items: { type: string, format: uuid }
+          loan_start_at: { type: string, format: date-time, nullable: true }
+          loan_end_at: { type: string, format: date-time }
+          custodian_account_id: { type: string, format: uuid, nullable: true }
+          convention_ref: { type: string, nullable: true }
+          workflow_instance_id: { type: string, format: uuid, nullable: true }
+    loanActivatedV1:
+      name: movement.loan.activated.v1
+      title: Pret actif (accord et validations obtenus)
+      contentType: application/json
+      payload:
+        type: object
+        required: [operation_id, lender_institution_id, borrower_institution_id, asset_ids, loan_end_at]
+        properties:
+          operation_id: { type: string, format: uuid }
+          lender_institution_id: { type: string, format: uuid }
+          borrower_institution_id: { type: string, format: uuid }
+          asset_ids:
+            type: array
+            items: { type: string, format: uuid }
+          loan_start_at: { type: string, format: date-time }
+          loan_end_at: { type: string, format: date-time }
+          custodian_account_id: { type: string, format: uuid, nullable: true }
+    loanReturnedV1:
+      name: movement.loan.returned.v1
+      title: Pret restitue
+      contentType: application/json
+      payload:
+        type: object
+        required: [operation_id, lender_institution_id, borrower_institution_id, asset_ids]
+        properties:
+          operation_id: { type: string, format: uuid }
+          lender_institution_id: { type: string, format: uuid }
+          borrower_institution_id: { type: string, format: uuid }
+          asset_ids:
+            type: array
+            items: { type: string, format: uuid }
+          returned_at: { type: string, format: date-time }
+          is_late: { type: boolean, description: Rendu apres la date d'echeance }
+    sharedRightGrantedV1:
+      name: movement.shared_right.granted.v1
+      title: Droit d'usage accorde sur un bien partage
+      contentType: application/json
+      payload:
+        type: object
+        required: [shared_right_id, asset_id, responsible_institution_id, beneficiary_institution_id, usage_scope]
+        properties:
+          shared_right_id: { type: string, format: uuid }
+          asset_id: { type: string, format: uuid }
+          responsible_institution_id: { type: string, format: uuid }
+          beneficiary_institution_id: { type: string, format: uuid }
+          usage_scope: { type: string }
+          valid_from: { type: string, format: date-time }
+          valid_to: { type: string, format: date-time, nullable: true }
+          convention_ref: { type: string, nullable: true }
+    sharedRightTerminatedV1:
+      name: movement.shared_right.terminated.v1
+      title: Droit d'usage termine ou suspendu
+      contentType: application/json
+      payload:
+        type: object
+        required: [shared_right_id, asset_id, responsible_institution_id, beneficiary_institution_id, status]
+        properties:
+          shared_right_id: { type: string, format: uuid }
+          asset_id: { type: string, format: uuid }
+          responsible_institution_id: { type: string, format: uuid }
+          beneficiary_institution_id: { type: string, format: uuid }
+          status: { type: string, enum: [suspended, terminated] }
+          motif: { type: string, nullable: true }
+          occurred_at: { type: string, format: date-time }
