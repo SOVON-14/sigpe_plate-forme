@@ -1,0 +1,228 @@
+asyncapi: 3.0.0
+info:
+  title: Maintenance Service — Contrat événementiel
+  version: 1.0.0-draft
+  description: |
+    CONTRAT Maintenance Service — événements produits vers l'exchange
+    topic sigpe.events.v1 (AMQP 0-9-1).
+    Sources : CDC v1.0 §4.8, catalogue technique v1.1 §3.1/§3.2,
+    ADR-006/ADR-007,
+    enveloppe contracts/json-schemas/enveloppe-evenementiel.schema.json.
+    Règles : messages persistants, publisher confirms, routing keys
+    domaine.action.vN, livraison at-least-once, consommateurs idempotents.
+    maintenance.intervention.completed.v1 alimente Finance (couts
+    detailles) et Reporting ; maintenance.spare_part.below_threshold.v1
+    alimente les alertes de reapprovisionnement.
+    Consommateurs attendus (côté Maintenance) : workflow.instance_completed.
+    Statut : BROUILLON EN ATTENTE DE VALIDATION MOA.
+defaultContentType: application/json
+servers:
+  rabbitmq:
+    host: rabbitmq://rabbitmq:5672
+    protocol: amqp
+    description: Broker RabbitMQ (AMQP 0-9-1)
+channels:
+  requestCreated:
+    address: sigpe.events.v1/maintenance.request.created.v1
+    title: maintenance.request.created.v1
+    messages:
+      requestCreatedV1:
+        $ref: '#/components/messages/requestCreatedV1'
+  requestSubmitted:
+    address: sigpe.events.v1/maintenance.request.submitted.v1
+    title: maintenance.request.submitted.v1
+    messages:
+      requestSubmittedV1:
+        $ref: '#/components/messages/requestSubmittedV1'
+  requestValidated:
+    address: sigpe.events.v1/maintenance.request.validated.v1
+    title: maintenance.request.validated.v1
+    messages:
+      requestValidatedV1:
+        $ref: '#/components/messages/requestValidatedV1'
+  requestRejected:
+    address: sigpe.events.v1/maintenance.request.rejected.v1
+    title: maintenance.request.rejected.v1
+    messages:
+      requestRejectedV1:
+        $ref: '#/components/messages/requestRejectedV1'
+  planScheduled:
+    address: sigpe.events.v1/maintenance.plan.scheduled.v1
+    title: maintenance.plan.scheduled.v1
+    messages:
+      planScheduledV1:
+        $ref: '#/components/messages/planScheduledV1'
+  interventionStarted:
+    address: sigpe.events.v1/maintenance.intervention.started.v1
+    title: maintenance.intervention.started.v1
+    messages:
+      interventionStartedV1:
+        $ref: '#/components/messages/interventionStartedV1'
+  interventionCompleted:
+    address: sigpe.events.v1/maintenance.intervention.completed.v1
+    title: maintenance.intervention.completed.v1
+    messages:
+      interventionCompletedV1:
+        $ref: '#/components/messages/interventionCompletedV1'
+  interventionCancelled:
+    address: sigpe.events.v1/maintenance.intervention.cancelled.v1
+    title: maintenance.intervention.cancelled.v1
+    messages:
+      interventionCancelledV1:
+        $ref: '#/components/messages/interventionCancelledV1'
+  sparePartBelowThreshold:
+    address: sigpe.events.v1/maintenance.spare_part.below_threshold.v1
+    title: maintenance.spare_part.below_threshold.v1
+    messages:
+      sparePartBelowThresholdV1:
+        $ref: '#/components/messages/sparePartBelowThresholdV1'
+components:
+  messages:
+    requestCreatedV1:
+      name: maintenance.request.created.v1
+      title: Demande de maintenance creee
+      contentType: application/json
+      payload:
+        type: object
+        required: [request_id, reference, institution_id, asset_id, type]
+        properties:
+          request_id: { type: string, format: uuid }
+          reference: { type: string }
+          institution_id: { type: string, format: uuid }
+          asset_id: { type: string, format: uuid }
+          type: { type: string, enum: [preventive, corrective, conditionnelle] }
+          urgency: { type: string }
+          is_urgent_track: { type: boolean }
+          requester_account_id: { type: string, format: uuid }
+          created_at: { type: string, format: date-time }
+    requestSubmittedV1:
+      name: maintenance.request.submitted.v1
+      title: Demande soumise au circuit Workflow
+      contentType: application/json
+      payload:
+        type: object
+        required: [request_id, reference, institution_id, workflow_instance_id]
+        properties:
+          request_id: { type: string, format: uuid }
+          reference: { type: string }
+          institution_id: { type: string, format: uuid }
+          workflow_instance_id: { type: string, format: uuid }
+          submitted_by: { type: string, format: uuid }
+    requestValidatedV1:
+      name: maintenance.request.validated.v1
+      title: Demande approuvee par le circuit Workflow
+      contentType: application/json
+      payload:
+        type: object
+        required: [request_id, reference, institution_id, asset_id, type]
+        properties:
+          request_id: { type: string, format: uuid }
+          reference: { type: string }
+          institution_id: { type: string, format: uuid }
+          asset_id: { type: string, format: uuid }
+          type: { type: string }
+          decided_by: { type: string, format: uuid }
+          decided_at: { type: string, format: date-time }
+    requestRejectedV1:
+      name: maintenance.request.rejected.v1
+      title: Demande refusee par le circuit Workflow
+      contentType: application/json
+      payload:
+        type: object
+        required: [request_id, reference, institution_id, outcome]
+        properties:
+          request_id: { type: string, format: uuid }
+          reference: { type: string }
+          institution_id: { type: string, format: uuid }
+          outcome: { type: string, enum: [rejected, correction_requested, cancelled] }
+          decision_comment: { type: string, nullable: true }
+    planScheduledV1:
+      name: maintenance.plan.scheduled.v1
+      title: Plan de maintenance preventive cree ou planifie
+      contentType: application/json
+      payload:
+        type: object
+        required: [plan_id, institution_id, asset_id, type, trigger]
+        properties:
+          plan_id: { type: string, format: uuid }
+          institution_id: { type: string, format: uuid }
+          asset_id: { type: string, format: uuid }
+          type: { type: string }
+          trigger: { type: object }
+          next_due_at: { type: string, format: date, nullable: true }
+    interventionStartedV1:
+      name: maintenance.intervention.started.v1
+      title: Intervention demarree
+      contentType: application/json
+      payload:
+        type: object
+        required: [intervention_id, reference, institution_id, asset_id, type, provider_kind]
+        properties:
+          intervention_id: { type: string, format: uuid }
+          reference: { type: string }
+          institution_id: { type: string, format: uuid }
+          asset_id: { type: string, format: uuid }
+          request_id: { type: string, format: uuid, nullable: true }
+          type: { type: string }
+          provider_kind: { type: string, enum: [internal, external] }
+          supplier_id: { type: string, format: uuid, nullable: true }
+          started_at: { type: string, format: date-time }
+    interventionCompletedV1:
+      name: maintenance.intervention.completed.v1
+      title: Intervention cloturee avec couts detailles
+      contentType: application/json
+      payload:
+        type: object
+        required: [intervention_id, reference, institution_id, asset_id, type, costs]
+        properties:
+          intervention_id: { type: string, format: uuid }
+          reference: { type: string }
+          institution_id: { type: string, format: uuid }
+          asset_id: { type: string, format: uuid }
+          request_id: { type: string, format: uuid, nullable: true }
+          type: { type: string }
+          provider_kind: { type: string, enum: [internal, external] }
+          supplier_id: { type: string, format: uuid, nullable: true }
+          costs:
+            type: object
+            required: [labor, parts, supplies, transport, external_services, other, total]
+            properties:
+              labor: { type: number }
+              parts: { type: number }
+              supplies: { type: number }
+              transport: { type: number }
+              external_services: { type: number }
+              other: { type: number }
+              total: { type: number }
+          outcome_note: { type: string }
+          completed_at: { type: string, format: date-time }
+    interventionCancelledV1:
+      name: maintenance.intervention.cancelled.v1
+      title: Intervention annulee ou interrompue
+      contentType: application/json
+      payload:
+        type: object
+        required: [intervention_id, reference, institution_id, asset_id, status]
+        properties:
+          intervention_id: { type: string, format: uuid }
+          reference: { type: string }
+          institution_id: { type: string, format: uuid }
+          asset_id: { type: string, format: uuid }
+          status: { type: string, enum: [cancelled, interrupted] }
+          motif: { type: string, nullable: true }
+    sparePartBelowThresholdV1:
+      name: maintenance.spare_part.below_threshold.v1
+      title: Stock d'une piece passe sous le seuil de reapprovisionnement
+      contentType: application/json
+      payload:
+        type: object
+        required: [spare_part_id, institution_id, reference, warehouse_id, quantity, reorder_threshold]
+        properties:
+          spare_part_id: { type: string, format: uuid }
+          institution_id: { type: string, format: uuid }
+          reference: { type: string }
+          name: { type: string }
+          warehouse_id: { type: string, format: uuid }
+          quantity: { type: number }
+          reorder_threshold: { type: number }
+          unit: { type: string }

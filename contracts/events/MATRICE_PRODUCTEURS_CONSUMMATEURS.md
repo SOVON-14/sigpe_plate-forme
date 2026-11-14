@@ -64,6 +64,15 @@ Référence : SIGPE-EVT-MATRIX-001 — Version 0.1 (squelette) — 12/11/2026
 | acquisition.item_accepted | acquisition.item_accepted.v1 | acquisition-service | asset-service, reporting-service, audit-service | Bien accepte — eligible a l'enregistrement patrimonial | CONTRACTÉ (draft) |
 | acquisition.request.closed | acquisition.request.closed.v1 | acquisition-service | reporting-service, audit-service, notification-service | Dossier d'acquisition cloture | CONTRACTÉ (draft) |
 | acquisition.request.cancelled | acquisition.request.cancelled.v1 | acquisition-service | reporting-service, audit-service, notification-service | Demande annulee | CONTRACTÉ (draft) |
+| maintenance.request.created | maintenance.request.created.v1 | maintenance-service | workflow-service, reporting-service, audit-service, notification-service | Demande de maintenance creee | CONTRACTÉ (draft) — voir maintenance-service.asyncapi.yaml |
+| maintenance.request.submitted | maintenance.request.submitted.v1 | maintenance-service | workflow-service, audit-service, notification-service | Demande soumise au circuit de validation | CONTRACTÉ (draft) |
+| maintenance.request.validated | maintenance.request.validated.v1 | maintenance-service | reporting-service, audit-service, notification-service | Demande approuvee par Workflow | CONTRACTÉ (draft) |
+| maintenance.request.rejected | maintenance.request.rejected.v1 | maintenance-service | reporting-service, audit-service, notification-service | Demande refusee / correction / annulee | CONTRACTÉ (draft) |
+| maintenance.plan.scheduled | maintenance.plan.scheduled.v1 | maintenance-service | reporting-service, audit-service | Plan de maintenance preventive planifie | CONTRACTÉ (draft) |
+| maintenance.intervention.started | maintenance.intervention.started.v1 | maintenance-service | reporting-service, audit-service, notification-service | Intervention demarree | CONTRACTÉ (draft) |
+| maintenance.intervention.completed | maintenance.intervention.completed.v1 | maintenance-service | finance-service, reporting-service, audit-service, notification-service | Intervention cloturee — couts detailles (alimente Finance) | CONTRACTÉ (draft) — critique |
+| maintenance.intervention.cancelled | maintenance.intervention.cancelled.v1 | maintenance-service | reporting-service, audit-service, notification-service | Intervention annulee ou interrompue | CONTRACTÉ (draft) |
+| maintenance.spare_part.below_threshold | maintenance.spare_part.below_threshold.v1 | maintenance-service | notification-service, reporting-service, audit-service | Stock sous seuil de reapprovisionnement | CONTRACTÉ (draft) |
 
 ## Événements candidats identifiés dans les sources (non contractuels)
 

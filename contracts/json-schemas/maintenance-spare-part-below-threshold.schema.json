@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/maintenance-spare-part-below-threshold.schema.json",
+  "title": "maintenance.spare_part.below_threshold — data (v1)",
+  "type": "object",
+  "required": [
+    "spare_part_id",
+    "institution_id",
+    "reference",
+    "warehouse_id",
+    "quantity",
+    "reorder_threshold"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "spare_part_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "warehouse_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "quantity": {
+      "type": "number"
+    },
+    "reorder_threshold": {
+      "type": "number"
+    },
+    "unit": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,1973 @@
+openapi: 3.1.0
+info:
+  title: Maintenance Service API
+  version: 1.0.0-draft
+  description: "CONTRAT Maintenance Service — demandes de maintenance, plans\npreventifs, interventions, couts detailles, prestataires et\ngestion des stocks de pieces SIGPE.\nSources : CDC v1.0 §4.8, catalogue\
+    \ technique v1.1 §3.1/§3.2,\nADR-003 (references inter-services par UUID sans FK),\nADR-004 (UUIDv7), ADR-005 (RFC 9457).\nRegles metier cles :\n- Types de maintenance : preventive, corrective, conditionnelle\
+    \ ;\n  les ministeres peuvent ajouter des categories locales\n  complementaires sans modifier la taxonomie nationale.\n- Interventions realisees par des techniciens internes et/ou des\n  prestataires\
+    \ externes (repertoire national partage, relations\n  et evaluations ministerielles).\n- Cout detaille obligatoire a la cloture : main-d'oeuvre, pieces,\n  fournitures, transport, prestations externes,\
+    \ autres couts.\n- Approbations selon nature, cout et sensibilite ; voie urgente\n  justifiee avec controle a posteriori obligatoire.\n- Planification manuelle ou automatique selon date, kilometrage,\n\
+    \  heures, cycles et etat du bien.\n- Historique complet des interventions, y compris refusees,\n  annulees ou interrompues (jamais de suppression).\n- Plusieurs magasins par ministere : entrees/sorties,\
+    \ transferts,\n  inventaires de stock et seuils de reapprovisionnement.\n- Evaluation des prestataires : qualite, delais, budget, pieces,\n  conformite contractuelle, satisfaction.\n- asset_id, institution_id,\
+    \ unit_id, account_id, supplier_id sont\n  des UUID de reference SANS cle etrangere inter-services.\n- Consommateurs attendus : workflow.instance_completed.\nStatut : BROUILLON EN ATTENTE DE VALIDATION\
+    \ MOA.\nRegles techniques : prefixe /api/v1, JSON, HTTPS, OIDC bearer,\nRBAC+ABAC, X-Correlation-ID/X-Request-ID, idempotence, RFC 9457.\n"
+  license:
+    name: Licence proprietaire — Gouvernement de la Republique togolaise
+    identifier: LicenseRef-Proprietary
+servers:
+- url: https://api.sigpe.local/api/v1
+  description: API Gateway (APISIX)
+tags:
+- name: health
+  description: Sondes de sante
+- name: requests
+  description: Demandes de maintenance
+- name: plans
+  description: Plans de maintenance preventive
+- name: interventions
+  description: Interventions et couts
+- name: suppliers
+  description: Prestataires et evaluations
+- name: stock
+  description: Pieces, magasins et mouvements de stock
+- name: history
+  description: Historique des interventions
+paths:
+  /health:
+    get:
+      tags:
+      - health
+      operationId: getHealth
+      summary: Sonde de sante (sans authentification)
+      security: []
+      responses:
+        '200':
+          description: Service operationnel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: maintenance-service
+        '429':
+          description: Limitation de debit (APISIX)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Service indisponible
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /maintenance-requests:
+    get:
+      tags:
+      - requests
+      operationId: listMaintenanceRequests
+      summary: Liste les demandes de maintenance
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      - name: status
+        in: query
+        schema:
+          $ref: '#/components/schemas/MaintenanceRequestStatus'
+      - name: type
+        in: query
+        schema:
+          $ref: '#/components/schemas/MaintenanceType'
+      - name: asset_id
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: q
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Liste paginee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceRequestPage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+      - requests
+      operationId: createMaintenanceRequest
+      summary: Cree une demande de maintenance
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceRequestCreate'
+      responses:
+        '201':
+          description: Demande creee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MaintenanceRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /maintenance-requests/{id}:
+    get:
+      tags:
+      - requests
+      operationId: getMaintenanceRequest
+      summary: Detail d'une demande (avec interventions)
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Demande
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MaintenanceRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /maintenance-requests/{id}/submit:
+    post:
+      tags:
+      - requests
+      operationId: submitMaintenanceRequest
+      summary: Soumet la demande au circuit Workflow
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workflow_instance_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Demande soumise
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MaintenanceRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /maintenance-requests/{id}/cancel:
+    post:
+      tags:
+      - requests
+      operationId: cancelMaintenanceRequest
+      summary: Annule une demande (motif obligatoire)
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Motif'
+      responses:
+        '200':
+          description: Demande annulee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MaintenanceRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /maintenance-requests/{id}/history:
+    get:
+      tags:
+      - history
+      operationId: getMaintenanceRequestHistory
+      summary: Historique d'une demande
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Historique pagine
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/HistoryEntry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /intervention-plans:
+    get:
+      tags:
+      - plans
+      operationId: listInterventionPlans
+      summary: Liste les plans de maintenance preventive
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      - name: asset_id
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: status
+        in: query
+        schema:
+          $ref: '#/components/schemas/PlanStatus'
+      responses:
+        '200':
+          description: Liste paginee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterventionPlanPage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+      - plans
+      operationId: createInterventionPlan
+      summary: Cree un plan de maintenance preventive
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterventionPlanCreate'
+      responses:
+        '201':
+          description: Plan cree
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/InterventionPlan'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /intervention-plans/{id}:
+    get:
+      tags:
+      - plans
+      operationId: getInterventionPlan
+      summary: Detail d'un plan
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Plan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/InterventionPlan'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /intervention-plans/{id}/execute:
+    post:
+      tags:
+      - plans
+      operationId: executeInterventionPlan
+      summary: Declenche l'execution d'un plan (cree la demande d'intervention)
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Plan execute
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/InterventionPlan'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /interventions:
+    get:
+      tags:
+      - interventions
+      operationId: listInterventions
+      summary: Liste les interventions
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      - name: status
+        in: query
+        schema:
+          $ref: '#/components/schemas/InterventionStatus'
+      - name: asset_id
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: request_id
+        in: query
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Liste paginee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterventionPage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+      - interventions
+      operationId: createIntervention
+      summary: Cree une intervention (interne ou prestataire)
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterventionCreate'
+      responses:
+        '201':
+          description: Intervention creee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Intervention'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /interventions/{id}:
+    get:
+      tags:
+      - interventions
+      operationId: getIntervention
+      summary: Detail d'une intervention (avec couts)
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Intervention
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Intervention'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /interventions/{id}/start:
+    post:
+      tags:
+      - interventions
+      operationId: startIntervention
+      summary: Demarre une intervention planifiee
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Intervention demarree
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Intervention'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /interventions/{id}/complete:
+    post:
+      tags:
+      - interventions
+      operationId: completeIntervention
+      summary: Cloture une intervention avec couts detailles
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterventionComplete'
+      responses:
+        '200':
+          description: Intervention cloturee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Intervention'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /interventions/{id}/interrupt:
+    post:
+      tags:
+      - interventions
+      operationId: interruptIntervention
+      summary: Interrompt une intervention en cours (motif obligatoire)
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Motif'
+      responses:
+        '200':
+          description: Intervention interrompue
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Intervention'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /interventions/{id}/cancel:
+    post:
+      tags:
+      - interventions
+      operationId: cancelIntervention
+      summary: Annule une intervention (motif obligatoire)
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Motif'
+      responses:
+        '200':
+          description: Intervention annulee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Intervention'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /suppliers:
+    get:
+      tags:
+      - suppliers
+      operationId: listSuppliers
+      summary: Repertoire national des prestataires
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: specialty
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Liste paginee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupplierPage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+      - suppliers
+      operationId: createSupplier
+      summary: Enregistre un prestataire (national ou relation ministerielle)
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierCreate'
+      responses:
+        '201':
+          description: Prestataire enregistre
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Supplier'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /suppliers/{id}:
+    get:
+      tags:
+      - suppliers
+      operationId: getSupplier
+      summary: Detail d'un prestataire (avec evaluations)
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Prestataire
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Supplier'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /suppliers/{id}/evaluate:
+    post:
+      tags:
+      - suppliers
+      operationId: evaluateSupplier
+      summary: Enregistre une evaluation ministerielle du prestataire
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierEvaluation'
+      responses:
+        '201':
+          description: Evaluation enregistree
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SupplierEvaluationResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /spare-parts:
+    get:
+      tags:
+      - stock
+      operationId: listSpareParts
+      summary: Liste les pieces de rechange
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: warehouse_id
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: below_threshold
+        in: query
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: Liste paginee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SparePartPage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+      - stock
+      operationId: createSparePart
+      summary: Enregistre une piece de rechange
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SparePartCreate'
+      responses:
+        '201':
+          description: Piece enregistree
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SparePart'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /spare-parts/{id}:
+    get:
+      tags:
+      - stock
+      operationId: getSparePart
+      summary: Detail d'une piece (niveau de stock)
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Piece
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SparePart'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /warehouses:
+    get:
+      tags:
+      - stock
+      operationId: listWarehouses
+      summary: Liste les magasins de l'institution
+      responses:
+        '200':
+          description: Liste
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Warehouse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+      - stock
+      operationId: createWarehouse
+      summary: Cree un magasin
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarehouseCreate'
+      responses:
+        '201':
+          description: Magasin cree
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Warehouse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /stock-movements:
+    get:
+      tags:
+      - stock
+      operationId: listStockMovements
+      summary: Historique des mouvements de stock
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      - name: spare_part_id
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: warehouse_id
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: type
+        in: query
+        schema:
+          $ref: '#/components/schemas/StockMovementType'
+      responses:
+        '200':
+          description: Liste paginee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockMovementPage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+      - stock
+      operationId: createStockMovement
+      summary: Enregistre une entree, sortie ou un transfert de stock
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockMovementCreate'
+      responses:
+        '201':
+          description: Mouvement enregistre
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/StockMovement'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /interventions/{id}/history:
+    get:
+      tags:
+      - history
+      operationId: getInterventionHistory
+      summary: Historique complet d'une intervention
+      parameters:
+      - $ref: '#/components/parameters/IdParam'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Historique pagine
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/HistoryEntry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton OIDC Keycloak (realm sigpe)
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        maxLength: 255
+      description: Cle d'idempotence pour les mutations sensibles
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PerPage:
+      name: per_page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+  responses:
+    Unauthorized:
+      description: Non authentifie
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: Permission insuffisante ou hors perimetre institutionnel
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Conflict:
+      description: Conflit d'etat metier
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unprocessable:
+      description: Erreur de validation metier
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    Problem:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+        code:
+          type: string
+        correlation_id:
+          type: string
+        errors:
+          type: object
+          additionalProperties: true
+    MaintenanceType:
+      type: string
+      enum:
+      - preventive
+      - corrective
+      - conditionnelle
+      description: Categories locales complementaires autorisees cote ministere
+    MaintenanceRequestStatus:
+      type: string
+      enum:
+      - draft
+      - pending_validation
+      - validated
+      - rejected
+      - planned
+      - in_progress
+      - completed
+      - cancelled
+    PlanStatus:
+      type: string
+      enum:
+      - active
+      - paused
+      - executed
+      - cancelled
+    InterventionStatus:
+      type: string
+      enum:
+      - planned
+      - in_progress
+      - completed
+      - interrupted
+      - cancelled
+      - refused
+    StockMovementType:
+      type: string
+      enum:
+      - entry
+      - exit
+      - transfer_in
+      - transfer_out
+    Motif:
+      type: object
+      required:
+      - motif
+      properties:
+        motif:
+          type: string
+          minLength: 3
+          maxLength: 500
+    MaintenanceRequestCreate:
+      type: object
+      required:
+      - asset_id
+      - type
+      - description
+      properties:
+        asset_id:
+          type: string
+          format: uuid
+          description: Reference Asset Service (sans FK)
+        type:
+          $ref: '#/components/schemas/MaintenanceType'
+        description:
+          type: string
+          minLength: 3
+          maxLength: 4000
+        urgency:
+          type: string
+          enum:
+          - low
+          - normal
+          - high
+          - urgent
+          default: normal
+        requested_by_unit_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        symptoms:
+          type:
+          - string
+          - 'null'
+          maxLength: 4000
+        estimated_cost:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+        is_urgent_track:
+          type: boolean
+          default: false
+          description: Voie urgente justifiee — controle a posteriori obligatoire
+        urgent_justification:
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+    MaintenanceRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        reference:
+          type: string
+          example: MNT-2026-000001
+        institution_id:
+          type: string
+          format: uuid
+        asset_id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/MaintenanceType'
+        description:
+          type: string
+        urgency:
+          type: string
+        status:
+          $ref: '#/components/schemas/MaintenanceRequestStatus'
+        workflow_instance_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        is_urgent_track:
+          type: boolean
+        urgent_justification:
+          type:
+          - string
+          - 'null'
+        requester_account_id:
+          type: string
+          format: uuid
+        decided_by:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        decided_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        interventions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Intervention'
+    MaintenanceRequestPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaintenanceRequest'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+    InterventionPlanCreate:
+      type: object
+      required:
+      - asset_id
+      - type
+      - trigger
+      properties:
+        asset_id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/MaintenanceType'
+        description:
+          type: string
+          minLength: 3
+          maxLength: 2000
+        trigger:
+          type: object
+          required:
+          - kind
+          properties:
+            kind:
+              type: string
+              enum:
+              - date
+              - mileage
+              - hours
+              - cycles
+              - condition
+            interval_value:
+              type: number
+              exclusiveMinimum: 0
+            interval_unit:
+              type: string
+              maxLength: 50
+            next_due_at:
+              type:
+              - string
+              - 'null'
+              format: date
+        assigned_supplier_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        estimated_cost:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+    InterventionPlan:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        institution_id:
+          type: string
+          format: uuid
+        asset_id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/MaintenanceType'
+        description:
+          type: string
+        trigger:
+          type: object
+        status:
+          $ref: '#/components/schemas/PlanStatus'
+        assigned_supplier_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        last_executed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        next_due_at:
+          type:
+          - string
+          - 'null'
+          format: date
+        created_at:
+          type: string
+          format: date-time
+    InterventionPlanPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/InterventionPlan'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+    InterventionCreate:
+      type: object
+      required:
+      - asset_id
+      - type
+      - description
+      properties:
+        request_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        asset_id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/MaintenanceType'
+        description:
+          type: string
+          minLength: 3
+          maxLength: 4000
+        provider_kind:
+          type: string
+          enum:
+          - internal
+          - external
+          default: internal
+        supplier_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Requis si provider_kind=external
+        assigned_account_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Technicien interne (compte Identity)
+        planned_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        estimated_cost:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+    Intervention:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        reference:
+          type: string
+        institution_id:
+          type: string
+          format: uuid
+        request_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        asset_id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/MaintenanceType'
+        description:
+          type: string
+        provider_kind:
+          type: string
+          enum:
+          - internal
+          - external
+        supplier_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        assigned_account_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        status:
+          $ref: '#/components/schemas/InterventionStatus'
+        planned_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        completed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        costs:
+          type:
+          - object
+          - 'null'
+          properties:
+            labor:
+              type: number
+            parts:
+              type: number
+            supplies:
+              type: number
+            transport:
+              type: number
+            external_services:
+              type: number
+            other:
+              type: number
+            total:
+              type: number
+        outcome_note:
+          type:
+          - string
+          - 'null'
+        created_at:
+          type: string
+          format: date-time
+    InterventionPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Intervention'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+    InterventionComplete:
+      type: object
+      required:
+      - costs
+      - outcome_note
+      properties:
+        costs:
+          type: object
+          required:
+          - labor
+          - parts
+          - supplies
+          - transport
+          - external_services
+          - other
+          properties:
+            labor:
+              type: number
+              minimum: 0
+            parts:
+              type: number
+              minimum: 0
+            supplies:
+              type: number
+              minimum: 0
+            transport:
+              type: number
+              minimum: 0
+            external_services:
+              type: number
+              minimum: 0
+            other:
+              type: number
+              minimum: 0
+        outcome_note:
+          type: string
+          minLength: 3
+          maxLength: 4000
+        parts_used:
+          type: array
+          items:
+            type: object
+            required:
+            - spare_part_id
+            - quantity
+            properties:
+              spare_part_id:
+                type: string
+                format: uuid
+              quantity:
+                type: number
+                exclusiveMinimum: 0
+    SupplierCreate:
+      type: object
+      required:
+      - name
+      - specialty
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 255
+        specialty:
+          type: string
+          minLength: 2
+          maxLength: 255
+        contact_name:
+          type:
+          - string
+          - 'null'
+          maxLength: 255
+        contact_phone:
+          type:
+          - string
+          - 'null'
+          maxLength: 50
+        contact_email:
+          type:
+          - string
+          - 'null'
+          format: email
+        address:
+          type:
+          - string
+          - 'null'
+          maxLength: 500
+        contract_ref:
+          type:
+          - string
+          - 'null'
+          maxLength: 255
+        contract_end_at:
+          type:
+          - string
+          - 'null'
+          format: date
+        scope:
+          type: string
+          enum:
+          - national
+          - ministerial
+          default: ministerial
+    Supplier:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        specialty:
+          type: string
+        scope:
+          type: string
+        institution_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        contact_name:
+          type:
+          - string
+          - 'null'
+        contact_phone:
+          type:
+          - string
+          - 'null'
+        contact_email:
+          type:
+          - string
+          - 'null'
+        contract_ref:
+          type:
+          - string
+          - 'null'
+        contract_end_at:
+          type:
+          - string
+          - 'null'
+          format: date
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        evaluations:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplierEvaluationResult'
+    SupplierPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Supplier'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+    SupplierEvaluation:
+      type: object
+      required:
+      - intervention_id
+      properties:
+        intervention_id:
+          type: string
+          format: uuid
+          description: Intervention terminee evaluee
+        quality:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 5
+        timeliness:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 5
+        budget:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 5
+        parts_quality:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 5
+        contract_compliance:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 5
+        satisfaction:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 5
+        comment:
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+    SupplierEvaluationResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        supplier_id:
+          type: string
+          format: uuid
+        institution_id:
+          type: string
+          format: uuid
+        intervention_id:
+          type: string
+          format: uuid
+        quality:
+          type:
+          - integer
+          - 'null'
+        timeliness:
+          type:
+          - integer
+          - 'null'
+        budget:
+          type:
+          - integer
+          - 'null'
+        parts_quality:
+          type:
+          - integer
+          - 'null'
+        contract_compliance:
+          type:
+          - integer
+          - 'null'
+        satisfaction:
+          type:
+          - integer
+          - 'null'
+        comment:
+          type:
+          - string
+          - 'null'
+        created_at:
+          type: string
+          format: date-time
+    SparePartCreate:
+      type: object
+      required:
+      - reference
+      - name
+      - unit
+      properties:
+        reference:
+          type: string
+          minLength: 2
+          maxLength: 100
+        name:
+          type: string
+          minLength: 2
+          maxLength: 255
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+        unit:
+          type: string
+          minLength: 1
+          maxLength: 50
+        category_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        unit_cost:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+        reorder_threshold:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+    SparePart:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        institution_id:
+          type: string
+          format: uuid
+        reference:
+          type: string
+        name:
+          type: string
+        description:
+          type:
+          - string
+          - 'null'
+        unit:
+          type: string
+        unit_cost:
+          type:
+          - number
+          - 'null'
+        reorder_threshold:
+          type:
+          - number
+          - 'null'
+        stock_by_warehouse:
+          type: array
+          items:
+            type: object
+            properties:
+              warehouse_id:
+                type: string
+                format: uuid
+              quantity:
+                type: number
+        below_threshold:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+    SparePartPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SparePart'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+    WarehouseCreate:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 255
+        location:
+          type:
+          - string
+          - 'null'
+          maxLength: 255
+        organizational_unit_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+    Warehouse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        institution_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        location:
+          type:
+          - string
+          - 'null'
+        organizational_unit_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+    StockMovementCreate:
+      type: object
+      required:
+      - spare_part_id
+      - warehouse_id
+      - type
+      - quantity
+      properties:
+        spare_part_id:
+          type: string
+          format: uuid
+        warehouse_id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/StockMovementType'
+        quantity:
+          type: number
+          exclusiveMinimum: 0
+        target_warehouse_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Requis pour transfer_in/transfer_out
+        reason:
+          type:
+          - string
+          - 'null'
+          maxLength: 500
+        reference:
+          type:
+          - string
+          - 'null'
+          maxLength: 255
+          description: 'BL, bon de commande, etc.'
+        unit_cost:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+    StockMovement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        institution_id:
+          type: string
+          format: uuid
+        spare_part_id:
+          type: string
+          format: uuid
+        warehouse_id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/StockMovementType'
+        quantity:
+          type: number
+        target_warehouse_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        reason:
+          type:
+          - string
+          - 'null'
+        reference:
+          type:
+          - string
+          - 'null'
+        unit_cost:
+          type:
+          - number
+          - 'null'
+        actor:
+          type: string
+          format: uuid
+        occurred_at:
+          type: string
+          format: date-time
+    StockMovementPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockMovement'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+    HistoryEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        action:
+          type: string
+        before:
+          type:
+          - object
+          - 'null'
+        after:
+          type:
+          - object
+          - 'null'
+        actor:
+          type: string
+          format: uuid
+        motif:
+          type:
+          - string
+          - 'null'
+        occurred_at:
+          type: string
+          format: date-time
+    PageMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        last_page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+security:
+- bearerAuth: []

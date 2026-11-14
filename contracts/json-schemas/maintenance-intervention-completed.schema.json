@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/maintenance-intervention-completed.schema.json",
+  "title": "maintenance.intervention.completed — data (v1)",
+  "type": "object",
+  "required": [
+    "intervention_id",
+    "reference",
+    "institution_id",
+    "asset_id",
+    "type",
+    "costs"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "intervention_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "asset_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "request_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "type": {
+      "type": "string"
+    },
+    "provider_kind": {
+      "type": "string"
+    },
+    "supplier_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "costs": {
+      "type": "object",
+      "required": [
+        "labor",
+        "parts",
+        "supplies",
+        "transport",
+        "external_services",
+        "other",
+        "total"
+      ],
+      "properties": {
+        "labor": {
+          "type": "number"
+        },
+        "parts": {
+          "type": "number"
+        },
+        "supplies": {
+          "type": "number"
+        },
+        "transport": {
+          "type": "number"
+        },
+        "external_services": {
+          "type": "number"
+        },
+        "other": {
+          "type": "number"
+        },
+        "total": {
+          "type": "number"
+        }
+      }
+    },
+    "outcome_note": {
+      "type": "string"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

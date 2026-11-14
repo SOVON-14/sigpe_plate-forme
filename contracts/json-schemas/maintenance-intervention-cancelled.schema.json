@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/maintenance-intervention-cancelled.schema.json",
+  "title": "maintenance.intervention.cancelled — data (v1)",
+  "type": "object",
+  "required": [
+    "intervention_id",
+    "reference",
+    "institution_id",
+    "asset_id",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "intervention_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "asset_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "status": {
+      "type": "string"
+    },
+    "motif": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

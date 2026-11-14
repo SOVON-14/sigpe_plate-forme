@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/maintenance-plan-scheduled.schema.json",
+  "title": "maintenance.plan.scheduled — data (v1)",
+  "type": "object",
+  "required": [
+    "plan_id",
+    "institution_id",
+    "asset_id",
+    "type",
+    "trigger"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "plan_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "asset_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "type": {
+      "type": "string"
+    },
+    "trigger": {
+      "type": "object"
+    },
+    "next_due_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/maintenance-request-created.schema.json",
+  "title": "maintenance.request.created — data (v1)",
+  "type": "object",
+  "required": [
+    "request_id",
+    "reference",
+    "institution_id",
+    "asset_id",
+    "type"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "asset_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "type": {
+      "type": "string"
+    },
+    "urgency": {
+      "type": "string"
+    },
+    "is_urgent_track": {
+      "type": "boolean"
+    },
+    "requester_account_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

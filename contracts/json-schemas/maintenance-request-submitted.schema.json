@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/maintenance-request-submitted.schema.json",
+  "title": "maintenance.request.submitted — data (v1)",
+  "type": "object",
+  "required": [
+    "request_id",
+    "reference",
+    "institution_id",
+    "workflow_instance_id"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "workflow_instance_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "submitted_by": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}
