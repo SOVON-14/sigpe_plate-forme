@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Services internes SIGPE (appels REST service-to-service)
+    |--------------------------------------------------------------------------
+    */
+
+    'keycloak' => [
+        'token_url' => env('KEYCLOAK_TOKEN_URL', ''),
+        'client_id' => env('KEYCLOAK_CLIENT_ID', 'finance-service'),
+        'client_secret' => env('KEYCLOAK_CLIENT_SECRET', ''),
+    ],
+
 ];
