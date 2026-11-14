@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sigpe.local/schemas/notification-acknowledged.v1.schema.json",
+  "title": "notification.acknowledged.v1 — payload data",
+  "type": "object",
+  "required": ["notification_id", "acknowledged_by", "acknowledged_at"],
+  "properties": {
+    "notification_id": { "type": "string", "format": "uuid" },
+    "recipient_account_id": { "type": "string", "format": "uuid" },
+    "event_type": { "type": "string" },
+    "acknowledged_by": { "type": "string", "format": "uuid" },
+    "comment": { "type": ["string", "null"] },
+    "acknowledged_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

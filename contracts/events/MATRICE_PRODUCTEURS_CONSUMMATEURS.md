@@ -102,3 +102,6 @@ Issus du catalogue §7 (scénarios) — **noms indicatifs, à formaliser** :
 | document.validated | document.validated.v1 | document-service | audit-service, workflow-service, reporting-service | Validation interne electronique | CONTRACTÉ (draft) |
 | document.access_logged | document.access_logged.v1 | document-service | audit-service | Consultation/telechargement journalise | CONTRACTÉ (draft) — critique |
 | document.lifecycle_changed | document.lifecycle_changed.v1 | document-service | audit-service, reporting-service | Transition archivistique ou elimination autorisee | CONTRACTÉ (draft) |
+| notification.created | notification.created.v1 | notification-service | audit-service, reporting-service | Notification creee (tous canaux) | CONTRACTÉ (draft) |
+| notification.acknowledged | notification.acknowledged.v1 | notification-service | audit-service, reporting-service | Accuse de prise en compte critique | CONTRACTÉ (draft) — critique |
+| notification.delivery_failed | notification.delivery_failed.v1 | notification-service | audit-service, reporting-service | Echec definitif apres tentatives | CONTRACTÉ (draft) |

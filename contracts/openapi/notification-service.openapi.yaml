@@ -1,0 +1,450 @@
+openapi: 3.1.0
+info:
+  title: Notification Service API
+  version: 1.0.0-draft
+  description: |
+    CONTRAT Notification Service — notifications in-app, courriel et
+    SMS, preferences, accusés et relances.
+    Sources : CDC v1.0 §4.12, catalogue technique v1.1,
+    ADR-003 (references par UUID sans FK), ADR-004 (UUIDv7),
+    ADR-005 (RFC 9457), ADR-006/ADR-007 (evenements).
+    Regles metier cles :
+    - Le service CONSOMME les evenements metier (binding '#') et
+      produit des notifications pour les destinataires resolus dans
+      la charge utile (recipient_account_ids, requester_account_id,
+      assignee_account_id, beneficiary_account_id).
+    - Trois priorites : ordinary (consultable), important
+      (confirmation de lecture), critical (accuse de prise en
+      compte EXPLICITE — distinct d'une approbation).
+    - Canaux : in_app toujours ; email et sms selon disponibilite,
+      priorite et preferences du destinataire. Aucune donnee sensible
+      dans les messages externes (email/sms) — uniquement reference
+      et titre non confidentiel.
+    - Preferences par type d'evenement et canal ; les alertes
+      critiques et reglementaires sont obligatoires et ne peuvent
+      pas etre desactivees.
+    - Suivi des statuts : pending -> sent -> delivered ; failed ->
+      retry -> abandoned apres tentatives ; canal alternatif autorise.
+    - account_id, institution_id sont des UUID de reference SANS cle
+      etrangere (Identity est la source des comptes).
+    Statut : BROUILLON EN ATTENTE DE VALIDATION MOA.
+    Regles techniques : prefixe /api/v1, JSON, HTTPS, OIDC bearer,
+    RBAC+ABAC, X-Correlation-ID/X-Request-ID, idempotence, RFC 9457.
+  license:
+    name: Licence proprietaire — Gouvernement de la Republique togolaise
+    identifier: LicenseRef-Proprietary
+servers:
+- url: https://api.sigpe.local/api/v1
+  description: API Gateway (APISIX)
+tags:
+- name: health
+  description: Sondes de sante
+- name: notifications
+  description: Notifications du compte courant
+- name: preferences
+  description: Preferences de notification
+- name: templates
+  description: Modeles de notification (administration)
+- name: deliveries
+  description: Suivi des envois
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Sonde de sante (sans authentification)
+      security: []
+      responses:
+        '200':
+          description: Service operationnel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  service: { type: string, example: notification-service }
+        '429':
+          description: Limitation de debit (APISIX)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /notifications:
+    get:
+      tags: [notifications]
+      operationId: listNotifications
+      summary: Liste les notifications du compte courant
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      - name: unread_only
+        in: query
+        schema: { type: boolean, default: false }
+      - name: priority
+        in: query
+        schema: { type: string, enum: [ordinary, important, critical] }
+      - name: acknowledged
+        in: query
+        schema: { type: boolean }
+      responses:
+        '200':
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Notification' }
+                  meta:
+                    type: object
+                    properties:
+                      current_page: { type: integer }
+                      per_page: { type: integer }
+                      total: { type: integer }
+                      last_page: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /notifications/unread-count:
+    get:
+      tags: [notifications]
+      operationId: getUnreadCount
+      summary: Nombre de notifications non lues (badge)
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Compteur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      unread: { type: integer }
+                      critical_unacknowledged: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /notifications/{id}:
+    get:
+      tags: [notifications]
+      operationId: getNotification
+      summary: Detail d'une notification (marque comme lue)
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/NotificationId'
+      responses:
+        '200':
+          description: Notification
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/NotificationDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /notifications/{id}/read:
+    post:
+      tags: [notifications]
+      operationId: markNotificationRead
+      summary: Confirmation de lecture (important et critique)
+      description: |
+        Marque la notification comme lue. Pour les notifications
+        critiques, la lecture ne suffit PAS : l'accuse de prise en
+        compte explicite via POST /notifications/{id}/acknowledge
+        reste requis (distinct d'une approbation).
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/NotificationId'
+      responses:
+        '200':
+          description: Notification mise a jour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Notification' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /notifications/{id}/acknowledge:
+    post:
+      tags: [notifications]
+      operationId: acknowledgeNotification
+      summary: Accuse de prise en compte explicite (notifications critiques)
+      description: |
+        Reserve aux notifications de priorite critical. L'accuse est
+        un acte distinct de la lecture et de toute approbation
+        metier. Peut etre motive.
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/NotificationId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment: { type: string, maxLength: 2000 }
+      responses:
+        '200':
+          description: Accuse enregistre
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Notification' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /notifications/{id}/deliveries:
+    get:
+      tags: [deliveries]
+      operationId: listNotificationDeliveries
+      summary: Statuts d'envoi par canal
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/NotificationId'
+      responses:
+        '200':
+          description: Livraisons
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Delivery' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /notification-preferences:
+    get:
+      tags: [preferences]
+      operationId: listNotificationPreferences
+      summary: Preferences du compte courant
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Preferences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/NotificationPreference' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+    put:
+      tags: [preferences]
+      operationId: updateNotificationPreferences
+      summary: Definit les preferences par evenement et canal
+      description: |
+        Les categories critiques/reglementaires sont obligatoires :
+        toute tentative de desactivation est ignoree (la preference
+        est conservee avec forced=true).
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [preferences]
+              properties:
+                preferences:
+                  type: array
+                  items: { $ref: '#/components/schemas/NotificationPreferenceInput' }
+      responses:
+        '200':
+          description: Preferences enregistrees
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/NotificationPreference' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /notification-templates:
+    get:
+      tags: [templates]
+      operationId: listNotificationTemplates
+      summary: Modeles de notification (administration)
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Modeles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/NotificationTemplate' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton OIDC Keycloak (claim permissions, institution_id)
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PerPage:
+      name: per_page
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+    NotificationId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  responses:
+    Unauthorized:
+      description: Authentification requise
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Forbidden:
+      description: Permission insuffisante ou notification d'un autre compte
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Conflict:
+      description: Conflit d'etat metier
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Unprocessable:
+      description: Validation metier impossible
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    TooManyRequests:
+      description: Limitation de debit (APISIX)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Problem:
+      type: object
+      required: [type, title, status]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        correlation_id: { type: string, format: uuid }
+    Notification:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        recipient_account_id: { type: string, format: uuid }
+        event_type: { type: string, example: maintenance.spare_part.below_threshold }
+        template_code: { type: [string, 'null'] }
+        priority: { type: string, enum: [ordinary, important, critical] }
+        title: { type: string }
+        body: { type: string }
+        institution_id: { type: [string, 'null'], format: uuid }
+        is_mandatory: { type: boolean }
+        is_read: { type: boolean }
+        read_at: { type: [string, 'null'], format: date-time }
+        acknowledged_at: { type: [string, 'null'], format: date-time }
+        acknowledged_by: { type: [string, 'null'], format: uuid }
+        created_at: { type: string, format: date-time }
+    NotificationDetail:
+      allOf:
+      - $ref: '#/components/schemas/Notification'
+      - type: object
+        properties:
+          link: { type: [string, 'null'] }
+          deliveries:
+            type: array
+            items: { $ref: '#/components/schemas/Delivery' }
+    Delivery:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        notification_id: { type: string, format: uuid }
+        channel: { type: string, enum: [in_app, email, sms] }
+        status: { type: string, enum: [pending, sent, delivered, failed, abandoned] }
+        attempts: { type: integer }
+        last_error: { type: [string, 'null'] }
+        sent_at: { type: [string, 'null'], format: date-time }
+        delivered_at: { type: [string, 'null'], format: date-time }
+        created_at: { type: string, format: date-time }
+    NotificationPreference:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        account_id: { type: string, format: uuid }
+        event_type: { type: string, description: Type d'evenement ou '*' pour tous }
+        channel: { type: string, enum: [in_app, email, sms] }
+        enabled: { type: boolean }
+        forced: { type: boolean, description: true si alerte critique/reglementaire non desactivable }
+    NotificationPreferenceInput:
+      type: object
+      required: [event_type, channel, enabled]
+      properties:
+        event_type: { type: string }
+        channel: { type: string, enum: [in_app, email, sms] }
+        enabled: { type: boolean }
+    NotificationTemplate:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        event_type: { type: string }
+        priority: { type: string, enum: [ordinary, important, critical] }
+        is_mandatory: { type: boolean }
+        title_template: { type: string }
+        body_template: { type: string }
+        channels: { type: array, items: { type: string, enum: [in_app, email, sms] } }
+        is_active: { type: boolean }

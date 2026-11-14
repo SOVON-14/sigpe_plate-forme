@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sigpe.local/schemas/notification-created.v1.schema.json",
+  "title": "notification.created.v1 — payload data",
+  "type": "object",
+  "required": ["notification_id", "recipient_account_id", "event_type", "priority", "created_at"],
+  "properties": {
+    "notification_id": { "type": "string", "format": "uuid" },
+    "recipient_account_id": { "type": "string", "format": "uuid" },
+    "event_type": { "type": "string" },
+    "source_event_id": { "type": "string", "format": "uuid" },
+    "priority": { "type": "string", "enum": ["ordinary", "important", "critical"] },
+    "is_mandatory": { "type": "boolean" },
+    "channels": { "type": "array", "items": { "type": "string", "enum": ["in_app", "email", "sms"] } },
+    "institution_id": { "type": ["string", "null"], "format": "uuid" },
+    "created_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

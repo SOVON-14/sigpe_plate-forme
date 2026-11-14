@@ -1,0 +1,104 @@
+asyncapi: 3.0.0
+info:
+  title: Notification Service — Contrat événementiel
+  version: 1.0.0-draft
+  description: |
+    CONTRAT Notification Service — événements.
+    Sources : CDC v1.0 §4.12, catalogue technique v1.1,
+    ADR-006/ADR-007, enveloppe
+    contracts/json-schemas/enveloppe-evenementiel.schema.json.
+    Règles : messages persistants, publisher confirms, livraison
+    at-least-once, consommateurs idempotents (inbox event_id).
+    Notification CONSOMME les événements métier via le binding '#'
+    et crée des notifications pour les destinataires résolus dans la
+    charge utile. Notification PRODUIT notification.created.v1,
+    notification.acknowledged.v1 et notification.delivery_failed.v1.
+    Statut : BROUILLON EN ATTENTE DE VALIDATION MOA.
+defaultContentType: application/json
+servers:
+  rabbitmq:
+    host: rabbitmq://rabbitmq:5672
+    protocol: amqp
+    description: Broker RabbitMQ (AMQP 0-9-1)
+channels:
+  domainEvents:
+    address: sigpe.events.v1/#
+    title: Événements métier consommés (topic '#', hors notification.*)
+    messages:
+      domainEvent:
+        $ref: '#/components/messages/domainEvent'
+  notificationCreated:
+    address: sigpe.events.v1/notification.created.v1
+    title: notification.created.v1
+    messages:
+      notificationCreatedV1:
+        $ref: '#/components/messages/notificationCreatedV1'
+  notificationAcknowledged:
+    address: sigpe.events.v1/notification.acknowledged.v1
+    title: notification.acknowledged.v1
+    messages:
+      notificationAcknowledgedV1:
+        $ref: '#/components/messages/notificationAcknowledgedV1'
+  deliveryFailed:
+    address: sigpe.events.v1/notification.delivery_failed.v1
+    title: notification.delivery_failed.v1
+    messages:
+      deliveryFailedV1:
+        $ref: '#/components/messages/deliveryFailedV1'
+operations:
+  consumeDomainEvents:
+    action: receive
+    channel:
+      $ref: '#/channels/domainEvents'
+    summary: Consomme les événements métier pour générer des notifications
+    messages:
+    - $ref: '#/channels/domainEvents/messages/domainEvent'
+  publishNotificationCreated:
+    action: send
+    channel:
+      $ref: '#/channels/notificationCreated'
+    messages:
+    - $ref: '#/channels/notificationCreated/messages/notificationCreatedV1'
+  publishNotificationAcknowledged:
+    action: send
+    channel:
+      $ref: '#/channels/notificationAcknowledged'
+    messages:
+    - $ref: '#/channels/notificationAcknowledged/messages/notificationAcknowledgedV1'
+  publishDeliveryFailed:
+    action: send
+    channel:
+      $ref: '#/channels/deliveryFailed'
+    messages:
+    - $ref: '#/channels/deliveryFailed/messages/deliveryFailedV1'
+components:
+  messages:
+    domainEvent:
+      name: DomainEvent
+      title: Événement métier consommé
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/enveloppe-evenementiel.schema.json'
+      description: |
+        Destinataires résolus depuis data : recipient_account_ids
+        (tableau), recipient_account_id, requester_account_id,
+        assignee_account_id, beneficiary_account_id. Les événements
+        notification.* sont ignorés (pas d'auto-alimentation).
+    notificationCreatedV1:
+      name: NotificationCreatedV1
+      title: notification.created.v1
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/notification-created.v1.schema.json'
+    notificationAcknowledgedV1:
+      name: NotificationAcknowledgedV1
+      title: notification.acknowledged.v1
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/notification-acknowledged.v1.schema.json'
+    deliveryFailedV1:
+      name: DeliveryFailedV1
+      title: notification.delivery_failed.v1
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/notification-delivery-failed.v1.schema.json'
