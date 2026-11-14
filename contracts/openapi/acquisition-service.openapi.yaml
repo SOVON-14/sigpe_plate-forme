@@ -83,7 +83,7 @@ paths:
       parameters:
         - name: status
           in: query
-          schema: { type: string, enum: [draft, pending_validation, selected, ordered, partially_received, received, closed, rejected, cancelled] }
+          schema: { type: string, enum: [draft, pending_validation, validated, selected, ordered, partially_received, received, closed, rejected, cancelled] }
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/PerPage'
       responses:
@@ -456,7 +456,7 @@ components:
         needed_by: { anyOf: [{ $ref: '#/components/schemas/DateTime' }, { type: 'null' }] }
         status:
           type: string
-          enum: [draft, pending_validation, selected, ordered, partially_received, received, closed, rejected, cancelled]
+          enum: [draft, pending_validation, validated, selected, ordered, partially_received, received, closed, rejected, cancelled]
         workflow_instance_id: { anyOf: [{ $ref: '#/components/schemas/Uuid' }, { type: 'null' }] }
         supplier_name: { type: ['string', 'null'] }
         supplier_ref: { anyOf: [{ $ref: '#/components/schemas/Uuid' }, { type: 'null' }] }
