@@ -35,4 +35,21 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Services internes SIGPE (appels REST service-to-service)
+    |--------------------------------------------------------------------------
+    */
+
+    'asset' => [
+        'url' => env('ASSET_SERVICE_URL', 'http://asset-service:8080/api/v1'),
+        'timeout' => (int) env('ASSET_SERVICE_TIMEOUT', 10),
+    ],
+
+    'keycloak' => [
+        'token_url' => env('KEYCLOAK_TOKEN_URL', ''),
+        'client_id' => env('KEYCLOAK_CLIENT_ID', 'acquisition-service'),
+        'client_secret' => env('KEYCLOAK_CLIENT_SECRET', ''),
+    ],
+
 ];
