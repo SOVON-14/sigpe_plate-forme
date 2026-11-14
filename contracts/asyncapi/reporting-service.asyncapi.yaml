@@ -1,0 +1,48 @@
+asyncapi: 3.0.0
+info:
+  title: Reporting Service Events
+  version: 1.0.0-draft
+  description: >-
+    Reporting Service est le consommateur principal de presque tous les
+    evenements metier (binding '#'). Il produit reporting.report_generated
+    a chaque execution de rapport.
+defaultContentType: application/json
+servers:
+  rabbitmq:
+    host: ${RABBITMQ_HOST:rabbitmq}
+    protocol: amqp
+channels:
+  reportingEvents:
+    address: sigpe.events.v1
+    messages:
+      reportGenerated:
+        $ref: '#/components/messages/ReportGenerated'
+operations:
+  publishReportingEvents:
+    action: send
+    channel:
+      $ref: '#/channels/reportingEvents'
+components:
+  messages:
+    ReportGenerated:
+      name: reporting.report_generated.v1
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/EventEnvelope'
+  schemas:
+    EventEnvelope:
+      type: object
+      required: [event_id, event_type, event_version, producer, aggregate_type, aggregate_id, occurred_at, data]
+      properties:
+        event_id: { type: string, format: uuid }
+        event_type: { type: string }
+        event_version: { type: integer, const: 1 }
+        producer: { type: string, const: reporting-service }
+        aggregate_type: { type: string }
+        aggregate_id: { type: string, format: uuid }
+        institution_id: { type: [string, "null"], format: uuid }
+        correlation_id: { type: string, format: uuid }
+        causation_id: { type: string, format: uuid }
+        actor: { type: object, nullable: true }
+        occurred_at: { type: string, format: date-time }
+        data: { type: object }

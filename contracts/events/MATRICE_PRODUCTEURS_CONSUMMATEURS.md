@@ -111,3 +111,4 @@ Issus du catalogue §7 (scénarios) — **noms indicatifs, à formaliser** :
 | finance.disposal_approved | finance.disposal_approved.v1 | finance-service | asset-service, reporting-service, audit-service, notification-service | Sortie definitive approuvee par l'autorite competente | CONTRACTÉ (draft) — critique |
 | finance.disposal_executed | finance.disposal_executed.v1 | finance-service | asset-service, reporting-service, audit-service, notification-service | Sortie definitive executee | CONTRACTÉ (draft) — critique |
 | finance.disposal_closed | finance.disposal_closed.v1 | finance-service | asset-service, reporting-service, audit-service | Dossier de sortie cloture (preuve conservee par Document) | CONTRACTÉ (draft) |
+| reporting.report_generated | reporting.report_generated.v1 | reporting-service | audit-service, notification-service | Execution de rapport terminee (reference, perimetre, periode) | CONTRACTÉ (draft) |

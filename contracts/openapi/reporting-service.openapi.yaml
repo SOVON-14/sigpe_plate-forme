@@ -1,0 +1,562 @@
+openapi: 3.1.0
+info:
+  title: Reporting Service API
+  version: 1.0.0-draft
+  description: >-
+    Projections en lecture seule alimentees par les evenements metier
+    (Reporting ne modifie jamais les donnees sources), indicateurs de
+    parc/valeur/etat/mouvements/inventaires/anomalies, tableaux de bord
+    national et ministeriels cloisonnes, vues personnalisees par profil,
+    recherche multicritere sur le patrimoine projete, modeles nationaux
+    de rapports et exports (CSV/Excel-compatible, PDF prevu). Actualisation
+    explicite avec indication des retards de synchronisation (CDC §4.17,
+    catalogue : Reporting = consommateur principal de presque tous les
+    evenements).
+  contact:
+    name: SIGPE Platform
+  license:
+    name: Proprietaire — usage restreint
+servers:
+  - url: /api/v1
+    description: API Gateway (Apache APISIX)
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Sonde de sante (sans authentification)
+      security: []
+      responses:
+        '200':
+          description: Service operationnel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  service: { type: string, example: reporting-service }
+                  version: { type: string, example: 1.0.0-draft }
+  /dashboard:
+    get:
+      tags: [dashboard]
+      operationId: getDashboard
+      summary: Indicateurs du tableau de bord (national ou ministeriel selon habilitations)
+      description: >-
+        Retourne les indicateurs de parc (total, par etat), mouvements,
+        inventaires, anomalies et synchronisation. Le perimetre est
+        impose par le jeton : institution_id present = tableau
+        ministeriel ; absent = tableau national.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: institution_id
+          in: query
+          schema: { type: string, format: uuid }
+          description: Optionnel — doit correspondre au perimetre du jeton
+      responses:
+        '200': { $ref: '#/components/responses/Dashboard' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [dashboard]
+      operationId: refreshDashboard
+      summary: Actualisation explicite des projections et indicateurs
+      description: Recalcule les projections a partir des evenements ingeres ; retourne le retard de synchronisation.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200': { $ref: '#/components/responses/Dashboard' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /assets:
+    get:
+      tags: [search]
+      operationId: searchAssets
+      summary: Recherche multicritere sur le patrimoine projete
+      description: >-
+        Recherche par code (actuel), designation, categorie, institution,
+        etat. Le perimetre institutionnel du jeton est toujours applique.
+      security:
+        - bearerAuth: []
+      parameters:
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PerPage' }
+        - name: q
+          in: query
+          schema: { type: string, maxLength: 200 }
+          description: Code ou designation (recherche partielle)
+        - name: institution_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: category_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: state
+          in: query
+          schema: { type: string, enum: [active, in_transit, on_loan, under_maintenance, under_investigation, disposed, unknown] }
+        - name: entry_mode
+          in: query
+          schema: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/PaginatedAssetProjections' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /assets/{assetId}:
+    get:
+      tags: [search]
+      operationId: getAssetProjection
+      summary: Fiche projete et chronologie patrimoniale complete
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+      responses:
+        '200': { $ref: '#/components/responses/AssetProjectionDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /indicators:
+    get:
+      tags: [indicators]
+      operationId: listIndicators
+      summary: Liste des indicateurs disponibles et leurs valeurs courantes
+      security:
+        - bearerAuth: []
+      responses:
+        '200': { $ref: '#/components/responses/Indicators' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /views:
+    get:
+      tags: [views]
+      operationId: listViews
+      summary: Vues enregistrees du compte courant (par profil)
+      security:
+        - bearerAuth: []
+      responses:
+        '200': { $ref: '#/components/responses/SavedViews' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [views]
+      operationId: createView
+      summary: Enregistre une vue personnalisee (filtres + perimetre, sans elargissement des droits)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SavedViewInput' }
+      responses:
+        '201': { $ref: '#/components/responses/SavedViewCreated' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /views/{viewId}:
+    delete:
+      tags: [views]
+      operationId: deleteView
+      summary: Supprime une vue enregistree
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: viewId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Vue supprimee }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /reports/templates:
+    get:
+      tags: [reports]
+      operationId: listReportTemplates
+      summary: Modeles nationaux de rapports
+      security:
+        - bearerAuth: []
+      responses:
+        '200': { $ref: '#/components/responses/ReportTemplates' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /reports/{templateCode}/run:
+    post:
+      tags: [reports]
+      operationId: runReport
+      summary: Genere un rapport a la demande ou periodique
+      description: >-
+        Execute un modele national sur un perimetre et une periode ;
+        le resultat est fige dans un report_run avec perimetre, date,
+        auteur, criteres, confidentialite et reference.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: templateCode
+          in: path
+          required: true
+          schema: { type: string, pattern: '^[a-z0-9_-]+$' }
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReportRunInput' }
+      responses:
+        '201': { $ref: '#/components/responses/ReportRunCreated' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /report-runs:
+    get:
+      tags: [reports]
+      operationId: listReportRuns
+      summary: Historique des rapports generes (diffusion controlee)
+      security:
+        - bearerAuth: []
+      parameters:
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PerPage' }
+        - name: template_code
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema: { type: string, enum: [pending, completed, failed] }
+      responses:
+        '200': { $ref: '#/components/responses/PaginatedReportRuns' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /report-runs/{reportRunId}:
+    get:
+      tags: [reports]
+      operationId: getReportRun
+      summary: Detail d'une execution de rapport (resultat fige)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reportRunId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { $ref: '#/components/responses/ReportRunDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /report-runs/{reportRunId}/export:
+    get:
+      tags: [reports]
+      operationId: exportReportRun
+      summary: Export du resultat (csv = Excel-compatible ; json)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reportRunId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: format
+          in: query
+          required: false
+          schema: { type: string, enum: [csv, json], default: json }
+      responses:
+        '200':
+          description: Fichier exporte
+          content:
+            text/csv:
+              schema: { type: string }
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton OIDC Keycloak (claim permissions, institution_id)
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PerPage:
+      name: per_page
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, minLength: 8, maxLength: 128 }
+    AssetId:
+      name: assetId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  schemas:
+    AssetProjection:
+      type: object
+      properties:
+        asset_id: { type: string, format: uuid }
+        patrimonial_code: { type: string }
+        designation: { type: string }
+        category_id: { type: [string, "null"], format: uuid }
+        institution_id: { type: [string, "null"], format: uuid }
+        state: { type: string }
+        entry_mode: { type: [string, "null"] }
+        value_known: { type: boolean }
+        last_event_type: { type: string }
+        last_event_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    SavedViewInput:
+      type: object
+      required: [name, filters]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 120 }
+        profile: { type: string, maxLength: 60, default: default }
+        filters:
+          type: object
+          additionalProperties: true
+          description: Filtres de recherche (q, institution_id, category_id, state...) — jamais d'elargissement du perimetre
+    SavedView:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        account_id: { type: string, format: uuid }
+        name: { type: string }
+        profile: { type: string }
+        filters: { type: object }
+        created_at: { type: string, format: date-time }
+    ReportTemplate:
+      type: object
+      properties:
+        code: { type: string }
+        name: { type: string }
+        description: { type: string }
+        category: { type: string }
+        confidentiality: { type: string, enum: [internal, restricted, confidential] }
+        parameters:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              type: { type: string }
+              required: { type: boolean }
+    ReportRunInput:
+      type: object
+      required: [period_start, period_end]
+      properties:
+        period_start: { type: string, format: date }
+        period_end: { type: string, format: date }
+        institution_id:
+          type: [string, "null"]
+          format: uuid
+          description: null = perimetre national (habilitations requises)
+        parameters:
+          type: object
+          additionalProperties: true
+    ReportRun:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        reference: { type: string }
+        template_code: { type: string }
+        template_name: { type: string }
+        institution_id: { type: [string, "null"], format: uuid }
+        period_start: { type: string, format: date }
+        period_end: { type: string, format: date }
+        parameters: { type: object }
+        status: { type: string, enum: [pending, completed, failed] }
+        confidentiality: { type: string }
+        generated_by: { type: string, format: uuid }
+        generated_at: { type: [string, "null"], format: date-time }
+        result_summary: { type: [object, "null"] }
+        created_at: { type: string, format: date-time }
+    DashboardMetrics:
+      type: object
+      properties:
+        scope: { type: string, enum: [national, institutional] }
+        institution_id: { type: [string, "null"], format: uuid }
+        assets_total: { type: integer }
+        assets_by_state:
+          type: object
+          additionalProperties: { type: integer }
+        movements_count: { type: integer }
+        maintenance_interventions: { type: integer }
+        inventory_campaigns: { type: integer }
+        anomalies_open: { type: integer }
+        acquisitions_count: { type: integer }
+        disposals_count: { type: integer }
+        events_ingested: { type: integer }
+        last_event_at: { type: [string, "null"], format: date-time }
+        sync_lag_seconds: { type: [integer, "null"] }
+        computed_at: { type: string, format: date-time }
+    Problem:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        correlation_id: { type: string, format: uuid }
+    PaginationMeta:
+      type: object
+      properties:
+        current_page: { type: integer }
+        per_page: { type: integer }
+        total: { type: integer }
+        last_page: { type: integer }
+  responses:
+    Unauthorized:
+      description: Jeton absent ou invalide
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Forbidden:
+      description: Permission insuffisante ou perimetre national non autorise
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Conflict:
+      description: Conflit d'etat
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    ValidationError:
+      description: Charge utile invalide
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Dashboard:
+      description: Metriques du tableau de bord
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: { $ref: '#/components/schemas/DashboardMetrics' }
+    PaginatedAssetProjections:
+      description: Page de projections patrimoniales
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items: { $ref: '#/components/schemas/AssetProjection' }
+              meta: { $ref: '#/components/schemas/PaginationMeta' }
+    AssetProjectionDetail:
+      description: Fiche projete + chronologie
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  projection: { $ref: '#/components/schemas/AssetProjection' }
+                  chronology:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        event_type: { type: string }
+                        occurred_at: { type: string, format: date-time }
+                        producer: { type: string }
+    Indicators:
+      description: Indicateurs courants
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code: { type: string }
+                    label: { type: string }
+                    value: {}
+                    unit: { type: string }
+    SavedViews:
+      description: Vues enregistrees
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items: { $ref: '#/components/schemas/SavedView' }
+    SavedViewCreated:
+      description: Vue creee
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: { $ref: '#/components/schemas/SavedView' }
+    ReportTemplates:
+      description: Modeles nationaux
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items: { $ref: '#/components/schemas/ReportTemplate' }
+    ReportRunCreated:
+      description: Execution creee
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: { $ref: '#/components/schemas/ReportRun' }
+    ReportRunDetail:
+      description: Execution detaillee avec resultat
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                allOf:
+                  - $ref: '#/components/schemas/ReportRun'
+                properties:
+                  result:
+                    type: object
+                    description: Resultat fige du rapport (dataset selon le modele)
+    PaginatedReportRuns:
+      description: Page d'executions
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items: { $ref: '#/components/schemas/ReportRun' }
+              meta: { $ref: '#/components/schemas/PaginationMeta' }

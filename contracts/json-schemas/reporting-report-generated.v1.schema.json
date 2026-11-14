@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sigpe.local/schemas/reporting-report-generated.v1.schema.json",
+  "title": "reporting.report_generated.v1",
+  "type": "object",
+  "required": ["report_run_id", "reference", "template_code", "institution_id", "period_start", "period_end", "generated_by", "generated_at", "row_count"],
+  "properties": {
+    "report_run_id": { "type": "string", "format": "uuid" },
+    "reference": { "type": "string" },
+    "template_code": { "type": "string" },
+    "template_name": { "type": "string" },
+    "institution_id": { "type": ["string", "null"], "format": "uuid" },
+    "period_start": { "type": "string", "format": "date" },
+    "period_end": { "type": "string", "format": "date" },
+    "generated_by": { "type": "string", "format": "uuid" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "row_count": { "type": "integer", "minimum": 0 },
+    "confidentiality": { "type": "string" }
+  },
+  "additionalProperties": true
+}
