@@ -80,6 +80,10 @@ docker compose logs -f keycloak     # console : http://localhost:8081
 
 - Gateway APISIX : `http://localhost:9080/api/v1/...` (routes générées par
   `php gateway/apisix/generate-routes.php` depuis `contracts/openapi/`).
+- Frontend `sigpe-web` : `http://localhost:8088` — SPA statique
+  HTML/CSS/JS vanilla (zéro build), auth Keycloak Authorization Code + PKCE.
+  Modules livrés : connexion, tableau de bord, registre des actifs,
+  notifications ; les autres modules affichent "en cours de développement".
 - Realm Keycloak `sigpe` : client public `sigpe-web`, audience `sigpe-api`,
   13 clients `*-service` en client_credentials, claim `sigpe-claims`
   (permissions + institution_id + audience).
@@ -89,5 +93,7 @@ docker compose logs -f keycloak     # console : http://localhost:8081
   `/api/v1/reporting/assets/{assetId}` (réécriture proxy) pour lever
   l'ambiguïté avec le registre maître `/api/v1/assets/{assetId}`.
 
-Reste à faire : frontend React (`frontend/sigpe-web`), observabilité
-(`infrastructure/monitoring`), CI/CD et validation E2E de la pile.
+Reste à faire : modules frontend restants (mouvements, maintenance,
+inventaires, documents, finance, acquisitions, workflow, audit, rapports,
+organisation), observabilité (`infrastructure/monitoring`), CI/CD et
+validation E2E de la pile.
