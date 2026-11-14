@@ -9,6 +9,7 @@ use App\Enums\OperationStatus;
 use App\Enums\OperationType;
 use App\Enums\SharedRightStatus;
 use App\Exceptions\DomainException;
+use App\Jobs\RequestAssetRattachement;
 use App\Models\CustodyRecord;
 use App\Models\MovementHistory;
 use App\Models\MovementOperation;
@@ -359,7 +360,7 @@ class MovementService
         $this->assertTransfer($operation);
         $this->assertStatus($operation, OperationStatus::PendingReception, 'OPERATION_NOT_AWAITING_RECEPTION');
 
-        return DB::transaction(function () use ($operation, $data, $confirmedBy, $actor, $correlationId) {
+        $result = DB::transaction(function () use ($operation, $data, $confirmedBy, $actor, $correlationId) {
             $before = $operation->only(['status', 'reception_confirmed_by']);
             $next = $operation->isInterministerial()
                 ? OperationStatus::PendingAssetConfirmation
@@ -381,6 +382,17 @@ class MovementService
 
             return $operation->fresh('assets');
         });
+
+        // TEC-017 : apres commit, demander a Asset le changement de
+        // rattachement pour chaque bien. L'operation reste
+        // pending_asset_confirmation jusqu'a asset.rattachement_confirmed.
+        if ($result->status === OperationStatus::PendingAssetConfirmation) {
+            foreach ($result->assetIds() as $assetId) {
+                RequestAssetRattachement::dispatch($result->id, $assetId);
+            }
+        }
+
+        return $result;
     }
 
     /**

@@ -11,6 +11,7 @@ use App\Models\CustodyRecord;
 use App\Models\OutboxMessage;
 use App\Services\MovementService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -31,6 +32,7 @@ class MovementDomainTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        Queue::fake();
         $this->service = app(MovementService::class);
         $this->institutionId = (string) Str::uuid7();
         $this->destinationId = (string) Str::uuid7();

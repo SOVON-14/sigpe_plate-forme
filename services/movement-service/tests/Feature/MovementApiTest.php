@@ -8,6 +8,7 @@ use App\Models\OutboxMessage;
 use App\Services\MovementService;
 use App\Services\TokenValidator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -22,6 +23,7 @@ class MovementApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        Queue::fake();
         $this->institutionId = (string) Str::uuid7();
         $this->sub = (string) Str::uuid7();
     }
