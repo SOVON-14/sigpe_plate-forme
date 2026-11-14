@@ -202,6 +202,35 @@ paths:
         '404': { $ref: '#/components/responses/Problem404' }
         '409': { $ref: '#/components/responses/Problem409' }
         '422': { $ref: '#/components/responses/Problem422' }
+  /acquisition-requests/{requestId}/order:
+    post:
+      tags: [requests]
+      operationId: orderAcquisitionRequest
+      summary: Emets la commande au fournisseur selectionne
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_ref: { type: string, maxLength: 255 }
+      responses:
+        '200':
+          description: Commande emise
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/AcquisitionRequest' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
   /acquisition-requests/{requestId}/deliveries:
     post:
       tags: [deliveries]
