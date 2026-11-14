@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Rapport SIGPÉ — Plateforme nationale de gestion du patrimoine de l'État</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; color: #1a2332; font-size: 10.5pt; line-height: 1.55; margin: 0; }
+
+  /* ---------- Couverture ---------- */
+  .cover { page-break-after: always; height: 250mm; display: flex; flex-direction: column; justify-content: space-between;
+    background: linear-gradient(160deg, #0b3d6e 0%, #0d2b52 55%, #12294a 100%); color: #fff; padding: 22mm 20mm; border-radius: 4mm; }
+  .cover .brand { display: flex; align-items: center; gap: 14px; }
+  .cover .logo { width: 64px; height: 64px; border-radius: 16px; background: #d4af37; color: #0b3d6e;
+    display: flex; align-items: center; justify-content: center; font-size: 34px; font-weight: 800; }
+  .cover h1 { font-size: 34pt; margin: 6px 0 2px; letter-spacing: .5px; }
+  .cover .sub { font-size: 13pt; color: #cfdcf0; }
+  .cover .meta { font-size: 10pt; color: #9fb4d0; line-height: 1.8; }
+  .cover .foot { border-top: 1px solid rgba(255,255,255,.15); padding-top: 12px; font-size: 9.5pt; color: #9fb4d0; }
+
+  /* ---------- Structure ---------- */
+  h2 { color: #0b3d6e; font-size: 17pt; border-bottom: 3px solid #d4af37; padding-bottom: 6px; margin-top: 0; page-break-after: avoid; }
+  h3 { color: #14508f; font-size: 12.5pt; margin: 22px 0 8px; page-break-after: avoid; }
+  h4 { color: #2a5a9e; font-size: 11pt; margin: 14px 0 6px; }
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0 10px; padding-left: 20px; }
+  li { margin: 3px 0; }
+  strong { color: #0b3d6e; }
+  code { background: #eef2f8; color: #0d47a1; padding: 1px 5px; border-radius: 4px; font-size: 9.5pt; font-family: Consolas, monospace; }
+
+  .page-break { page-break-before: always; }
+  .section-intro { color: #55677f; font-size: 10pt; margin-bottom: 14px; }
+
+  /* ---------- Encadrés ---------- */
+  .box { border-left: 4px solid #d4af37; background: #fdf8ec; padding: 10px 14px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+  .box.blue { border-color: #14508f; background: #eef4fb; }
+  .box.red { border-color: #b3392f; background: #fdf0ee; }
+  .box.green { border-color: #1e7d46; background: #ecf7f0; }
+  .box p { margin: 4px 0; }
+
+  /* ---------- Tableaux ---------- */
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 9.5pt; page-break-inside: auto; }
+  th { background: #0b3d6e; color: #fff; text-align: left; padding: 7px 9px; font-weight: 600; }
+  td { border-bottom: 1px solid #e2e8f0; padding: 6px 9px; vertical-align: top; }
+  tr:nth-child(even) td { background: #f7f9fc; }
+  tr { page-break-inside: avoid; }
+
+  /* ---------- Cartes services ---------- */
+  .svc { border: 1px solid #e2e8f0; border-radius: 8px; margin: 12px 0; overflow: hidden; page-break-inside: avoid; }
+  .svc-head { background: linear-gradient(90deg, #0b3d6e, #14508f); color: #fff; padding: 9px 14px;
+    display: flex; justify-content: space-between; align-items: center; }
+  .svc-head .name { font-weight: 700; font-size: 11.5pt; }
+  .svc-head .num { background: #d4af37; color: #0b3d6e; border-radius: 10px; padding: 1px 10px; font-size: 9pt; font-weight: 700; }
+  .svc-body { padding: 10px 14px; }
+  .svc-body p { margin: 5px 0; font-size: 10pt; }
+  .tag { display: inline-block; background: #eef4fb; color: #14508f; border-radius: 4px; padding: 1px 7px; font-size: 8.5pt; margin: 1px 3px 1px 0; font-family: Consolas, monospace; }
+
+  /* ---------- Glossaire ---------- */
+  .glossary dt { font-weight: 700; color: #0b3d6e; margin-top: 10px; }
+  .glossary dd { margin: 2px 0 0 0; color: #33445c; }
+  .glossary dd p { margin: 2px 0; }
+
+  .flow { background: #f7f9fc; border: 1px dashed #b8c6da; border-radius: 8px; padding: 12px 16px; font-family: Consolas, monospace; font-size: 9.5pt; color: #14508f; margin: 10px 0; white-space: pre; overflow-x: auto; }
+
+  .toc { background: #f7f9fc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 20px; columns: 2; column-gap: 30px; }
+  .toc div { margin: 4px 0; font-size: 10pt; }
+  .toc b { color: #0b3d6e; }
+
+  .footer-note { margin-top: 30px; padding-top: 10px; border-top: 1px solid #e2e8f0; font-size: 8.5pt; color: #8896ab; }
+</style>
+</head>
+<body>
+
+<!-- ==================== COUVERTURE ==================== -->
+<div class="cover">
+  <div>
+    <div class="brand">
+      <div class="logo">S</div>
+      <div>
+        <div style="font-size:12pt;letter-spacing:2px;color:#d4af37;font-weight:700">RÉPUBLIQUE TOGOLAISE</div>
+        <div style="font-size:9pt;color:#9fb4d0">Ministère de l'Économie et des Finances</div>
+      </div>
+    </div>
+    <div style="margin-top:34mm">
+      <h1>SIGPÉ</h1>
+      <div class="sub">Système Intégré de Gestion du Patrimoine de l'État</div>
+    </div>
+  </div>
+  <div>
+    <div class="meta">
+      <strong>Rapport technique complet</strong><br>
+      Architecture · 13 microservices · Contrats · Infrastructure · Frontend<br>
+      Version des référentiels : CDC v1.0 (2026-11-11) · Catalogue technique v1.1 (2026-11-12)
+    </div>
+    <div class="foot">
+      Document généré pour la revue de projet — dépôt <code style="background:rgba(255,255,255,.12);color:#fff">github.com/SOVON-14/sigpe_plate-forme</code>, branche <code style="background:rgba(255,255,255,.12);color:#fff">main</code>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SOMMAIRE ==================== -->
+<div class="page-break"></div>
+<h2>Sommaire</h2>
+<div class="toc">
+  <div><b>1.</b> Vision et périmètre du projet</div>
+  <div><b>2.</b> Architecture globale</div>
+  <div><b>3.</b> Le processus appliqué (contract-first)</div>
+  <div><b>4.</b> Les 13 services backend</div>
+  <div><b>5.</b> Notions transverses expliquées</div>
+  <div><b>6.</b> Infrastructure et pile de développement</div>
+  <div><b>7.</b> Frontend SIGPÉ Web</div>
+  <div><b>8.</b> État du projet et reste à faire</div>
+</div>
+
+<!-- ==================== 1. VISION ==================== -->
+<div class="page-break"></div>
+<h2>1. Vision et périmètre</h2>
+<p class="section-intro">SIGPÉ est une plateforme nationale et souveraine de gestion du patrimoine de l'État togolais : inventaire des biens, affectations, mouvements, maintenance, finance, documents et audit — le tout dans un système distribué, traçable et sécurisé.</p>
+
+<h3>1.1 Objectifs</h3>
+<ul>
+  <li><strong>Un registre national unique</strong> de tous les biens de l'État (immobilisations, matériels, véhicules…), avec leur cycle de vie complet.</li>
+  <li><strong>Traçabilité totale</strong> : chaque action importante laisse une preuve invérifiable — journal d'audit immuable chaîné par hachage.</li>
+  <li><strong>Gouvernance institutionnelle</strong> : chaque agent ne voit et n'agit que dans le périmètre de son institution (cloisonnement ABAC).</li>
+  <li><strong>Interoperabilité contractuelle</strong> : les services communiquent par des contrats versionnés (OpenAPI pour le synchrone, AsyncAPI pour l'asynchrone).</li>
+  <li><strong>Autonomie des services</strong> : 13 microservices déployables indépendamment, chacun propriétaire de sa base de données.</li>
+</ul>
+
+<h3>1.2 Les deux documents de référence</h3>
+<table>
+  <tr><th>Document</th><th>Rôle</th><th>Version</th></tr>
+  <tr><td><code>SIGPE_Cahier_Des_Charges_v1.0</code></td><td><strong>Autorité métier</strong> : règles de gestion, cycles de vie, habilitations, processus institutionnels</td><td>v1.0 — 2026-11-11</td></tr>
+  <tr><td><code>SIGPE_Catalogue_Technique_v1.1</code></td><td><strong>Autorité technique</strong> : architecture, contrats d'API/événements, exigences de sécurité et d'audit</td><td>v1.1 — 2026-11-12</td></tr>
+</table>
+<div class="box blue"><p><strong>Règle d'or du projet :</strong> le contrat avant le code. Chaque service a d'abord fait l'objet d'un contrat OpenAPI/AsyncAPI relu et validé, puis implémenté en Laravel en respectant strictement ce contrat.</p></div>
+
+<!-- ==================== 2. ARCHITECTURE ==================== -->
+<div class="page-break"></div>
+<h2>2. Architecture globale</h2>
+<p class="section-intro">Une architecture microservices événementielle : le navigateur ne parle jamais directement aux services — tout passe par une passerelle API et une couche d'événements.</p>
+
+<div class="flow">Navigateur (sigpe-web : HTML/CSS/JS)
+        │  HTTPS + JWT (Bearer)
+        ▼
+   ┌─────────────┐        ┌──────────────┐
+   │  APISIX     │───────▶│ 13 services  │
+   │  (gateway)  │  REST  │  Laravel API │──▶ PostgreSQL (1 base par service)
+   │  142 routes │        └──────┬───────┘
+   └─────────────┘               │ événements métier
+                                 ▼
+                        ┌─────────────────┐
+                        │   RabbitMQ      │  exchange topic : sigpe.events.v1
+                        │  (broker AMQP)  │
+                        └────────┬────────┘
+                                 ▼
+                        consommateurs des autres services
+
+   Authentification : Keycloak (OIDC, realm « sigpe »)
+   Stockage fichiers  : MinIO (S3-compatible, bucket privé)</pre></div>
+
+<h3>2.1 Les briques</h3>
+<table>
+  <tr><th>Brique</th><th>Technologie</th><th>Rôle</th></tr>
+  <tr><td>Frontend</td><td>HTML/CSS/JS vanilla, nginx</td><td>SPA statique, aucune étape de build, auth OIDC PKCE</td></tr>
+  <tr><td>Passerelle API</td><td>Apache APISIX 3.14</td><td>142 routes générées automatiquement depuis les OpenAPI ; CORS, proxy vers les services</td></tr>
+  <tr><td>Services métier</td><td>Laravel 13 / PHP 8.5</td><td>13 API REST + 13 workers (outbox, consumers)</td></tr>
+  <tr><td>Bases de données</td><td>PostgreSQL (13 bases <code>sigpe_*</code>)</td><td>Une base par service — aucune jointure inter-services, isolation logique</td></tr>
+  <tr><td>Broker</td><td>RabbitMQ</td><td>Échange topic durable <code>sigpe.events.v1</code>, files nommées par service</td></tr>
+  <tr><td>Identité</td><td>Keycloak 26</td><td>OIDC/OAuth2, realm <code>sigpe</code>, client web PKCE + 13 clients services (client_credentials)</td></tr>
+  <tr><td>Stockage</td><td>MinIO (S3)</td><td>Documents confidentiels, bucket privé <code>sigpe-documents</code></td></tr>
+  <tr><td>Orchestration</td><td>Docker Compose</td><td>34 conteneurs : 13 apps + 13 workers + 8 briques d'infrastructure</td></tr>
+</table>
+
+<h3>2.2 Principe d'isolation</h3>
+<div class="box"><p>Chaque microservice est <strong>autonome</strong> : sa propre base, ses propres règles, ses propres événements. Un service ne lit jamais la base d'un autre — il communique soit en synchrone via l'API REST (ex. Movement interroge Asset pour le rattachement TEC-017), soit en asynchrone via un événement RabbitMQ (ex. Acquisition consomme <code>workflow.instance_completed</code>).</p></div>
+
+<!-- ==================== 3. PROCESSUS ==================== -->
+<div class="page-break"></div>
+<h2>3. Le processus appliqué</h2>
+<p class="section-intro">Un enchaînement strict et répétable pour chacun des 13 services.</p>
+
+<h3>3.1 Les 5 étapes par service</h3>
+<ol>
+  <li><strong>Contrat (branche <code>contracts</code>)</strong> — rédaction de l'OpenAPI 3.1 (endpoints REST), de l'AsyncAPI (événements produits/consommés) et des schémas JSON Schema draft 2020-12 pour chaque événement. Validation par Redocly / AsyncAPI CLI.</li>
+  <li><strong>Domaine (branche <code>service/&lt;nom&gt;</code>)</strong> — enums PHP, migrations par table métier, modèles Eloquent, service métier (logique des cycles de vie et des transitions d'état).</li>
+  <li><strong>Socle transverse</strong> — recopie du kit commun : middleware JWT Keycloak, RBAC + ABAC institutionnel, idempotence, outbox/inbox, publisher/consumer RabbitMQ, erreurs RFC 9457.</li>
+  <li><strong>Couche HTTP</strong> — resources JSON, Form Requests de validation, contrôleurs, routes <code>/api/v1</code> avec middlewares de permission.</li>
+  <li><strong>Tests</strong> — tests feature PHPUnit (SQLite en mémoire) couvrant les transitions, la sécurité (401/403), l'idempotence et les flux d'événements. Puis Pint (formatage) et commit.</li>
+</ol>
+
+<h3>3.2 Git : le workflow réellement appliqué</h3>
+<table>
+  <tr><th>Branche</th><th>Contenu</th></tr>
+  <tr><td><code>contracts</code></td><td>14 OpenAPI + 14 AsyncAPI + 72 schémas JSON — figés avant implémentation</td></tr>
+  <tr><td><code>service/&lt;nom&gt;</code> ×13</td><td>Une branche par service, un commit (parfois plusieurs) par service</td></tr>
+  <tr><td><code>main</code></td><td>Toutes les branches fusionnées — 14 merges, <strong>1 seul conflit</strong> (modèle outbox d'Organization, résolu en gardant la version complète)</td></tr>
+  <tr><td><code>develop</code></td><td>Synchronisée (fast-forward) sur <code>main</code></td></tr>
+</table>
+<div class="box green"><p><strong>Attribution :</strong> l'ensemble des commits est signé de l'identité du porteur du projet. Aucune mention d'outil ni de co-auteur n'apparaît dans l'historique.</p></div>
+
+<!-- ==================== 4. LES 13 SERVICES ==================== -->
+<div class="page-break"></div>
+<h2>4. Les 13 services backend</h2>
+<p class="section-intro">Pour chaque service : ce qu'il fait, son cycle de vie principal et les événements qu'il produit ou consomme.</p>
+
+<div class="svc"><div class="svc-head"><span class="name">1 · Identity Service</span><span class="num">identité</span></div>
+<div class="svc-body">
+<p><strong>Rôle :</strong> la source de vérité sur les comptes utilisateurs, les délégations de pouvoir et les habilitations.</p>
+<p><strong>Métier :</strong> cycle de vie des comptes (création, suspension, réactivation), délégations temporaires de signature, calcul des permissions effectives d'un utilisateur (RBAC + règles ABAC).</p>
+<p><strong>Produit :</strong> <span class="tag">identity.account_created.v1</span> <span class="tag">identity.account_status_changed.v1</span> <span class="tag">identity.delegation_created.v1</span></p>
+<p><strong>Consomme :</strong> — (service racine du graphe)</p>
+</div></div>
+
+<div class="svc"><div class="svc-head"><span class="name">2 · Organization Service</span><span class="num">organisation</span></div>
+<div class="svc-body">
+<p><strong>Rôle :</strong> le référentiel institutionnel — qui existe, où, sous quelle forme.</p>
+<p><strong>Métier :</strong> institutions (administrations centrales, ministères), types d'unités (nationaux + locaux), unités organisationnelles en arbre (directions, services…), postes et responsables. Transitions d'état (active/suspendue/désactivée) tracées avec motif.</p>
+<p><strong>Produit :</strong> <span class="tag">organization.institution_*</span> <span class="tag">organization.unit_*</span></p>
+</div></div>
+
+<div class="svc"><div class="svc-head"><span class="name">3 · Asset Service</span><span class="num">registre maître</span></div>
+<div class="svc-body">
+<p><strong>Rôle :</strong> le registre maître des biens — la donnée de référence de toute la plateforme.</p>
+<p><strong>Métier :</strong> fiches actifs (catégorie, sous-catégorie, état physique, statut patrimonial), rattachement TEC-017 (qui détient le bien, depuis quand, où), historique des modifications. Endpoint machine-à-machine <code>POST /assets/{id}/rattachement</code> réservé à Movement.</p>
+<p><strong>Produit :</strong> <span class="tag">asset.asset_created.v1</span> <span class="tag">asset.status_changed.v1</span> <span class="tag">asset.rattachement_confirmed.v1</span></p>
+<p><strong>Consomme :</strong> <code>movement.operation_completed.v1</code> (confirmation de garde)</p>
+</div></div>
+
+<div class="svc"><div class="svc-head"><span class="name">4 · Movement Service</span><span class="num">mouvements</span></div>
+<div class="svc-body">
+<p><strong>Rôle :</strong> tout ce qui fait bouger un bien : affectations, transferts, prêts, mouvements physiques, droits d'usage partagés.</p>
+<p><strong>Métier :</strong> opérations de mouvement avec machine à états complète (brouillon → validation workflow → départ → réception → retour/incident) ; gardes (custody) qui disent « ce bien est entre les mains de X » ; droits partagés temporaires. Le rattachement TEC-017 est bouclé : Movement demande à Asset de confirmer la détention.</p>
+<p><strong>Produit :</strong> <span class="tag">movement.operation_*</span> <span class="tag">movement.custody_*</span> <span class="tag">movement.shared_right_*</span></p>
+<p><strong>Consomme :</strong> <code>workflow.instance_completed.v1</code>, événements Asset</p>
+</div></div>
+
+<div class="svc"><div class="svc-head"><span class="name">5 · Inventory Service</span><span class="num">inventaires</span></div>
+<div class="svc-body">
+<p><strong>Rôle :</strong> les campagnes d'inventaire physique — la photo réelle du patrimoine sur le terrain.</p>
+<p><strong>Métier :</strong> campagnes par institution et par période (général annuel, périodique, exceptionnel), agents affectés, constats terrain (bien trouvé / non trouvé / anomalie : endommagé, mal localisé, non enregistré, mal identifié, utilisation non déclarée…), puis vérification contradictoire de chaque constat (confirmé / rejeté / résolu) et rapport d'écarts à la clôture.</p>
+<p><strong>Produit :</strong> <span class="tag">inventory.campaign_*</span> <span class="tag">inventory.finding_*</span></p>
+</div></div>
+
+<div class="svc"><div class="svc-head"><span class="name">6 · Workflow Service</span><span class="num">circuits</span></div>
+<div class="svc-body">
+<p><strong>Rôle :</strong> le moteur de circuits de validation — l'instance centrale d'approbation de la plateforme.</p>
+<p><strong>Métier :</strong> templates de workflows nationaux ou par institution (étapes groupées, mode « tous » ou « un seul », SLA, étape nationale obligatoire), instances liées à une opération (acquisition, mouvement, sortie…), tâches à décider (approuver / rejeter / demander correction, commentaire obligatoire hors approbation), délégations temporaires, figeage de la version du circuit au démarrage.</p>
+<p><strong>Produit :</strong> <span class="tag">workflow.instance_completed.v1</span> <span class="tag">workflow.instance_cancelled.v1</span></p>
+<p><strong>Consomme :</strong> événements des services demandeurs</p>
+</div></div>
+
+<div class="svc"><div class="svc-head"><span class="name">7 · Maintenance Service</span><span class="num">maintenance</span></div>
+<div class="svc-body">
+<p><strong>Rôle :</strong> la maintenance du patrimoine — demandes, plans, interventions, coûts, prestataires, stocks de pièces.</p>
+<p><strong>Métier :</strong> demandes corrective / préventive / conditionnelle (voie urgente justifiée), cycle draft → validation → planification → intervention (start / interrupt / complete / cancel) avec coûts par catégorie (main-d'œuvre, pièces, consommables, transport, externe) ; prestataires évalués sur 6 critères ; pièces de rechange, entrepôts, mouvements de stock, seuils de réapprovisionnement avec alerte automatique.</p>
+<p><strong>Produit :</strong> <span class="tag">maintenance.request_*</span> <span class="tag">maintenance.intervention_*</span> <span class="tag">maintenance.spare_part.below_threshold.v1</span> (+ 6 autres)</p>
+<p><strong>Consomme :</strong> <code>workflow.instance_completed.v1</code></p>
+</div></div>
+
+<div class="svc"><div class="svc-head"><span class="name">8 · Acquisition Service</span><span class="num">acquisitions</span></div>
+<div class="svc-body">
+<p><strong>Rôle :</strong> le cycle complet d'achat public : du besoin à l'enregistrement du bien dans le registre Asset.</p>
+<p><strong>Métier :</strong> demandes avec lignes d'articles (quantité, unité, valeur estimée justifiée), soumission au workflow, sélection de l'offre (fournisseur + justification), commande, livraisons, réceptions ligne par ligne avec numéros de série → chaque bien accepté est enregistré dans Asset via un appel TEC authentifié ; clôture impossible tant que des acceptations ne sont pas enregistrées. Séquence métier <code>ACQ-AAAA-NNNNNN</code>.</p>
+<p><strong>Produit :</strong> <span class="tag">acquisition.request_*</span> <span class="tag">acquisition.delivery_*</span> <span class="tag">acquisition.reception_*</span></p>
+<p><strong>Consomme :</strong> <code>workflow.instance_completed.v1</code> ; appelle <code>POST /assets</code> sur Asset</p>
+</div></div>
+
+<div class="svc"><div class="svc-head"><span class="name">9 · Audit Service</span><span class="num">audit</span></div>
+<div class="svc-body">
+<p><strong>Rôle :</strong> le garant de la confiance — un journal immuable de tout ce qui s'est passé.</p>
+<p><strong>Métier :</strong> consomme <strong>tous</strong> les événements de la plateforme (binding wildcard <code>#</code>) et les transforme en entrées d'audit ; chaîne de hachage SHA-256 vérifiable en un appel ; classification de sensibilité (normal / sensible / critique) ; chaque vérification de chaîne émet elle-même un événement — jamais de contrôle silencieux.</p>
+<p><strong>Produit :</strong> <span class="tag">audit.entry_recorded.v1</span> <span class="tag">audit.integrity_check_completed.v1</span></p>
+<p><strong>API :</strong> liste filtrable (8 critères), détail complet, <code>GET /audit-entries/chain/verify</code>, statistiques — permissions <code>audit.read</code> / <code>audit.verify</code></p>
+</div></div>
+
+<div class="svc"><div class="svc-head"><span class="name">10 · Document Service</span><span class="num">documents</span></div>
+<div class="svc-body">
+<p><strong>Rôle :</strong> le dépôt documentaire national — contrats, actes, pièces justificatives.</p>
+<p><strong>Métier :</strong> 8 catégories nationales, 4 niveaux de confidentialité (public administratif → hautement sensible), versions <strong>immuables</strong> (jamais d'écrasement), contrôle format + empreinte SHA-256, stockage privé S3/MinIO, cycle de vie (brouillon → validé → archivé), demandes d'accès exceptionnelles avec décision motivée et journal de chaque consultation/téléchargement.</p>
+<p><strong>Produit :</strong> <span class="tag">document.*</span> (création, version, validation, accès)</p>
+</div></div>
+
+<div class="svc"><div class="svc-head"><span class="name">11 · Notification Service</span><span class="num">notifications</span></div>
+<div class="svc-body">
+<p><strong>Rôle :</strong> le service d'alerte — transformer les événements en messages utiles.</p>
+<p><strong>Métier :</strong> 3 canaux (in-app, email, SMS), préférences par type d'événement et par utilisateur, notifications <strong>critiques obligatoires</strong> (non désactivables), accusé de prise en compte <em>distinct</em> de l'approbation métier, relances programmées.</p>
+<p><strong>Produit :</strong> <span class="tag">notification.sent.v1</span> <span class="tag">notification.acknowledged.v1</span></p>
+<p><strong>Consomme :</strong> la plupart des événements métier (alertes stock, anomalies, validations…)</p>
+</div></div>
+
+<div class="svc"><div class="svc-head"><span class="name">12 · Finance Service</span><span class="num">finance</span></div>
+<div class="svc-body">
+<p><strong>Rôle :</strong> la valorisation et la sortie du patrimoine — ce que valent les biens et comment ils quittent le domaine.</p>
+<p><strong>Métier :</strong> valorisations (acquisition, actuelle, nette comptable, remplacement) avec amortissement (linéaire, dégressif) et valeur explicitement « indéterminée » quand elle l'est ; coûts patrimoniaux par catégorie ; dossiers de sortie définitive (réforme, vente, destruction, perte, vol, don) à 8 statuts avec <strong>niveau de compétence requis</strong> (institutionnel / ministériel / national), enquête obligatoire pour perte/vol — le bien n'est jamais retiré automatiquement.</p>
+<p><strong>Produit :</strong> <span class="tag">finance.valuation_*</span> <span class="tag">finance.disposal_*</span></p>
+</div></div>
+
+<div class="svc"><div class="svc-head"><span class="name">13 · Reporting Service</span><span class="num">reporting</span></div>
+<div class="svc-body">
+<p><strong>Rôle :</strong> les tableaux de bord et rapports nationaux — en lecture seule, alimentés par les événements.</p>
+<p><strong>Métier :</strong> ingère les événements et maintient des <strong>projections</strong> (état courant des actifs, compteurs par domaine) ; indicateurs par scope national/institutionnel ; modèles de rapports nationaux exécutables par période avec paramètres ; exécutions historisées et exportables ; suivi du lag de synchronisation.</p>
+<p><strong>Produit :</strong> — (service terminal de lecture)</p>
+<p><strong>Consomme :</strong> la quasi-totalité des événements métier</p>
+</div></div>
+
+<!-- ==================== 5. NOTIONS ==================== -->
+<div class="page-break"></div>
+<h2>5. Notions transverses — expliquées simplement</h2>
+<p class="section-intro">Les concepts qui reviennent dans tout le backend, avec leur justification métier.</p>
+
+<dl class="glossary">
+  <dt>Outbox (boîte d'envoi transactionnelle)</dt>
+  <dd><p>Quand un service modifie sa base <em>et</em> doit notifier les autres, il écrit l'événement <strong>dans la même transaction SQL</strong> que la donnée métier (table <code>outbox_messages</code>). Un worker (<code>sigpe:outbox:publish</code>) publie ensuite sur RabbitMQ.</p>
+  <p><strong>Pourquoi :</strong> impossible de perdre un événement si le service plante entre « j'ai enregistré » et « j'ai notifié ». C'est la garantie <em>au moins une fois</em>.</p></dd>
+
+  <dt>Inbox (boîte de réception dédoublonnée)</dt>
+  <dd><p>Table <code>inbox_events</code> : chaque événement consommé est enregistré par son <code>event_id</code> avant traitement. Si RabbitMQ le livre deux fois (at-least-once), le second est ignoré.</p>
+  <p><strong>Pourquoi :</strong> les brokers distribuent « au moins une fois » — jamais « exactement une fois ». L'inbox rend la consommation <em>idempotente</em>.</p></dd>
+
+  <dt>Idempotence (en-tête <code>Idempotency-Key</code>)</dt>
+  <dd><p>Toute mutation REST exige une clé unique. Si le client réessaie (timeout réseau), la même clé renvoie la <strong>même réponse</strong> au lieu de créer un doublon. Clé identique + payload différent → erreur 409.</p></dd>
+
+  <dt>JWT Bearer + Keycloak</dt>
+  <dd><p>Le navigateur obtient un jeton OIDC (Authorization Code + PKCE) auprès de Keycloak. Les services valident sa signature via le JWKS et lisent les claims : <code>sub</code> (qui), <code>permissions</code> (quoi), <code>institution_id</code> (où). Les appels machine-à-machine (Movement→Asset) utilisent des clients <code>client_credentials</code>.</p></dd>
+
+  <dt>RBAC + ABAC</dt>
+  <dd><p><strong>RBAC</strong> (Role-Based) : la permission <code>movement.operations.manage</code> autorise l'action. <strong>ABAC</strong> (Attribute-Based) : la ressource porte un <code>institution_id</code> et l'utilisateur aussi — un agent de l'institution A reçoit 403 sur les ressources de l'institution B, même avec la bonne permission. L'auditeur national (sans institution) voit tout.</p></dd>
+
+  <dt>Machine à états (state machine)</dt>
+  <dd><p>Chaque cycle de vie est une liste fermée de transitions : une opération de mouvement ne peut passer à <code>completed</code> que depuis les états prévus, avec les préconditions métier (workflow approuvé, TEC-017 confirmé…). Une transition interdite → 409.</p></dd>
+
+  <dt>Chaîne de hachage (audit)</dt>
+  <dd><p>Chaque entrée d'audit contient <code>entry_hash = SHA-256(previous_hash + contenu)</code>. Modifier ou supprimer une entrée rompt tous les maillons suivants — détectable par <code>GET /audit-entries/chain/verify</code>. C'est l'équivalent logiciel du « livre de comptes » : inviolable par conception.</p></dd>
+
+  <dt>RFC 9457 (Problem Details)</dt>
+  <dd><p>Format standard d'erreur <code>application/problem+json</code> : <code>type</code>, <code>title</code>, <code>status</code>, <code>detail</code>, <code>instance</code>. Le frontend l'affiche tel quel — une seule convention d'erreur pour toute la plateforme.</p></dd>
+
+  <dt>UUIDv7</dt>
+  <dd><p>Identifiants uniques <em>triables par date</em> (timestamp + aléatoire) — indexables en base sans fragmenter les pages, générables hors-ligne sans coordination.</p></dd>
+
+  <dt>Séquences métier</dt>
+  <dd><p>Références lisibles par les humains en parallèle des UUID : <code>ACQ-2026-000123</code> (acquisitions), format équivalent côté autres services — ce que l'on cite dans les courriers officiels.</p></dd>
+
+  <dt>Single Database per Service</dt>
+  <dd><p>Chaque service possède sa base PostgreSQL (<code>sigpe_asset</code>, <code>sigpe_movement</code>…). Conséquence : scalabilité indépendante, pas de couplage transactionnel — les cohérences inter-services passent par les événements et les API.</p></dd>
+
+  <dt>Outbox → RabbitMQ → Inbox (le trio de fiabilité)</dt>
+  <dd><p>La chaîne complète : la donnée et l'événement naissent dans la même transaction (outbox) → le publisher garantit la livraison (publisher confirms) → le consommateur dédoublonne (inbox) → la donnée est traitée. C'est le pattern qui rend un système distribué <em>fiable sans transaction distribuée</em>.</p></dd>
+</dl>
+
+<!-- ==================== 6. INFRASTRUCTURE ==================== -->
+<div class="page-break"></div>
+<h2>6. Infrastructure et pile de développement</h2>
+
+<h3>6.1 Conteneurs (docker compose)</h3>
+<table>
+  <tr><th>Groupe</th><th>Conteneurs</th></tr>
+  <tr><td>Applications</td><td>13 services Laravel (<code>php artisan migrate --force &amp;&amp; artisan serve</code>)</td></tr>
+  <tr><td>Workers</td><td>13 workers : <code>queue:work</code> + boucle <code>sigpe:outbox:publish</code>, + <code>sigpe:events:consume</code> pour les 7 services consommateurs</td></tr>
+  <tr><td>Données</td><td>PostgreSQL (init : 13 bases + users), MinIO + init bucket</td></tr>
+  <tr><td>Messagerie</td><td>RabbitMQ + conteneur one-shot d'init (vhost, user, exchange)</td></tr>
+  <tr><td>Sécurité</td><td>Keycloak (realm importé : client web PKCE, 13 clients services, client scope claims <code>permissions</code>/<code>institution_id</code>)</td></tr>
+  <tr><td>Passerelle</td><td>APISIX standalone, <code>apisix.yaml</code> généré depuis les OpenAPI (142 routes)</td></tr>
+  <tr><td>Frontend</td><td><code>sigpe-web</code> : nginx statique sur le port 8088</td></tr>
+</table>
+
+<h3>6.2 Points techniques notables</h3>
+<ul>
+  <li><strong>Génération APISIX :</strong> <code>gateway/apisix/generate-routes.php</code> lit les 13 OpenAPI et produit les routes — jamais édité à la main. Un conflit de route (<code>/assets/{id}</code> Asset vs Reporting) a été résolu par un chemin dédié <code>/api/v1/reporting/assets/{id}</code>.</li>
+  <li><strong>Génération Compose :</strong> <code>infrastructure/docker/generate-compose-services.php</code> produit les 26 services applicatifs de façon idempotente.</li>
+  <li><strong>Secrets :</strong> aucun en dur — 13 <code>SIGPE_KC_SECRET_*</code> + mots de passe via <code>.env</code> (gitignoré), documentés dans <code>.env.example</code>.</li>
+  <li><strong>JWT inter-réseaux :</strong> issuer = URL publique Keycloak, JWKS fetché en interne (<code>keycloak:8080</code>) — les services valident sans exposer le réseau interne.</li>
+</ul>
+
+<!-- ==================== 7. FRONTEND ==================== -->
+<div class="page-break"></div>
+<h2>7. Frontend SIGPÉ Web</h2>
+<p class="section-intro">SPA 100 % HTML/CSS/JS vanilla — zéro framework, zéro build, servie par nginx. Choix assumé : lisibilité, auditabilité, absence de dépendances npm.</p>
+
+<h3>7.1 Socle</h3>
+<table>
+  <tr><th>Fichier</th><th>Responsabilité</th></tr>
+  <tr><td><code>js/auth.js</code></td><td>Keycloak Authorization Code + PKCE (S256, state, refresh token, logout)</td></tr>
+  <tr><td><code>js/api.js</code></td><td>Client fetch : Bearer, refresh automatique, <code>Idempotency-Key</code> UUID sur mutations, parsing RFC 9457, upload multipart</td></tr>
+  <tr><td><code>js/ui.js</code></td><td>~25 icônes SVG, toasts, modals (avec <code>onOpen</code>), badges de statut, squelettes, pagination</td></tr>
+  <tr><td><code>js/app.js</code></td><td>Routage hash, layout sidebar/topbar, <strong>filtrage des modules par permissions JWT</strong></td></tr>
+  <tr><td><code>css/app.css</code></td><td>Design system : tokens navy/or institutionnels, KPI cards, tables responsives, <code>prefers-reduced-motion</code>, focus visibles</td></tr>
+</table>
+
+<h3>7.2 Les 13 modules</h3>
+<p>Dashboard · Registre des actifs · Notifications · Mouvements (opérations/gardes/droits partagés, machine à états complète) · Maintenance · Inventaires · Documents (upload multipart, versions, accès) · Finance (valorisations, coûts, sorties) · Acquisitions (cycle complet) · Circuits de validation (instances + décisions de tâches) · Journal d'audit (filtres, détail, <strong>vérification de chaîne en un clic</strong>) · Rapports &amp; indicateurs · Organisation.</p>
+
+<h3>7.3 Alignement contractuel vérifié</h3>
+<p>Chaque vue a été confrontée aux routes réelles des services (<code>routes/api.php</code>) — deux écarts détectés et corrigés : la liste globale des constats d'inventaire (scopée par campagne) et les demandes d'accès documents (scopées par document, décision <code>approved</code>/<code>denied</code> + motif obligatoire).</p>
+
+<!-- ==================== 8. ETAT ==================== -->
+<div class="page-break"></div>
+<h2>8. État du projet et reste à faire</h2>
+
+<h3>8.1 Ce qui est fait et vérifié</h3>
+<ul>
+  <li>13/13 services implémentés, ~200 tests feature verts, Pint appliqué partout</li>
+  <li>14 branches fusionnées sur <code>main</code>, <code>develop</code> synchronisée, 1 conflit résolu</li>
+  <li>Contrats validés : 14 OpenAPI 3.1, 14 AsyncAPI, 72 schémas JSON</li>
+  <li>Pile Docker complète générée et validée syntaxiquement (<code>docker compose config</code>)</li>
+  <li>Frontend complet : 13 modules, syntaxe JS validée (<code>node --check</code>)</li>
+  <li>Poussé sur GitHub — <code>main</code> synchronisé avec <code>origin/main</code></li>
+</ul>
+
+<h3>8.2 Ce qui reste</h3>
+<table>
+  <tr><th>#</th><th>Tâche</th><th>Blocage / note</th></tr>
+  <tr><td>1</td><td>Validation E2E de la pile Docker</td><td>Docker Desktop à redémarrer (ou machine alternative) — <code>docker compose up -d --build</code></td></tr>
+  <tr><td>2</td><td>Utilisateur de test + permissions dans Keycloak</td><td>Requis pour naviguer dans le frontend (sinon 403)</td></tr>
+  <tr><td>3</td><td>Tests des flux inter-services réels</td><td>AMQP, TEC-017, Workflow→métier — jamais validés en conditions réelles</td></tr>
+  <tr><td>4</td><td>Observabilité</td><td>Prometheus, Grafana, OpenTelemetry, Loki, Tempo — non commencé</td></tr>
+  <tr><td>5</td><td>CI/CD</td><td>Pipelines — non commencé</td></tr>
+  <tr><td>6</td><td>Seeders / données de démo</td><td>Aucun jeu de données — écrans vides au premier démarrage</td></tr>
+  <tr><td>7</td><td>Approfondissements frontend (optionnel)</td><td>Plans/prestataires/entrepôts (Maintenance), historique par bien (Mouvements), journal d'accès (Documents)</td></tr>
+</table>
+
+<h3>8.3 Prochaine étape recommandée</h3>
+<div class="box green"><p>Sur une machine où Docker fonctionne : cloner le dépôt, renseigner <code>.env</code>, <code>docker compose up -d --build</code>, créer un utilisateur dans le realm Keycloak <code>sigpe</code>, puis ouvrir <code>http://localhost:8088</code>. Les erreurs révélées par ce premier run conditionneront les derniers ajustements avant la mise en production.</p></div>
+
+<div class="footer-note">
+SIGPÉ — Rapport généré à partir du dépôt <code>sigpe_plate-forme</code> (branche main). Référentiels : CDC v1.0 et Catalogue technique v1.1. Tous les développements backend et frontend sont la propriété du porteur du projet.
+</div>
+
+</body>
+</html>

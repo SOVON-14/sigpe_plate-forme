@@ -723,6 +723,13 @@ services:
       KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
       KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_DOCUMENT}
       APP_ENV: local
+      DOCUMENTS_DISK: s3
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_BUCKET: sigpe-documents
+      AWS_ENDPOINT: http://minio:9000
+      AWS_USE_PATH_STYLE_ENDPOINT: "true"
     command: ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080"]
     depends_on:
       postgres:
@@ -733,6 +740,8 @@ services:
         condition: service_completed_successfully
       keycloak:
         condition: service_started
+      minio:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "php -r \"exit((int)!@fsockopen('127.0.0.1', 8080));\""]
       interval: 30s
@@ -756,6 +765,13 @@ services:
       KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
       KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_DOCUMENT}
       APP_ENV: local
+      DOCUMENTS_DISK: s3
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_BUCKET: sigpe-documents
+      AWS_ENDPOINT: http://minio:9000
+      AWS_USE_PATH_STYLE_ENDPOINT: "true"
     command: ["sh", "-c", "php artisan queue:work database --sleep=3 --tries=3 &  while true; do php artisan sigpe:outbox:publish || true; sleep 5; done"]
     depends_on:
       postgres:

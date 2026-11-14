@@ -73,6 +73,8 @@ cp .env.example .env   # puis renseigner les mots de passe et secrets
 # POSTGRES_PASSWORD, RABBITMQ_PASSWORD, KEYCLOAK_ADMIN_PASSWORD,
 # SIGPE_ADMIN_PASSWORD, SIGPE_KC_SECRET_* (13), MINIO_ROOT_PASSWORD
 
+php scripts/bootstrap-env.php   # génère les services/*/.env (requis au 1er lancement)
+
 docker compose up -d --build        # toute la pile
 docker compose logs -f apisix       # gateway : http://localhost:9080
 docker compose logs -f keycloak     # console : http://localhost:8081
@@ -82,8 +84,9 @@ docker compose logs -f keycloak     # console : http://localhost:8081
   `php gateway/apisix/generate-routes.php` depuis `contracts/openapi/`).
 - Frontend `sigpe-web` : `http://localhost:8088` — SPA statique
   HTML/CSS/JS vanilla (zéro build), auth Keycloak Authorization Code + PKCE.
-  Modules livrés : connexion, tableau de bord, registre des actifs,
-  notifications ; les autres modules affichent "en cours de développement".
+  Les 13 modules métier sont livrés : tableau de bord, actifs, mouvements,
+  maintenance, inventaires, documents, finance, workflows, acquisitions,
+  audit, rapports, organisation, notifications.
 - Realm Keycloak `sigpe` : client public `sigpe-web`, audience `sigpe-api`,
   13 clients `*-service` en client_credentials, claim `sigpe-claims`
   (permissions + institution_id + audience).

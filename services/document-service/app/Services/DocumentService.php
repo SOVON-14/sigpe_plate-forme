@@ -59,7 +59,10 @@ class DocumentService
 
     private const MAX_SIZE_BYTES = 25 * 1024 * 1024;
 
-    private const DISK = 'local';
+    private function disk(): string
+    {
+        return (string) config('document.disk', 'local');
+    }
 
     public function __construct(private readonly OutboxRecorder $outbox) {}
 
@@ -291,7 +294,7 @@ class DocumentService
                 // Seul le fichier est retire ; metadonnees et
                 // historique des versions sont conserves.
                 foreach ($document->versions as $version) {
-                    Storage::disk(self::DISK)->delete($version->storage_path);
+                    Storage::disk($this->disk())->delete($version->storage_path);
                 }
             }
 
@@ -431,7 +434,7 @@ class DocumentService
         if ($version === null) {
             throw new DomainException('VERSION_NOT_FOUND', 'Version introuvable.');
         }
-        if (! Storage::disk(self::DISK)->exists($version->storage_path)) {
+        if (! Storage::disk($this->disk())->exists($version->storage_path)) {
             throw new DomainException('FILE_MISSING', 'Fichier absent du stockage.');
         }
 
@@ -475,7 +478,7 @@ class DocumentService
         $filename = $version->original_filename;
         $mime = $version->mime_type;
 
-        $response = Storage::disk(self::DISK)->download($path, $filename, ['Content-Type' => $mime]);
+        $response = Storage::disk($this->disk())->download($path, $filename, ['Content-Type' => $mime]);
 
         return ['response' => $response, 'grant' => $grant];
     }
@@ -518,7 +521,7 @@ class DocumentService
         $path = "documents/{$document->id}/v{$nextNumber}/{$safeName}";
 
         $contents = file_get_contents($file->getRealPath());
-        Storage::disk(self::DISK)->put($path, $contents);
+        Storage::disk($this->disk())->put($path, $contents);
 
         return DocumentVersion::create([
             'document_id' => $document->id,
