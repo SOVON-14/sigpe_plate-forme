@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/acquisition-request-selected.schema.json",
+  "title": "acquisition.request.selected — data (v1)",
+  "type": "object",
+  "required": [
+    "request_id",
+    "reference",
+    "institution_id",
+    "supplier_name"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "supplier_name": {
+      "type": "string"
+    },
+    "supplier_ref": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "order_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "contracted_total_value": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "selected_by": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

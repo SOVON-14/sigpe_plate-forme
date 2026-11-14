@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/acquisition-reception-recorded.schema.json",
+  "title": "acquisition.reception.recorded — data (v1)",
+  "type": "object",
+  "required": [
+    "reception_id",
+    "delivery_id",
+    "request_id",
+    "institution_id",
+    "status",
+    "lines_count"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "reception_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "delivery_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "request_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "partial",
+        "complete"
+      ]
+    },
+    "lines_count": {
+      "type": "integer"
+    },
+    "quantity_accepted_total": {
+      "type": "number"
+    },
+    "quantity_refused_total": {
+      "type": "number"
+    },
+    "received_by": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "received_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

@@ -55,6 +55,15 @@ Référence : SIGPE-EVT-MATRIX-001 — Version 0.1 (squelette) — 12/11/2026
 | movement.loan.returned | movement.loan.returned.v1 | movement-service | reporting-service, audit-service, notification-service | Pret restitue (is_late renseigne) | CONTRACTÉ (draft) |
 | movement.shared_right.granted | movement.shared_right.granted.v1 | movement-service | reporting-service, audit-service, notification-service | Droit d'usage accorde sur bien partage | CONTRACTÉ (draft) |
 | movement.shared_right.terminated | movement.shared_right.terminated.v1 | movement-service | reporting-service, audit-service, notification-service | Droit d'usage suspendu ou termine | CONTRACTÉ (draft) |
+| acquisition.request.created | acquisition.request.created.v1 | acquisition-service | workflow-service, reporting-service, audit-service, notification-service | Expression de besoin creee | CONTRACTÉ (draft) — voir acquisition-service.asyncapi.yaml |
+| acquisition.request.submitted | acquisition.request.submitted.v1 | acquisition-service | workflow-service, audit-service, notification-service | Demande soumise au circuit de validation | CONTRACTÉ (draft) |
+| acquisition.request.selected | acquisition.request.selected.v1 | acquisition-service | reporting-service, audit-service, notification-service | Offre/fournisseur selectionne | CONTRACTÉ (draft) |
+| acquisition.request.ordered | acquisition.request.ordered.v1 | acquisition-service | reporting-service, audit-service, notification-service | Commande emise | CONTRACTÉ (draft) |
+| acquisition.delivery.recorded | acquisition.delivery.recorded.v1 | acquisition-service | reporting-service, audit-service, notification-service | Livraison enregistree | CONTRACTÉ (draft) |
+| acquisition.reception.recorded | acquisition.reception.recorded.v1 | acquisition-service | reporting-service, audit-service, notification-service | Reception controlee enregistree | CONTRACTÉ (draft) |
+| acquisition.item_accepted | acquisition.item_accepted.v1 | acquisition-service | asset-service, reporting-service, audit-service | Bien accepte — eligible a l'enregistrement patrimonial | CONTRACTÉ (draft) |
+| acquisition.request.closed | acquisition.request.closed.v1 | acquisition-service | reporting-service, audit-service, notification-service | Dossier d'acquisition cloture | CONTRACTÉ (draft) |
+| acquisition.request.cancelled | acquisition.request.cancelled.v1 | acquisition-service | reporting-service, audit-service, notification-service | Demande annulee | CONTRACTÉ (draft) |
 
 ## Événements candidats identifiés dans les sources (non contractuels)
 

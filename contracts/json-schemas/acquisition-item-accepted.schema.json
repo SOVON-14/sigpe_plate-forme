@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/acquisition-item-accepted.schema.json",
+  "title": "acquisition.item.accepted — data (v1)",
+  "type": "object",
+  "required": [
+    "request_id",
+    "item_id",
+    "institution_id",
+    "quantity_accepted",
+    "reception_id"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "item_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reception_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "organizational_unit_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "description": {
+      "type": "string"
+    },
+    "specifications": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "quantity_accepted": {
+      "type": "number"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "serial_numbers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "category_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "contracted_unit_value": {
+      "type": [
+        "number",
+        "null"
+      ]
+    }
+  }
+}

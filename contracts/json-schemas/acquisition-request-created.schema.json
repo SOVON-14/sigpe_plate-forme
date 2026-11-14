@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/acquisition-request-created.schema.json",
+  "title": "acquisition.request.created — data (v1)",
+  "type": "object",
+  "required": [
+    "request_id",
+    "reference",
+    "institution_id",
+    "requester_account_id",
+    "title",
+    "item_count"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "organizational_unit_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "requester_account_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "title": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ]
+    },
+    "item_count": {
+      "type": "integer"
+    },
+    "total_estimated_value": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

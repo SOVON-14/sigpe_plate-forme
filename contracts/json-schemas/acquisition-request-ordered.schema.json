@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/acquisition-request-ordered.schema.json",
+  "title": "acquisition.request.ordered — data (v1)",
+  "type": "object",
+  "required": [
+    "request_id",
+    "reference",
+    "institution_id",
+    "order_ref"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "order_ref": {
+      "type": "string"
+    },
+    "supplier_name": {
+      "type": "string"
+    },
+    "ordered_by": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "ordered_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

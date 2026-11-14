@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.sigpe.local/json-schemas/acquisition-delivery-recorded.schema.json",
+  "title": "acquisition.delivery.recorded — data (v1)",
+  "type": "object",
+  "required": [
+    "delivery_id",
+    "request_id",
+    "reference",
+    "institution_id",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "delivery_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "request_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "institution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "delivery_note_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "carrier": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "expected_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "expected",
+        "arrived",
+        "partially_received",
+        "fully_received",
+        "cancelled"
+      ]
+    }
+  }
+}

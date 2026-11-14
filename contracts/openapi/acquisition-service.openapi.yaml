@@ -1,0 +1,575 @@
+openapi: 3.1.0
+info:
+  title: Acquisition Service API
+  version: 1.0.0-draft
+  description: |
+    CONTRAT Acquisition Service — demandes d'acquisition, selection,
+    commande, livraison, reception et passage a l'enregistrement
+    patrimonial SIGPE.
+    Sources : CDC v1.0 §4.4, §4.5, §4.10, catalogue technique v1.1
+    §3.1/§3.2, ADR-003 (references inter-services par UUID sans FK),
+    ADR-004 (UUIDv7), ADR-005 (RFC 9457).
+    Regles metier cles :
+    - Tout agent habilite peut soumettre une expression de besoin ;
+      validation hierarchique, administrative et financiere via
+      Workflow Service (operation_type=acquisition).
+    - Cycle : draft -> pending_validation -> selected -> ordered ->
+      partially_received -> received -> closed ; rejected/cancelled.
+    - Reception partielle ou totale : controle des quantites,
+      specifications, etat, numeros de serie, documents, reserves et
+      non-conformites par ligne.
+    - SEULS les biens acceptes sont transmis a l'enregistrement
+      patrimonial : Acquisition appelle Asset Service (POST /assets)
+      qui reste le seul createur d'asset_id et du code patrimonial.
+    - Les estimations de valeur ne sont jamais presentees comme des
+      valeurs d'acquisition reelles : auteur, date, methode et
+      justificatifs conserves (value_kind=estimate).
+    - Recherche prealable de biens disponibles dans le ministere :
+      Acquisition peut référencer un mouvement de reaffectation ;
+      la reaffectation effective passe par Movement Service.
+    - asset_id, institution_id, unit_id, account_id sont des UUID de
+      reference SANS cle etrangere inter-services.
+    - Consommateurs attendus : workflow.instance_completed.
+    Statut : BROUILLON EN ATTENTE DE VALIDATION MOA.
+    Regles techniques : prefixe /api/v1, JSON, HTTPS, OIDC bearer,
+    RBAC+ABAC, X-Correlation-ID/X-Request-ID, idempotence, RFC 9457.
+  license:
+    name: Licence proprietaire — Gouvernement de la Republique togolaise
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: https://api.sigpe.local/api/v1
+    description: API Gateway (APISIX)
+tags:
+  - name: health
+    description: Sondes de sante
+  - name: requests
+    description: Demandes d'acquisition (expressions de besoin)
+  - name: deliveries
+    description: Livraisons et receptions
+  - name: history
+    description: Historique des dossiers
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Sonde de sante (sans authentification)
+      security: []
+      responses:
+        '200':
+          description: Service operationnel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  service: { type: string, example: acquisition-service }
+        '429':
+          description: Limitation de debit (APISIX)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503':
+          description: Service indisponible
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /acquisition-requests:
+    get:
+      tags: [requests]
+      operationId: listAcquisitionRequests
+      summary: Liste les demandes d'acquisition du perimetre
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [draft, pending_validation, selected, ordered, partially_received, received, closed, rejected, cancelled] }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Liste paginee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AcquisitionRequest' }
+                  meta: { $ref: '#/components/schemas/PaginationMeta' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+    post:
+      tags: [requests]
+      operationId: createAcquisitionRequest
+      summary: Cree une demande d'acquisition (expression de besoin)
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AcquisitionRequestCreate' }
+      responses:
+        '201':
+          description: Demande creee
+          headers:
+            Location: { schema: { type: string } }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/AcquisitionRequest' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /acquisition-requests/{requestId}:
+    get:
+      tags: [requests]
+      operationId: getAcquisitionRequest
+      summary: Detail d'une demande (items, livraisons, receptions)
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Detail de la demande
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/AcquisitionRequestDetail' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+  /acquisition-requests/{requestId}/submit:
+    post:
+      tags: [requests]
+      operationId: submitAcquisitionRequest
+      summary: Soumet la demande au circuit Workflow de validation
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workflow_instance_id: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Demande soumise
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/AcquisitionRequest' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+  /acquisition-requests/{requestId}/select:
+    post:
+      tags: [requests]
+      operationId: selectAcquisitionOffer
+      summary: Enregistre la selection de l'offre/fournisseur apres validation
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OfferSelection' }
+      responses:
+        '200':
+          description: Offre selectionnee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/AcquisitionRequest' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /acquisition-requests/{requestId}/deliveries:
+    post:
+      tags: [deliveries]
+      operationId: recordDelivery
+      summary: Enregistre une livraison (partielle ou totale)
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DeliveryCreate' }
+      responses:
+        '201':
+          description: Livraison enregistree
+          headers:
+            Location: { schema: { type: string } }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Delivery' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /deliveries/{deliveryId}/receptions:
+    post:
+      tags: [deliveries]
+      operationId: recordReception
+      summary: Enregistre la reception controlee d'une livraison
+      description: |
+        Controle par ligne : quantites, specifications, etat,
+        numeros de serie, reserves et non-conformites. Seules les
+        quantites acceptees sont transmises a l'enregistrement
+        patrimonial (appel Asset Service).
+      parameters:
+        - $ref: '#/components/parameters/DeliveryId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReceptionCreate' }
+      responses:
+        '201':
+          description: Reception enregistree
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Reception' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+        '422': { $ref: '#/components/responses/Problem422' }
+  /acquisition-requests/{requestId}/cancel:
+    post:
+      tags: [requests]
+      operationId: cancelAcquisitionRequest
+      summary: Annule une demande non terminee (motif obligatoire)
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [motif]
+              properties:
+                motif: { type: string, minLength: 3, maxLength: 500 }
+      responses:
+        '200':
+          description: Demande annulee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/AcquisitionRequest' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+        '409': { $ref: '#/components/responses/Problem409' }
+  /acquisition-requests/{requestId}/history:
+    get:
+      tags: [history]
+      operationId: getAcquisitionHistory
+      summary: Historique du dossier d'acquisition
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Historique pagine
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/HistoryEntry' }
+                  meta: { $ref: '#/components/schemas/PaginationMeta' }
+        '401': { $ref: '#/components/responses/Problem401' }
+        '403': { $ref: '#/components/responses/Problem403' }
+        '404': { $ref: '#/components/responses/Problem404' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton OIDC Keycloak (realm sigpe)
+  parameters:
+    RequestId:
+      name: requestId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    DeliveryId:
+      name: deliveryId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PerPage:
+      name: per_page
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: { type: string, maxLength: 128 }
+    CorrelationId:
+      name: X-Correlation-ID
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+      description: Identifiant de correlation propage entre services
+  responses:
+    Problem401:
+      description: Non authentifie
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Problem403:
+      description: Permission insuffisante ou hors perimetre
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Problem404:
+      description: Ressource introuvable
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Problem409:
+      description: Conflit d'etat ou d'idempotence
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Problem422:
+      description: Erreur de validation ou regle metier
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Uuid:
+      type: string
+      format: uuid
+    DateTime:
+      type: string
+      format: date-time
+    Problem:
+      type: object
+      required: [type, title, status, detail]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        correlation_id: { type: string, format: uuid }
+        errors: { type: object }
+    PaginationMeta:
+      type: object
+      properties:
+        page: { type: integer }
+        per_page: { type: integer }
+        total: { type: integer }
+        last_page: { type: integer }
+    HistoryEntry:
+      type: object
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        entity_type: { type: string }
+        entity_id: { $ref: '#/components/schemas/Uuid' }
+        action: { type: string }
+        before: { type: ['object', 'null'] }
+        after: { type: ['object', 'null'] }
+        actor: { type: ['object', 'null'] }
+        motif: { type: ['string', 'null'] }
+        occurred_at: { $ref: '#/components/schemas/DateTime' }
+    AcquisitionItem:
+      type: object
+      required: [id, description, quantity_ordered]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        description: { type: string }
+        specifications: { type: ['string', 'null'] }
+        quantity_ordered: { type: number }
+        unit: { type: string, example: unite }
+        estimated_unit_value:
+          type: ['number', 'null']
+          description: Estimation — jamais une valeur d'acquisition reelle
+        value_kind:
+          type: string
+          enum: [estimate, contracted]
+          description: estimate = estimation documentee ; contracted = valeur du marche
+        value_justification: { type: ['string', 'null'] }
+        category_id: { anyOf: [{ $ref: '#/components/schemas/Uuid' }, { type: 'null' }] }
+        asset_id:
+          anyOf: [{ $ref: '#/components/schemas/Uuid' }, { type: 'null' }]
+          description: Renseigne apres enregistrement patrimonial (Asset)
+    AcquisitionRequest:
+      type: object
+      required: [id, reference, institution_id, status, created_at]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        reference: { type: string, example: ACQ-2026-000123 }
+        institution_id: { $ref: '#/components/schemas/Uuid' }
+        organizational_unit_id: { anyOf: [{ $ref: '#/components/schemas/Uuid' }, { type: 'null' }] }
+        requester_account_id: { $ref: '#/components/schemas/Uuid' }
+        title: { type: string }
+        motif: { type: ['string', 'null'] }
+        priority: { type: string, enum: [low, normal, high, urgent] }
+        needed_by: { anyOf: [{ $ref: '#/components/schemas/DateTime' }, { type: 'null' }] }
+        status:
+          type: string
+          enum: [draft, pending_validation, selected, ordered, partially_received, received, closed, rejected, cancelled]
+        workflow_instance_id: { anyOf: [{ $ref: '#/components/schemas/Uuid' }, { type: 'null' }] }
+        supplier_name: { type: ['string', 'null'] }
+        supplier_ref: { anyOf: [{ $ref: '#/components/schemas/Uuid' }, { type: 'null' }] }
+        order_ref: { type: ['string', 'null'] }
+        total_estimated_value: { type: ['number', 'null'] }
+        decided_by: { anyOf: [{ $ref: '#/components/schemas/Uuid' }, { type: 'null' }] }
+        decided_at: { anyOf: [{ $ref: '#/components/schemas/DateTime' }, { type: 'null' }] }
+        decision_comment: { type: ['string', 'null'] }
+        created_by: { $ref: '#/components/schemas/Uuid' }
+        created_at: { $ref: '#/components/schemas/DateTime' }
+        updated_at: { $ref: '#/components/schemas/DateTime' }
+    AcquisitionRequestDetail:
+      allOf:
+        - $ref: '#/components/schemas/AcquisitionRequest'
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/AcquisitionItem' }
+            deliveries:
+              type: array
+              items: { $ref: '#/components/schemas/Delivery' }
+    AcquisitionRequestCreate:
+      type: object
+      required: [title, items]
+      properties:
+        title: { type: string, minLength: 3, maxLength: 255 }
+        organizational_unit_id: { anyOf: [{ $ref: '#/components/schemas/Uuid' }, { type: 'null' }] }
+        motif: { type: ['string', 'null'], maxLength: 2000 }
+        priority: { type: string, enum: [low, normal, high, urgent], default: normal }
+        needed_by: { anyOf: [{ $ref: '#/components/schemas/DateTime' }, { type: 'null' }] }
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [description, quantity_ordered]
+            properties:
+              description: { type: string, minLength: 3, maxLength: 500 }
+              specifications: { type: ['string', 'null'], maxLength: 4000 }
+              quantity_ordered: { type: number, exclusiveMinimum: 0 }
+              unit: { type: string, maxLength: 50 }
+              estimated_unit_value: { type: ['number', 'null'], minimum: 0 }
+              value_justification: { type: ['string', 'null'], maxLength: 1000 }
+              category_id: { anyOf: [{ $ref: '#/components/schemas/Uuid' }, { type: 'null' }] }
+    OfferSelection:
+      type: object
+      required: [supplier_name]
+      properties:
+        supplier_name: { type: string, minLength: 2, maxLength: 255 }
+        supplier_ref: { anyOf: [{ $ref: '#/components/schemas/Uuid' }, { type: 'null' }] }
+        order_ref: { type: ['string', 'null'], maxLength: 255 }
+        contracted_total_value: { type: ['number', 'null'], minimum: 0 }
+        justification: { type: ['string', 'null'], maxLength: 2000 }
+    Delivery:
+      type: object
+      required: [id, acquisition_request_id, status, created_at]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        acquisition_request_id: { $ref: '#/components/schemas/Uuid' }
+        delivery_note_ref: { type: ['string', 'null'] }
+        carrier: { type: ['string', 'null'] }
+        expected_at: { anyOf: [{ $ref: '#/components/schemas/DateTime' }, { type: 'null' }] }
+        status:
+          type: string
+          enum: [expected, arrived, partially_received, fully_received, cancelled]
+        receptions_count: { type: integer }
+        created_at: { $ref: '#/components/schemas/DateTime' }
+    DeliveryCreate:
+      type: object
+      required: []
+      properties:
+        delivery_note_ref: { type: ['string', 'null'], maxLength: 255 }
+        carrier: { type: ['string', 'null'], maxLength: 255 }
+        expected_at: { anyOf: [{ $ref: '#/components/schemas/DateTime' }, { type: 'null' }] }
+    ReceptionLine:
+      type: object
+      required: [item_id, quantity_received]
+      properties:
+        item_id: { $ref: '#/components/schemas/Uuid' }
+        quantity_received: { type: number, minimum: 0 }
+        quantity_accepted: { type: number, minimum: 0 }
+        quantity_refused: { type: number, minimum: 0 }
+        conform: { type: boolean, default: true }
+        serial_numbers: { type: array, items: { type: string }, maxItems: 500 }
+        physical_state_note: { type: ['string', 'null'], maxLength: 1000 }
+        reserves: { type: ['string', 'null'], maxLength: 2000 }
+        non_conformity_reason: { type: ['string', 'null'], maxLength: 2000 }
+        asset_id:
+          anyOf: [{ $ref: '#/components/schemas/Uuid' }, { type: 'null' }]
+          description: Renseigne si le bien accepte a ete enregistre chez Asset
+    ReceptionCreate:
+      type: object
+      required: [lines]
+      properties:
+        received_by_name: { type: ['string', 'null'], maxLength: 255 }
+        lines:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/ReceptionLine' }
+    Reception:
+      type: object
+      required: [id, delivery_id, status, created_at]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        delivery_id: { $ref: '#/components/schemas/Uuid' }
+        acquisition_request_id: { $ref: '#/components/schemas/Uuid' }
+        received_by: { anyOf: [{ $ref: '#/components/schemas/Uuid' }, { type: 'null' }] }
+        received_by_name: { type: ['string', 'null'] }
+        status: { type: string, enum: [partial, complete] }
+        lines:
+          type: array
+          items: { $ref: '#/components/schemas/ReceptionLine' }
+        created_at: { $ref: '#/components/schemas/DateTime' }
+security:
+  - bearerAuth: []
