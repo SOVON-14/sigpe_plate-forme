@@ -96,3 +96,4 @@ Issus du catalogue §7 (scénarios) — **noms indicatifs, à formaliser** :
 1. Chaque ligne = un `event_type` + `event_version` + schema JSON dédié dans `contracts/json-schemas/`.
 2. Tout nouvel événement exige : producteur, liste des consommateurs, déclencheur, schéma, test de contrat.
 3. Les événements marqués `[À CONFIRMER]` dans les sources ne sont pas implémentables.
+| audit.integrity_check_completed | audit.integrity_check_completed.v1 | audit-service | reporting-service, notification-service | Verification de chaine de hachage du journal | CONTRACTÉ (draft) |

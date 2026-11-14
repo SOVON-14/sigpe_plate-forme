@@ -1,0 +1,71 @@
+asyncapi: 3.0.0
+info:
+  title: Audit Service — Contrat événementiel
+  version: 1.0.0-draft
+  description: |
+    CONTRAT Audit Service — événements.
+    Sources : CDC v1.0 §4.13, catalogue technique v1.1 §8.4,
+    ADR-006/ADR-007, enveloppe
+    contracts/json-schemas/enveloppe-evenementiel.schema.json.
+    Règles : messages persistants, publisher confirms, livraison
+    at-least-once, consommateurs idempotents (inbox event_id).
+    Audit CONSOMME l'ensemble des événements métier sensibles via le
+    binding topic '#' sur sigpe.events.v1 — chaque événement devient
+    une entrée de journal immuable chaînée par empreinte SHA-256.
+    Audit PRODUIT audit.integrity_check_completed.v1 à chaque
+    vérification de chaîne (GET /audit-entries/chain/verify).
+    Statut : BROUILLON EN ATTENTE DE VALIDATION MOA.
+defaultContentType: application/json
+servers:
+  rabbitmq:
+    host: rabbitmq://rabbitmq:5672
+    protocol: amqp
+    description: Broker RabbitMQ (AMQP 0-9-1)
+channels:
+  domainEvents:
+    address: sigpe.events.v1/#
+    title: Ensemble des événements métier sensibles (topic '#')
+    messages:
+      domainEvent:
+        $ref: '#/components/messages/domainEvent'
+  integrityCheckCompleted:
+    address: sigpe.events.v1/audit.integrity_check_completed.v1
+    title: audit.integrity_check_completed.v1
+    messages:
+      integrityCheckCompletedV1:
+        $ref: '#/components/messages/integrityCheckCompletedV1'
+operations:
+  consumeDomainEvents:
+    action: receive
+    channel:
+      $ref: '#/channels/domainEvents'
+    summary: Consomme tous les événements métier (wildcard '#')
+    messages:
+    - $ref: '#/channels/domainEvents/messages/domainEvent'
+  publishIntegrityCheckCompleted:
+    action: send
+    channel:
+      $ref: '#/channels/integrityCheckCompleted'
+    summary: Publie le résultat d'une vérification de chaîne de hachage
+    messages:
+    - $ref: '#/channels/integrityCheckCompleted/messages/integrityCheckCompletedV1'
+components:
+  messages:
+    domainEvent:
+      name: DomainEvent
+      title: Événement métier consommé (tous producteurs)
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/enveloppe-evenementiel.schema.json'
+      description: |
+        Enveloppe événementielle commune (event_id, event_type,
+        occurred_at, producer, correlation_id, data). Le payload
+        métier est stocké tel quel dans l'entrée d'audit ; les champs
+        actor_id, institution_id, resource_id, reason, result,
+        evidence_hash sont extraits lorsqu'ils sont présents.
+    integrityCheckCompletedV1:
+      name: IntegrityCheckCompletedV1
+      title: audit.integrity_check_completed.v1
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/audit-integrity-check-completed.v1.schema.json'

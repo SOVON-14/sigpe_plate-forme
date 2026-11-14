@@ -1,0 +1,321 @@
+openapi: 3.1.0
+info:
+  title: Audit Service API
+  version: 1.0.0-draft
+  description: |
+    CONTRAT Audit Service — journal d'audit protege et interrogeable.
+    Sources : CDC v1.0 §4.13, catalogue technique v1.1 §8.4,
+    ADR-003 (references par UUID sans FK), ADR-004 (UUIDv7),
+    ADR-005 (RFC 9457), ADR-006/ADR-007 (evenements).
+    Regles metier cles :
+    - Le service CONSOMME les evenements metier sensibles de tous les
+      services (binding topic '#') et les conserve sous forme
+      d'entrees d'audit immuables.
+    - Chaque entree conserve : acteur, date, operation, ressource,
+      institution, ancienne/nouvelle valeur si necessaire, motif,
+      resultat, identifiant de correlation, empreinte des preuves.
+    - Chaine de hachage : chaque entree reference l'empreinte de la
+      precedente ; toute alteration rompt la chaine et est detectable
+      via GET /audit-entries/chain/verify.
+    - AUCUNE modification ni suppression d'entree : une correction
+      d'un journal n'est jamais silencieuse — elle fait l'objet d'une
+      nouvelle entree d'audit.
+    - Acces en lecture seule pour les auditeurs et controleurs ;
+      cloisonnement ABAC par institution ; l'auditeur national
+      (institution_id absent) voit toutes les institutions.
+    - audit.entry_recorded.v1 est produit pour les entrees de
+      categorie sensible ; audit.integrity_check_completed.v1 est
+      produit a chaque verification de chaine.
+    - actor_id, institution_id, resource_id, correlation_id sont des
+      UUID de reference SANS cle etrangere inter-services.
+    Statut : BROUILLON EN ATTENTE DE VALIDATION MOA.
+    Regles techniques : prefixe /api/v1, JSON, HTTPS, OIDC bearer,
+    RBAC+ABAC, X-Correlation-ID/X-Request-ID, idempotence, RFC 9457.
+  license:
+    name: Licence proprietaire — Gouvernement de la Republique togolaise
+    identifier: LicenseRef-Proprietary
+servers:
+- url: https://api.sigpe.local/api/v1
+  description: API Gateway (APISIX)
+tags:
+- name: health
+  description: Sondes de sante
+- name: entries
+  description: Entrees du journal d'audit
+- name: integrity
+  description: Verification d'integrite de la chaine de hachage
+- name: stats
+  description: Statistiques du journal
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Sonde de sante (sans authentification)
+      security: []
+      responses:
+        '200':
+          description: Service operationnel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  service: { type: string, example: audit-service }
+        '429':
+          description: Limitation de debit (APISIX)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /audit-entries:
+    get:
+      tags: [entries]
+      operationId: listAuditEntries
+      summary: Liste paginee des entrees d'audit (filtres multicriteres)
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      - name: producer
+        in: query
+        schema: { type: string }
+        description: Service producteur de l'evenement source (ex. asset-service)
+      - name: event_type
+        in: query
+        schema: { type: string }
+        description: Type d'evenement source (ex. asset.asset_created.v1)
+      - name: institution_id
+        in: query
+        schema: { type: string, format: uuid }
+      - name: actor_id
+        in: query
+        schema: { type: string, format: uuid }
+      - name: resource_type
+        in: query
+        schema: { type: string }
+      - name: resource_id
+        in: query
+        schema: { type: string, format: uuid }
+      - name: operation
+        in: query
+        schema: { type: string }
+      - name: result
+        in: query
+        schema: { type: string, enum: [success, failure, denied] }
+      - name: occurred_from
+        in: query
+        schema: { type: string, format: date-time }
+      - name: occurred_to
+        in: query
+        schema: { type: string, format: date-time }
+      - name: q
+        in: query
+        schema: { type: string }
+        description: Recherche libre sur motif/operation
+      responses:
+        '200':
+          description: Entrees d'audit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AuditEntry' }
+                  meta:
+                    type: object
+                    properties:
+                      current_page: { type: integer }
+                      per_page: { type: integer }
+                      total: { type: integer }
+                      last_page: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /audit-entries/{id}:
+    get:
+      tags: [entries]
+      operationId: getAuditEntry
+      summary: Detail d'une entree d'audit (valeurs avant/apres, payload complet)
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/AuditEntryId'
+      responses:
+        '200':
+          description: Entree d'audit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/AuditEntryDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /audit-entries/chain/verify:
+    get:
+      tags: [integrity]
+      operationId: verifyAuditChain
+      summary: Verifie l'integrite de la chaine de hachage (recalcul de chaque empreinte)
+      description: |
+        Recalcule l'empreinte de chaque entree dans l'ordre de la
+        chaine et la compare a l'empreinte stockee. Toute alteration,
+        insertion ou suppression est detectee. Le resultat est lui-
+        meme journalise (audit.integrity_check_completed.v1) — jamais
+        de verification silencieuse.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Resultat de la verification
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ChainVerification' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /audit-entries/stats:
+    get:
+      tags: [stats]
+      operationId: getAuditStats
+      summary: Statistiques du journal (par operation, producteur, jour ; volumes)
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: occurred_from
+        in: query
+        schema: { type: string, format: date-time }
+      - name: occurred_to
+        in: query
+        schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Statistiques
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/AuditStats' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton OIDC Keycloak (claim permissions, institution_id)
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PerPage:
+      name: per_page
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+    AuditEntryId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  responses:
+    Unauthorized:
+      description: Authentification requise
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Forbidden:
+      description: Permission insuffisante ou hors perimetre institutionnel
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    TooManyRequests:
+      description: Limitation de debit (APISIX)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Problem:
+      type: object
+      required: [type, title, status]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        correlation_id: { type: string, format: uuid }
+    AuditEntry:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        producer: { type: string, example: asset-service }
+        event_type: { type: string, example: asset.asset_created.v1 }
+        event_version: { type: string, example: v1 }
+        occurred_at: { type: string, format: date-time }
+        actor_id: { type: [string, 'null'], format: uuid }
+        actor_type: { type: [string, 'null'], example: account }
+        institution_id: { type: [string, 'null'], format: uuid }
+        operation: { type: string, example: asset.create }
+        resource_type: { type: [string, 'null'], example: asset }
+        resource_id: { type: [string, 'null'], format: uuid }
+        reason: { type: [string, 'null'] }
+        result: { type: string, enum: [success, failure, denied] }
+        correlation_id: { type: [string, 'null'], format: uuid }
+        evidence_hash: { type: [string, 'null'] }
+        entry_hash: { type: string }
+        previous_hash: { type: [string, 'null'] }
+        sequence: { type: integer }
+        sensitivity: { type: string, enum: [normal, sensitive, critical] }
+        created_at: { type: string, format: date-time }
+    AuditEntryDetail:
+      allOf:
+      - $ref: '#/components/schemas/AuditEntry'
+      - type: object
+        properties:
+          old_value: { type: [object, 'null'], additionalProperties: true }
+          new_value: { type: [object, 'null'], additionalProperties: true }
+          payload: { type: object, additionalProperties: true }
+    ChainVerification:
+      type: object
+      properties:
+        valid: { type: boolean }
+        entries_checked: { type: integer }
+        first_invalid_sequence: { type: [integer, 'null'] }
+        first_invalid_entry_id: { type: [string, 'null'], format: uuid }
+        checked_at: { type: string, format: date-time }
+    AuditStats:
+      type: object
+      properties:
+        total_entries: { type: integer }
+        by_result:
+          type: object
+          additionalProperties: { type: integer }
+        by_producer:
+          type: object
+          additionalProperties: { type: integer }
+        by_operation:
+          type: object
+          additionalProperties: { type: integer }
+        daily:
+          type: array
+          items:
+            type: object
+            properties:
+              date: { type: string, format: date }
+              count: { type: integer }
+        first_entry_at: { type: [string, 'null'], format: date-time }
+        last_entry_at: { type: [string, 'null'], format: date-time }

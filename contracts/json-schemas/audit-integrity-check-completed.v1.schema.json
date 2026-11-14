@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sigpe.local/schemas/audit-integrity-check-completed.v1.schema.json",
+  "title": "audit.integrity_check_completed.v1 — payload data",
+  "type": "object",
+  "required": ["valid", "entries_checked", "checked_at"],
+  "properties": {
+    "valid": { "type": "boolean" },
+    "entries_checked": { "type": "integer", "minimum": 0 },
+    "first_invalid_sequence": { "type": ["integer", "null"] },
+    "first_invalid_entry_id": { "type": ["string", "null"], "format": "uuid" },
+    "checked_at": { "type": "string", "format": "date-time" },
+    "verified_by": { "type": ["string", "null"], "format": "uuid" }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "valid": true,
+      "entries_checked": 1284,
+      "first_invalid_sequence": null,
+      "first_invalid_entry_id": null,
+      "checked_at": "2026-11-18T10:30:00Z",
+      "verified_by": "01932f4a-7b1c-7e2d-9a3f-1c2b3a4d5e6f"
+    }
+  ]
+}
