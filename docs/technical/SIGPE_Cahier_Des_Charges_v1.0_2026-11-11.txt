@@ -1,0 +1,770 @@
+
+
+SIGPÉ
+SYSTÈME INTÉGRÉ DE GESTIONDU PATRIMOINE DE L’ÉTAT
+CAHIER DES CHARGES FONCTIONNELET MATRICE DES RÔLES ET PERMISSIONS
+République TogolaiseDocument de cadrage fonctionnel — Version 1.011 novembre 2026
+Document éditable — Microsoft Word / LibreOffice
+
+Fiche de contrôle du document
+Élément
+Description
+Intitulé
+Cahier des charges fonctionnel et matrice des rôles et permissions SIGPÉ
+Version
+1.0 — document de travail consolidé
+Périmètre
+Gestion nationale du patrimoine de l’État togolais
+Architecture cible
+Microservices Laravel, frontend React.js, PostgreSQL, échanges événementiels
+Base de cadrage
+Décisions fonctionnelles RG-001 à RG-130 recensées dans les échanges de cadrage
+Statut
+Base consolidée à faire examiner et approuver par les autorités et représentants compétents
+Réserve
+Les règles juridiques, seuils financiers, durées de conservation, délégations et autorités exactes restent à confirmer officiellement.
+
+Historique et statut des décisions
+Les règles RG-001 à RG-104 ont été validées progressivement par le porteur du projet. Les règles RG-105 à RG-130 ont été retenues par l’assistant à la demande expresse du porteur, en cohérence avec les orientations déjà choisies. Elles sont donc présentées comme décisions complémentaires de cadrage à soumettre à validation formelle, et non comme des décisions administratives déjà approuvées par l’État.
+Sommaire
+1. Présentation générale et objectifs
+2. Périmètre fonctionnel et acteurs
+3. Principes directeurs et règles transversales
+4. Exigences fonctionnelles par domaine
+5. Architecture fonctionnelle et échanges
+6. Exigences non fonctionnelles
+7. Matrice des rôles et permissions
+8. Gouvernance, conformité et points à confirmer
+9. Stratégie de recette et critères d’acceptation
+10. Glossaire et annexes
+
+1. Présentation générale et objectifs
+1.1 Contexte
+SIGPÉ est une plateforme nationale destinée à centraliser, fiabiliser et sécuriser la connaissance et la gestion du patrimoine de l’État. Elle doit couvrir les administrations et ministères, leurs directions et services, ainsi que les biens immobiliers, matériels roulants, équipements informatiques, mobiliers, matériels techniques, équipements médicaux et autres biens patrimoniaux.
+1.2 Objectif général
+Mettre à disposition des autorités publiques et des gestionnaires une source d’information patrimoniale fiable, historisée et contrôlée, permettant de connaître les biens, leur localisation, leur état, leur valeur, leur affectation, leur utilisation, leurs mouvements, leurs coûts et leur situation administrative.
+1.3 Objectifs spécifiques
+Constituer un registre patrimonial cohérent à l’échelle nationale.
+Permettre à chaque ministère de gérer sa structure organisationnelle et ses opérations dans un cadre national commun.
+Améliorer la traçabilité des acquisitions, affectations, inventaires, transferts, prêts, maintenances et sorties.
+Réduire les doublons, les pertes d’information et les incohérences.
+Renforcer le contrôle interne, l’auditabilité et la sécurité des données.
+Produire des tableaux de bord et rapports fiables pour le pilotage national et ministériel.
+Faciliter les échanges avec les systèmes publics autorisés, sans créer de dépendances non maîtrisées.
+1.4 Résultats attendus
+Un référentiel patrimonial national consultable selon les habilitations.
+Une vision consolidée et des vues ministérielles cloisonnées.
+Des procédures métier configurables et traçables.
+Une meilleure qualité des données et une migration maîtrisée des données existantes.
+Des rapports normalisés pour la gestion et le contrôle du patrimoine.
+Une architecture évolutive permettant l’intégration progressive de nouveaux ministères et services.
+2. Périmètre fonctionnel et acteurs
+2.1 Périmètre couvert
+Biens immobiliers : terrains, bâtiments, locaux, infrastructures.
+Matériels roulants : véhicules et engins.
+Matériels informatiques et numériques.
+Mobilier et équipements de bureau.
+Matériels techniques et industriels.
+Matériels médicaux et scientifiques.
+Autres biens patrimoniaux.
+2.2 Organisation institutionnelle
+Le système doit prendre en charge l’administration centrale et plusieurs ministères disposant de structures organisationnelles et de circuits de travail différents. L’administration centrale pourra ajouter ou activer de nouvelles institutions selon une habilitation réservée à l’Administrateur principal. Chaque ministère configure ses directions, services, unités, utilisateurs et procédures locales compatibles avec le cadre national.
+La structure organisationnelle doit être dynamique : unités liées par parent_id, types d’unités configurables et rattachement à une institution. Aucun nombre fixe de niveaux hiérarchiques ne doit être imposé.
+2.3 Acteurs et profils
+Administrateur principal : gouvernance nationale et création/activation/désactivation logique des institutions.
+Administrateur central : administration centrale et supervision dans son périmètre autorisé.
+Administrateur ministériel : administration fonctionnelle et technique de son ministère.
+Responsable de direction : supervision de son unité organisationnelle.
+Gestionnaire du patrimoine : gestion opérationnelle des biens et mouvements autorisés.
+Agent d’inventaire : exécution des campagnes et relevés.
+Responsable financier : valeurs, amortissements, dépenses et données financières autorisées.
+Responsable maintenance : demandes, plans, interventions, coûts et stocks de maintenance.
+Autorité approbatrice : décision sur les opérations relevant de sa délégation.
+Auditeur / contrôleur : consultation et contrôle en lecture seule, sauf habilitation légale distincte.
+Agent consultant : consultation limitée aux informations et biens relevant de son périmètre.
+Des comptes de prestataires externes pourront être étudiés dans une évolution ultérieure ou activés uniquement après définition de leur périmètre, de leurs obligations contractuelles et de leurs droits minimaux.
+3. Principes directeurs et règles transversales
+3.1 Gouvernance nationale et autonomie ministérielle
+Les règles nationales obligatoires, catégories communes et référentiels nationaux sont définis ou approuvés par l’autorité centrale compétente.
+Les ministères peuvent configurer leurs structures, sous-catégories, champs complémentaires et procédures locales dans les limites autorisées.
+Seul l’Administrateur principal peut créer, activer ou désactiver logiquement une institution.
+Les administrations ministérielles ne peuvent pas modifier les règles nationales obligatoires.
+3.2 Identifiants patrimoniaux
+Chaque ministère dispose de sa propre nomenclature et d’un code patrimonial unique dans son périmètre. La contrainte fonctionnelle est l’unicité du couple (institution_id, code_patrimonial). Chaque bien possède également un identifiant technique interne stable, indépendant du code affiché.
+Lors d’un transfert définitif entre ministères, l’ancien identifiant est conservé comme référence historique et un nouvel identifiant est attribué par le ministère destinataire. Les deux identifiants sont liés et l’historique complet est conservé. Un transfert interne au même ministère ne change pas le code patrimonial.
+3.3 Données et suppression
+Pas de suppression physique d’un bien patrimonial enregistré : une sortie définitive est réalisée par procédure administrative.
+Les corrections sont autorisées selon la nature et la sensibilité des données et conservent les valeurs avant/après, le motif, l’auteur, le validateur et la date.
+Les doublons potentiels sont signalés et instruits ; aucune fusion incertaine n’est automatique.
+Les références historiques et versions applicables sont conservées.
+3.4 Séparation des responsabilités
+Les services métiers sont propriétaires de leurs données. Les échanges entre microservices se font par API ou événements, et non par accès direct aux bases des autres services. Les liens interservices sont gérés par identifiants de référence et contrôles applicatifs.
+3.5 Sécurité des accès
+Contrôle combiné RBAC et ABAC : rôle, institution, unité organisationnelle, périmètre, sensibilité, délégation et contexte.
+Un utilisateur ne peut pas s’octroyer lui-même des droits supplémentaires.
+Les délégations sont limitées par bénéficiaire, portée, durée et autorisation.
+Les opérations sensibles nécessitent une authentification renforcée et/ou une approbation adaptée.
+Les auditeurs disposent d’un accès de consultation et de contrôle, sans modification ordinaire.
+4. Exigences fonctionnelles par domaine
+4.1 Identité, authentification et habilitations
+Gestion des comptes, rôles, permissions, affectations institutionnelles et unités organisationnelles.
+Authentification sécurisée, MFA pour les comptes sensibles et administratifs, récupération de compte sécurisée et réauthentification pour les opérations sensibles.
+Politique de mot de passe robuste, blocage ou ralentissement proportionné des tentatives répétées et absence de changement périodique forcé sans motif de risque.
+Gestion des sessions : expiration, consultation des appareils/sessions, déconnexion à distance et révocation autorisée.
+Détection et traitement proportionné des comptes suspects, avec contrôle humain et traçabilité.
+Gestion des délégations temporaires et révocables, sans contournement des validations nationales.
+4.2 Organisation institutionnelle
+Création et gestion des institutions par l’Administrateur principal.
+Gestion dynamique des ministères, directions, services, unités territoriales et autres structures.
+Historisation des réorganisations, changements de responsables et rattachements.
+Paramétrage ministériel des structures, utilisateurs et règles locales autorisées.
+Référencement des responsables et positions organisationnelles.
+4.3 Référentiel et fiches des biens
+Registre des biens avec désignation, catégorie, sous-catégorie, institution, unité, localisation, date et mode d’entrée, état, statut et pièces justificatives.
+Catégories nationales : biens immobiliers ; matériels roulants ; matériels informatiques et numériques ; mobilier et équipements de bureau ; matériels techniques et industriels ; matériels médicaux et scientifiques ; autres biens patrimoniaux.
+Sous-catégories ministérielles possibles sans altérer les catégories nationales.
+Formulaires dynamiques par catégorie, avec champs nationaux protégés et champs complémentaires configurables.
+Champs techniques selon la nature du bien : véhicule (immatriculation, marque, modèle, châssis, kilométrage, énergie, année), informatique (fabricant, modèle, série, CPU, RAM, stockage, OS), immobilier (titre, référence cadastrale, superficie, adresse, usage, niveaux, état).
+États physiques nationaux : Neuf, Très bon, Bon, Moyen, Mauvais, Hors service, Irrécupérable. L’état physique est distinct du statut administratif.
+Génération de QR codes uniques et étiquettes imprimables, avec référence technique sécurisée et sans divulgation de données sensibles.
+4.4 Acquisition, entrée et valorisation
+Modes d’entrée : achat/acquisition ; construction/réalisation ; don/donation ; legs/succession ; transfert depuis une autre institution publique ; mise à disposition ; autre entrée justifiée.
+Enregistrement de la date, du mode, de l’origine, des justificatifs et des données financières disponibles.
+Autorisation d’enregistrer un bien dont la valeur est inconnue avec la mention « Valeur non déterminée », une justification et une possibilité d’évaluation ultérieure.
+Distinction entre valeur d’acquisition, valeur actuelle, valeur nette comptable et valeur de remplacement.
+Les estimations ne sont jamais présentées comme des valeurs d’acquisition réelles ; auteur, date, méthode et justificatifs sont conservés.
+Cadre national d’amortissement avec paramètres autorisés et configurables selon ministère/catégorie ; taux, durées et méthodes à confirmer par les règles comptables officielles.
+4.5 Demandes d’acquisition et réception
+Tout agent habilité peut soumettre une expression de besoin, soumise à validation hiérarchique, administrative et financière.
+Suivi du besoin, sélection, commande, livraison, réception et enregistrement patrimonial.
+Intégration possible aux systèmes nationaux de commande publique ou de finances si interfaces, autorisations et accords existent.
+Réception partielle ou totale avec contrôle des quantités, spécifications, état, numéros de série, documents, réserves et non-conformités.
+Seuls les biens acceptés sont transmis à l’enregistrement patrimonial.
+Orientation vers un magasin temporaire ou affectation directe au service demandeur.
+Recherche préalable de biens disponibles dans le ministère ; une réaffectation exige le workflow de mouvement correspondant.
+4.6 Inventaires
+Inventaire général annuel, campagnes périodiques configurables et campagnes exceptionnelles déclenchables à tout moment.
+Chaque campagne précise le responsable, la période, le périmètre, les agents affectés et le rapport final.
+Détection des biens manquants, non enregistrés, mal localisés, endommagés, mal identifiés ou utilisés par un agent non déclaré.
+Inventaire en ligne obligatoire dans la première version ; pas de mode hors ligne initial.
+Identification par QR code ou saisie manuelle, enregistrement immédiat et remontée des anomalies.
+Rapports d’écarts et rapprochement contrôlé ; aucune suppression automatique d’un bien non retrouvé.
+4.7 Affectations, mouvements, transferts et prêts
+Affectation à trois niveaux : institution/ministère, unité organisationnelle, agent individuel.
+Distinction entre responsable administratif, gardien physique et utilisateurs autorisés.
+Transfert interne : confirmation de sortie par l’unité d’origine et confirmation de réception par l’unité destinataire ; code patrimonial inchangé.
+Transfert interministeriel définitif : approbation de sortie par le ministère d’origine et réception par le ministère destinataire ; nouvel identifiant ministériel après finalisation, ancien identifiant conservé.
+Prêt temporaire entre ministères : demande formelle, accord du prêteur, approbations hiérarchiques selon sensibilité, convention si nécessaire, gardien désigné, conditions et restitution ; aucune modification de propriété ou d’identifiant.
+Prolongation de prêt : demande motivée avant échéance, vérification de l’état et disponibilité, accord du prêteur et validation requise ; demande tardive traitée comme exception.
+Retard de restitution : rappel préventif, alerte, relance hiérarchique, escalade et incident si nécessaire ; mesures proportionnées.
+Perte ou vol pendant prêt : déclaration, blocage des changements sensibles, collecte de preuves, examen contradictoire, décision par autorité habilitée et historisation.
+Biens partagés : fiche unique, institution responsable, ministères bénéficiaires, droits d’usage, répartition des responsabilités et coûts, conventions et historique.
+Litige sur bien partagé : procédure contradictoire et arbitrage par autorité compétente.
+4.8 Maintenance et stocks
+Maintenance préventive, corrective et conditionnelle ; catégories locales complémentaires autorisées.
+Interventions par techniciens internes et/ou prestataires externes.
+Coûts détaillés : main-d’œuvre, pièces, fournitures, transport, prestations externes et autres coûts.
+Approbations selon nature, coût et sensibilité ; voie urgente justifiée avec contrôle a posteriori.
+Planification manuelle ou automatique selon date, kilométrage, heures, cycles et état.
+Historique complet des interventions, y compris refusées, annulées ou interrompues.
+Gestion de plusieurs magasins par ministère, entrées/sorties, transferts, inventaires de stock et seuils de réapprovisionnement.
+Répertoire de prestataires partagé au niveau national, avec relations et évaluations ministérielles.
+Évaluation des prestataires sur qualité, délais, budget, pièces, conformité contractuelle et satisfaction.
+4.9 Gestion documentaire et archivage
+Taxonomie nationale : documents d’acquisition, de propriété, techniques, administratifs, de maintenance, d’inventaire, financiers et de sortie.
+Métadonnées : titre, catégorie, référence, date, institution, bien lié, auteur/émetteur, confidentialité, durée de conservation et versions.
+Accès selon rôle, institution, unité, confidentialité et autorisation exceptionnelle temporaire.
+Niveaux proposés : Public administratif, Interne, Confidentiel, Hautement sensible.
+Cycle de vie : archives actives, intermédiaires, définitives et élimination autorisée ; durées à confirmer selon règles d’archives publiques.
+Conservation de toutes les versions ; aucun écrasement d’un document validé ou signé.
+Distinction entre validation interne électronique et signature électronique juridiquement reconnue.
+Contrôle de format/taille, antivirus, empreinte cryptographique, intégrité et journalisation des consultations/téléchargements.
+4.10 Workflow et approbations
+Bibliothèque de workflows nationaux adaptables par ministère ; étapes nationales obligatoires non supprimables.
+Approbations séquentielles ou parallèles selon l’opération.
+Refus, demande de correction, suspension et reprise avec motifs et historique.
+Délais configurables, rappels et escalades ; aucune approbation automatique par expiration du délai.
+Délégations temporaires contrôlées, limitées et révocables.
+Déclaration des conflits d’intérêts réels, potentiels ou apparents ; récusation et remplacement indépendant si nécessaire.
+Procédures d’urgence proportionnées, justifiées, notifiées et contrôlées a posteriori, sans contournement des obligations légales.
+4.11 Finance, valorisation et sorties
+Suivi des valeurs d’acquisition, actuelles, nettes comptables et de remplacement.
+Calcul des amortissements selon cadre national et paramètres autorisés.
+Suivi des dépenses et coûts associés aux biens.
+Sortie définitive par procédure selon nature et valeur du bien ; niveaux de compétence et seuils à confirmer officiellement.
+Motifs possibles : réforme, vente, destruction, perte, vol, donation/cession ou autre motif justifié.
+Perte ou vol : maintien au registre pendant investigation ; pas de sortie automatique.
+Fin de vie : signalement, expertise si nécessaire, dossier, décision de l’autorité compétente et changement de statut après autorisation.
+4.12 Notifications
+Canaux : notifications dans l’application, courriel et SMS selon priorité, disponibilité et préférences.
+Pas de données sensibles dans les messages externes.
+Préférences configurables par événement et canal ; alertes critiques/réglementaires obligatoires.
+Suivi des statuts d’envoi, livraison, échec et abandon après tentatives ; relances et canal alternatif autorisé.
+Notification ordinaire consultable ; notification importante avec confirmation de lecture ; notification critique avec accusé de prise en compte explicite.
+Accusé de prise en compte distinct d’une approbation.
+4.13 Audit, sécurité et incidents
+Journalisation protégée des opérations sensibles avec acteur, horodatage, contexte, objet et avant/après lorsque pertinent.
+Protection contre l’altération, empreintes cryptographiques, contrôle d’accès et chaîne de conservation des preuves.
+Organisation de sécurité à trois niveaux : direction centrale, responsables ministériels, équipes techniques opérationnelles ; dénominations institutionnelles à confirmer.
+Gestion des incidents : détection, sévérité, confinement proportionné, enquête, préservation des preuves, notification, restauration et retour d’expérience.
+Les mesures automatisées doivent limiter les faux positifs et permettre un examen humain.
+Les journaux et éléments numériques ne garantissent pas automatiquement leur admissibilité juridique.
+4.14 Interopérabilité et référentiels
+Échanges bidirectionnels contrôlés avec systèmes externes autorisés ; chaque donnée possède un système de référence clairement désigné.
+Gestion des conflits selon propriété de la donnée, règles nationales et nature de l’information ; aucune écriture silencieuse.
+File sécurisée, reprises automatiques, déduplication, idempotence et surveillance des interruptions.
+Priorisation configurable selon urgence et impact, sans contournement des validations.
+Centre national de supervision des échanges : disponibilité, volumes, taux de succès, latence, incidents et journaux.
+Référentiels nationaux gouvernés par le niveau central ; ajouts locaux autorisés ; propositions ministérielles, consultation, approbation et versionnement.
+Les enregistrements historiques conservent la version de référence applicable ; migration uniquement sur autorisation.
+4.15 Qualité des données, doublons et migration
+Contrôles de complétude, formats, cohérence, doublons et anomalies.
+Détection intelligente des doublons par identifiants, caractéristiques, documents, localisation et historique ; score de probabilité et validation humaine selon risque.
+Fusion selon sensibilité : approbation ministérielle ou nationale et validation coordonnée pour les cas interministeriels ; réversibilité contrôlée.
+Correction selon nature et sensibilité ; pièces, motif, auteur, validateur, date et valeurs avant/après conservés.
+Litiges d’appartenance : gel des changements sensibles, examen contradictoire, arbitrage compétent et conservation des recours.
+Bien à rattachement indéterminé : statut provisoire, gardien désigné, collecte de preuves et rattachement uniquement après décision officielle.
+Migration progressive depuis fichiers, bases et anciens logiciels : inventaire, analyse, mapping, nettoyage, pilote, validation ministérielle et migration générale.
+Imports classés en valides, à corriger et doublons potentiels ; rapport détaillé, correction et nouvelle soumission ; pas de fusion automatique.
+4.16 Biens partagés, mise à disposition et agents
+Un bien partagé conserve une fiche unique, une institution responsable et plusieurs bénéficiaires avec droits, responsabilités, périodes et coûts.
+Les mises à disposition à des tiers précisent statut juridique, convention, objet, durée, gardien, obligations, contrôles, incidents et restitution.
+Contrôles périodiques et inopinés selon risque, avec rapport et preuve ; contrôle obligatoire au retour.
+Biens confiés à un agent : procès-verbal de remise, état, accessoires, date, conditions, accusé de réception, incidents et restitution.
+Mutation, départ, retraite, suspension ou décès : identification des biens confiés, alerte, organisation du retour ou réaffectation autorisée et clôture contrôlée.
+Indisponibilité temporaire : motif, durée, responsable, localisation, blocage des affectations incompatibles, alertes et remise en service validée.
+4.17 Pilotage, recherche et rapports (RG-105 à RG-114)
+Tableau de bord national et tableaux ministériels cloisonnés ; indicateurs de parc, valeur, état, mouvements, inventaires et anomalies.
+Vues personnalisées par profil, actualisation explicite et indication des retards de synchronisation.
+Recherche multicritère par code actuel ou historique, désignation, catégorie, institution, unité, localisation, série ou responsable, selon habilitations.
+Filtres avancés et recherches enregistrées, sans élargissement du périmètre de droits.
+Chronologie patrimoniale complète et consultable.
+Modèles nationaux de rapports et exports PDF/Excel avec périmètre, date, auteur, critères, confidentialité et référence.
+Rapports à la demande, périodiques ou déclenchés par événements ; diffusion contrôlée.
+4.18 Ergonomie, exploitation, support et recette (RG-115 à RG-130)
+Performance mesurée par étude de charge et objectifs approuvés ; pas de seuil arbitraire avant estimation des volumes.
+Architecture évolutive et traitements lourds en arrière-plan avec états consultables et reprise contrôlée.
+Interface responsive ordinateur/tablette/mobile ; mobile adapté à consultation, validation et inventaire en ligne.
+Accessibilité visée : WCAG 2.2 AA, à confirmer par audit de conformité.
+Français comme langue principale initiale ; formats de dates, montants et unités cohérents.
+Hébergement étatique ou souverain autorisé, selon étude et décision compétente.
+Environnements séparés : développement, test/intégration, préproduction, production ; données sensibles protégées.
+Déploiements contrôlés, tests, sauvegardes, vérifications et retour arrière si nécessaire.
+Supervision centralisée des services, files, bases, performances, sauvegardes et incidents.
+Support avec tickets, niveaux de gravité, pièces jointes, suivi et historique.
+Documentation, guides, tutoriels, FAQ et formations par profil.
+Évolutions soumises à analyse d’impact, conformité nationale, validation, tests, déploiement et documentation.
+Tests unitaires, intégration, API, fonctionnels, sécurité, charge, restauration et bout en bout.
+Recette formelle avant production, procès-verbal, réserves et plan de correction.
+5. Architecture fonctionnelle et échanges
+5.1 Architecture cible
+La solution repose sur un frontend React.js, un ensemble de microservices Laravel et des bases PostgreSQL dont chaque service détient la responsabilité logique. Un API Gateway centralise l’accès aux API. RabbitMQ assure les échanges événementiels asynchrones. Le stockage documentaire est externalisé vers un stockage objet compatible S3/MinIO ou une solution autorisée équivalente.
+5.2 Microservices fonctionnels
+Service
+Responsabilités principales
+Identity Service
+Comptes, authentification, MFA, rôles, permissions, sessions et délégations.
+Organization Service
+Institutions, unités dynamiques, responsables, organigrammes, historique et paramètres.
+Asset Service
+Registre des biens, catégories, identifiants, fiches, statuts et historique patrimonial.
+Inventory Service
+Campagnes, affectations d’agents, relevés, anomalies et rapports d’inventaire.
+Movement Service
+Affectations, transferts, prêts, gardiens et historique des mouvements.
+Workflow Service
+Définitions de circuits, étapes, approbateurs, conditions, décisions et délégations.
+Maintenance Service
+Demandes, plans, interventions, fournisseurs, pièces, stocks et coûts.
+Document Service
+Documents, versions, catégories, liens, accès et journaux documentaires.
+Finance Service
+Acquisitions financières, évaluations, amortissements, dépenses et valeurs de sortie.
+Reporting Service
+Indicateurs, agrégations, rapports, exports et tableaux de bord.
+Audit Service
+Journaux protégés, événements de sécurité, accès, preuves et rapports d’audit.
+Notification Service
+Notifications, modèles, préférences, envois, accusés et relances.
+
+5.3 Principes d’intégration
+API REST pour les consultations et validations synchrones.
+Événements RabbitMQ pour les changements propagés entre services.
+Transactional Outbox, identifiants d’événements, idempotence, retries et dead-letter queues.
+Sagas ou mécanismes de compensation pour les processus distribués.
+Aucune clé étrangère SQL interservices ; les références sont validées par API ou événements.
+Les services de reporting utilisent des projections/read models alimentés par événements plutôt que des requêtes directes dans les bases métiers.
+5.4 Structure de dépôt indicative
+SIGPE/├── frontend/sigpe-web/├── infrastructure/│   ├── gateway/│   ├── docker/│   ├── rabbitmq/│   ├── monitoring/│   └── deployment/├── services/│   ├── identity-service/│   ├── organization-service/│   ├── asset-service/│   ├── inventory-service/│   ├── movement-service/│   ├── workflow-service/│   ├── maintenance-service/│   ├── document-service/│   ├── finance-service/│   ├── reporting-service/│   ├── audit-service/│   └── notification-service/└── docker-compose.yml
+6. Exigences non fonctionnelles
+ID
+Exigence
+Attendu / réserve
+ENF-01
+Sécurité
+TLS, chiffrement au repos, gestion centralisée des clés, secrets hors du code et rotation.
+ENF-02
+Contrôle d’accès
+RBAC + ABAC, moindre privilège, cloisonnement institutionnel et journalisation.
+ENF-03
+Protection applicative
+Validation des entrées, protections SQLi/XSS/CSRF, WAF, limitation de débit, détection d’intrusion et tests.
+ENF-04
+Disponibilité
+Redondance des composants critiques, supervision et bascule lorsque faisable ; SLO à définir.
+ENF-05
+Sauvegarde
+Sauvegardes automatisées, chiffrées, versionnées et copies séparées ; tests de restauration.
+ENF-06
+Reprise
+RPO/RTO définis par criticité, capacité et budget ; procédures documentées.
+ENF-07
+Performance
+Objectifs chiffrés fixés après estimation des volumes et tests de charge.
+ENF-08
+Scalabilité
+Montée en charge indépendante des microservices et traitements asynchrones.
+ENF-09
+Interopérabilité
+API sécurisées, contrats de données, versionnement, idempotence et supervision.
+ENF-10
+Accessibilité
+Objectif WCAG 2.2 AA, vérifié par tests.
+ENF-11
+Confidentialité
+Minimisation, classification, accès limité, anonymisation/pseudonymisation et rétention conforme.
+ENF-12
+Maintenabilité
+Documentation, tests automatisés, observabilité, versionnement et déploiements contrôlés.
+
+7. Matrice des rôles et permissions
+La matrice ci-dessous constitue une base fonctionnelle de référence. Les permissions effectives doivent toujours être combinées avec le périmètre institutionnel, l’unité organisationnelle, la sensibilité des données, les délégations et les workflows. Une case « Oui » n’accorde jamais un accès national illimité par défaut.
+7.1 Légende
+Code
+Signification
+A
+Administrer/configurer dans le périmètre autorisé.
+C
+Créer ou soumettre une opération.
+L
+Lire/consulter dans le périmètre autorisé.
+M
+Modifier une donnée ou un dossier selon les règles.
+V
+Valider/approuver si l’utilisateur est désigné par le workflow.
+X
+Exécuter une opération métier.
+—
+Aucun droit ordinaire.
+
+Domaine / action
+Admin principal
+Admin central
+Admin ministériel
+Resp. direction
+Gestionnaire patrimoine
+Agent inventaire
+Resp. financier
+Resp. maintenance
+Autorité approbatrice
+Auditeur/contrôleur
+Agent consultant
+Institutions nationales
+A
+M
+L
+—
+—
+—
+—
+—
+—
+L
+—
+Organisation du ministère
+A
+M
+A
+L
+L
+L
+L
+L
+L
+L
+L
+Comptes et rôles
+A
+M
+A*
+—
+—
+—
+—
+—
+—
+L
+—
+Référentiels nationaux
+A
+M
+L / proposition
+L
+L
+L
+L
+L
+L
+L
+L
+Paramètres ministériels locaux
+A
+M
+A
+L
+L
+L
+L
+L
+L
+L
+—
+Registre des biens
+L
+L
+L/M*
+L
+C/M/X
+L/X
+L
+L
+V*
+L
+L
+Identifiants patrimoniaux
+A
+M*
+M*
+L
+C/X*
+L
+L
+L
+V*
+L
+L
+Inventaires
+L
+L
+A
+L/V*
+C/M/X
+C/X
+L
+L
+V*
+L
+L/X*
+Affectations et mouvements
+L
+L
+A*
+V*
+C/M/X
+L/X*
+L
+L
+V*
+L
+L
+Transferts interministeriels
+L
+Coord./V*
+V*
+L
+C/X*
+L
+L
+L
+V*
+L
+—
+Prêts et biens partagés
+L
+Coord./V*
+V*
+V*
+C/M/X
+L/X*
+L
+L
+V*
+L
+L
+Acquisitions et réceptions
+L
+L
+A*
+V*
+C/X*
+L/X*
+V*
+L
+V*
+L
+—
+Maintenance et stocks
+L
+L
+A*
+L
+L/X*
+L
+L
+C/M/X
+V*
+L
+L
+Documents
+A*
+A*
+A*
+L/C*
+C/M*
+C/M*
+L/C*
+C/M*
+V*
+L
+L*
+Données financières
+L
+L
+L
+L
+L*
+L
+C/M/X
+L
+V*
+L
+—
+Sorties définitives
+L
+Coord./V*
+V*
+C/V*
+C/X*
+L
+L
+L
+V*
+L
+—
+Rapports et exports
+A
+A*
+A*
+L/X*
+L/X*
+L/X*
+L/X*
+L/X*
+L/X*
+L/X*
+L*
+Audit et journaux
+A*
+L
+L*
+—
+—
+—
+—
+—
+—
+L
+—
+Incidents de sécurité
+A
+Coord./X*
+X*
+C*
+C*
+C*
+C*
+C*
+—
+L*
+—
+Notifications
+A
+A*
+A*
+L
+L
+L
+L
+L
+L
+L
+L
+Support et tickets
+A
+A*
+A*
+C/L
+C/L
+C/L
+C/L
+C/L
+C/L
+L
+C/L
+
+* Droits conditionnels : uniquement dans le périmètre attribué, si le workflow le prévoit et après vérification des conflits de séparation des tâches. Les administrateurs techniques ne doivent pas disposer automatiquement d’un pouvoir d’approbation métier.
+7.2 Règles particulières par rôle
+Administrateur principal — Gère les institutions, la gouvernance nationale, les paramètres nationaux et les habilitations centrales. Les opérations sensibles restent journalisées ; ce profil ne doit pas permettre l’effacement de l’historique.
+Administrateur central — Administre les fonctions centrales qui lui sont déléguées, supervise les ministères et peut coordonner des opérations nationales. Il ne crée pas de ministère sauf délégation exceptionnelle explicite, limitée et tracée ; la création institutionnelle demeure réservée à l’Administrateur principal.
+Administrateur ministériel — Administre les utilisateurs, unités, paramètres locaux et workflows autorisés de son ministère. Il ne peut pas s’accorder des droits ni accéder aux données d’autres ministères sans autorisation.
+Responsable de direction — Consulte et supervise les biens, demandes, inventaires et mouvements de son unité ; valide uniquement les étapes qui lui sont attribuées.
+Gestionnaire du patrimoine — Crée et met à jour les fiches, prépare les affectations, inventaires, mouvements, prêts, dossiers de sortie et corrections dans les limites de sa délégation.
+Agent d’inventaire — Réalise les relevés, scanne les QR codes, saisit les constats et anomalies. Il ne modifie pas directement les données maîtres du patrimoine hors habilitation.
+Responsable financier — Gère les données de valeur, évaluations, amortissements, dépenses et rapports financiers autorisés. Les règles comptables et validations officielles prévalent.
+Responsable maintenance — Gère les demandes, plans, interventions, prestataires, stocks et coûts de maintenance dans son périmètre.
+Autorité approbatrice — Approuve, refuse, suspend ou demande correction uniquement pour les dossiers qui lui sont affectés par le workflow et dans les limites de compétence.
+Auditeur / contrôleur — Accès de consultation aux dossiers, preuves et journaux autorisés. Pas de modification opérationnelle ordinaire. Les exports nominatifs sont contrôlés et journalisés.
+Agent consultant — Consulte les biens et informations nécessaires à ses fonctions dans son périmètre ; peut soumettre des demandes si cette capacité lui est accordée.
+7.3 Contraintes de séparation des tâches
+Un utilisateur ne peut pas approuver sa propre demande lorsque la séparation des tâches est exigée.
+Le créateur d’un compte ne peut pas s’attribuer lui-même des permissions privilégiées.
+Une même personne ne doit pas cumuler des rôles incompatibles sur une même opération sensible sans dérogation autorisée et journalisée.
+Les approbations multi-niveaux doivent respecter les seuils et compétences qui seront fixés par les textes officiels.
+Les délégations expirent automatiquement à leur date de fin et sont révocables.
+Les accès exceptionnels sont motivés, limités dans le temps, approuvés et audités.
+Les droits de lecture sur les données financières, personnelles ou hautement sensibles sont distincts des droits de lecture du registre général.
+8. Gouvernance, conformité et points à confirmer
+8.1 Points à faire valider par les autorités compétentes
+Sujet
+Décision ou information attendue
+Cadre juridique patrimonial
+Textes applicables à l’acquisition, l’affectation, au transfert, au prêt, à la réforme et à la sortie.
+Seuils financiers
+Seuils d’approbation, niveaux d’autorité et délégations selon valeur/nature du bien.
+Comptabilité et amortissement
+Méthodes, durées, taux, règles de valorisation et traitement comptable.
+Archives publiques
+Durées de conservation, sort final, élimination et gel juridique.
+Signature électronique
+Système reconnu, exigences de preuve et portée juridique.
+Organisation institutionnelle
+Noms officiels des entités, autorités et comités ; structures ministérielles réelles.
+Protection des données
+Obligations applicables, autorité compétente, droits des personnes et procédures.
+Hébergement
+Exigences souveraines, classification, localisation et prestataires autorisés.
+Interopérabilité
+Systèmes partenaires, systèmes de référence, conventions, API et responsables de données.
+Performance et disponibilité
+Volumes, nombre d’utilisateurs, SLO, RPO, RTO et budget d’infrastructure.
+
+8.2 Hypothèses et exclusions
+Le système ne remplace pas automatiquement les plateformes nationales de marchés publics ou de finances ; il s’y intègre si les interfaces et accords sont disponibles.
+Le mode hors ligne pour l’inventaire n’est pas inclus dans la première version.
+Les règles juridiques et seuils financiers ne sont pas inventés dans ce document.
+Le présent cahier des charges décrit le besoin fonctionnel ; il ne constitue pas à lui seul une validation juridique, budgétaire ou institutionnelle.
+Les fournisseurs externes ne reçoivent pas de compte par défaut ; leur accès devra faire l’objet d’une décision spécifique.
+9. Stratégie de recette et critères d’acceptation
+9.1 Scénarios majeurs à tester
+Créer une institution par l’Administrateur principal, puis configurer sa structure organisationnelle dynamique.
+Créer un bien dans un ministère et vérifier l’unicité du code dans ce ministère.
+Transférer un bien vers un autre ministère : double validation, nouvel identifiant et conservation de l’ancien.
+Effectuer un mouvement interne sans changer le code patrimonial.
+Réaliser une campagne d’inventaire annuelle et traiter les biens manquants ou non enregistrés.
+Enregistrer un bien dont la valeur est inconnue puis réaliser une évaluation ultérieure historisée.
+Créer et exécuter un workflow d’acquisition, réception partielle et affectation.
+Déclencher une maintenance, engager des coûts, consommer des pièces et historiser l’intervention.
+Prêter un bien entre ministères, demander une prolongation, constater un retard et clôturer la restitution.
+Enregistrer un incident de perte/vol et démontrer qu’aucune sortie automatique n’est effectuée.
+Créer un bien partagé et traiter un désaccord entre ministères.
+Importer un fichier contenant des lignes valides, invalides et des doublons potentiels.
+Produire un rapport PDF/Excel et vérifier le périmètre, la confidentialité et la journalisation.
+Vérifier qu’un auditeur consulte les preuves sans pouvoir modifier les données opérationnelles.
+Simuler une panne d’un service ou d’un échange et vérifier la reprise idempotente.
+Restaurer une sauvegarde dans un environnement de test et documenter le résultat.
+9.2 Conditions minimales de mise en production
+Recette fonctionnelle approuvée et procès-verbal signé par les représentants habilités.
+Absence de vulnérabilité critique non traitée et plan de traitement des autres risques.
+Vérification du cloisonnement des données par institution et unité.
+Tests des circuits d’approbation, délégations et séparations des tâches.
+Tests de sauvegarde, restauration et continuité.
+Contrôle de cohérence des identifiants, historiques et référentiels.
+Documentation et formation opérationnelle disponibles.
+Supervision, alertes, support et procédure d’incident opérationnels.
+Plan de migration et rapprochement des données approuvés.
+10. Glossaire et annexes
+Terme
+Définition
+Bien patrimonial
+Élément mobilier ou immobilier relevant du patrimoine de l’État et suivi dans SIGPÉ.
+Institution
+Ministère ou entité publique gérée dans le référentiel organisationnel.
+Unité organisationnelle
+Direction, service, département, structure territoriale ou autre composante hiérarchique.
+Code patrimonial
+Identifiant lisible défini par un ministère et unique dans son périmètre.
+Identifiant technique
+Identifiant interne stable du bien, indépendant des codes patrimoniaux successifs.
+Affectation
+Rattachement administratif d’un bien à une institution, unité ou agent.
+Gardien
+Personne responsable de la garde physique d’un bien, sans être nécessairement propriétaire ou responsable patrimonial.
+Prêt temporaire
+Mise à disposition limitée dans le temps, sans transfert de propriété ni changement d’identifiant.
+Transfert définitif
+Changement officiel de rattachement institutionnel d’un bien, avec conservation de l’ancien identifiant et attribution d’un nouveau code par le ministère destinataire.
+RBAC
+Contrôle d’accès fondé sur les rôles.
+ABAC
+Contrôle d’accès fondé sur les attributs et le contexte.
+RPO
+Perte maximale de données acceptable après incident.
+RTO
+Délai cible de reprise du service après incident.
+Transactional Outbox
+Mécanisme assurant la publication fiable d’événements après validation transactionnelle.
+
+Annexe A — Décisions de cadrage consolidées
+Le registre détaillé des décisions RG-001 à RG-104 est constitué par les décisions prises au cours des séances de cadrage : gouvernance, identifiants, transferts, sorties, classification, inventaires, acquisitions, valorisation, maintenance, documents, workflows, notifications, cybersécurité, interopérabilité, qualité, migration, biens partagés, affectations et prêts. Les décisions complémentaires RG-105 à RG-130 sont intégrées dans les sections 4.17 et 4.18 du présent document.
+Pour la version de référence, il est recommandé de maintenir un registre de décisions séparé comportant pour chaque règle : identifiant, libellé, décision, justification, statut (validée / à confirmer officiellement), responsable de validation, date et version.
+Annexe B — Approbation du document
+Rôle de validation
+Nom / organisme
+Date
+Visa / signature
+Porteur du projet
+
+
+
+Représentant de l’administration centrale
+
+
+
+Représentants ministériels
+
+
+
+Responsable métier patrimoine
+
+
+
+Responsable sécurité / SI
+
+
+
+Autorité compétente
+
+
+
+
+Fin du document.

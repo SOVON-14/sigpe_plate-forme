@@ -1,0 +1,816 @@
+
+
+w14:paraId="5A47816E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Je prends en charge la finalisation du catalogue technique du SIGPÉ.
+w14:paraId="043D4A68" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Je vais travailler avec une règle importante : je tranche les décisions techniques nécessaires à la réalisation du projet, je corrige les incohérences et je fixe les standards communs aux 13 microservices. En revanche, je ne présenterai jamais une recommandation technique comme une décision officiellement adoptée par l'État togolais, ni n'inventerai des dispositions juridiques, des seuils financiers ou des autorités compétentes.
+w14:paraId="3E5C2B68" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">À la fin, le catalogue devra constituer un référentiel directement exploitable par l'équipe de développement Laravel, React, PostgreSQL, RabbitMQ et Docker, avec les éléments restant soumis à une validation institutionnelle clairement identifiés.
+w14:paraId="70FA1463" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">J’ai retrouvé le contenu du catalogue de référence, le cahier des charges fonctionnel et l’ancien document consacré aux 12 microservices. Un premier point de cohérence est déjà confirmé : l’ancien document des 12 microservices ne doit plus servir de référence, car le périmètre actuel comprend 13 services, avec l’Acquisition Service.
+w14:paraId="44ED117A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Je vérifie maintenant les chapitres techniques et les annexes du catalogue pour distinguer les véritables corrections à intégrer des simples livrables de développement qui pourront être produits ensuite.# SIGPÉ — Finalisation du catalogue technique de référence
+w14:paraId="55C4445E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Décisions techniques arrêtées
+w14:paraId="657FBC30" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Base de développement définie
+w14:paraId="706368CF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Référence : SIGPE-ARC-CAT-001Version de finalisation : 1.1Date : 12 novembre 2026Périmètre : 13 microservices métier et infrastructure techniqueStatut : Référentiel technique de travail finalisé pour le démarrage du développement — validation institutionnelle encore requise.
+w14:paraId="30B8B234" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">J'ai confronté le catalogue de référence avec le cahier des charges fonctionnel, les décisions de cadrage et l'ancien document des responsabilités des microservices.
+w14:paraId="38994909" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Mon constat : le catalogue v1.0 était déjà très avancé, mais il contenait encore des contradictions qui auraient pu provoquer des erreurs de conception et des réécritures pendant le développement.
+w14:paraId="6B93B76F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Je fixe donc ci-dessous les décisions de clôture et les corrections à intégrer dans la version 1.1.
+w14:paraId="1CF0FD03" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">1. Résultat de l'audit global
+w14:paraId="64270DEA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">1.1 Les corrections majeures identifiées
+w14:paraId="494DC231" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Réf.
+w14:paraId="471FB920" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Problème constaté
+w14:paraId="270DECF9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Décision de correction
+w14:paraId="71B81A4C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">AUD-001
+w14:paraId="3ED5DA02" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Ancien document décrivant 12 microservices
+w14:paraId="2D195712" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Retenir exclusivement les 13 services
+w14:paraId="40CCDDE9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">AUD-002
+w14:paraId="0E69FA61" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acquisition encore présentée comme un module à rattacher à Asset ou Workflow dans un ancien document
+w14:paraId="12B720B3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acquisition Service possède son propre dossier de bout en bout
+w14:paraId="1CF87B52" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">AUD-003
+w14:paraId="039FADD8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Transfert interministériel finalisé avant confirmation d'Asset
+w14:paraId="1FDCDBA9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset doit confirmer le changement de rattachement avant la clôture du transfert
+w14:paraId="182F4D30" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">AUD-004
+w14:paraId="69B0F909" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Localisation physique et structure administrative insuffisamment distinguées
+w14:paraId="454EBCDD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset possède les lieux physiques ; Organization possède la hiérarchie administrative
+w14:paraId="1DC7CA93" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">AUD-005
+w14:paraId="14B32C77" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">QR code et inventaire susceptibles de se chevaucher
+w14:paraId="38BD9A83" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset gère les QR ; Inventory les utilise pour les constats
+w14:paraId="33B0BE2C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">AUD-006
+w14:paraId="1E7C6625" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Propriété des biens partagés insuffisamment définie
+w14:paraId="256749D9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset possède la fiche maître ; Movement gère les bénéficiaires et droits d'utilisation ; Finance les coûts
+w14:paraId="48C77ADE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">AUD-007
+w14:paraId="27C17BE1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Dossier de réforme susceptible d'être confondu avec les mouvements
+w14:paraId="44BA296D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset possède le dossier et le statut patrimonial de sortie ; Workflow valide
+w14:paraId="452CB4DD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">AUD-008
+w14:paraId="5F234FD6" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Répertoire des prestataires insuffisamment attribué
+w14:paraId="68BA9E81" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Maintenance possède le référentiel des prestataires
+w14:paraId="2353A6F9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">AUD-009
+w14:paraId="5B396C4E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Certains événements RabbitMQ contredisent le cycle réel des opérations
+w14:paraId="44FCE1F9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Refaire la séquence producteur/consommateur et les événements de confirmation
+w14:paraId="2B39D4A5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">AUD-010
+w14:paraId="649F7DB4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Choix de certains composants techniques laissés ouverts
+w14:paraId="55A65255" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Arrêter une architecture de référence
+w14:paraId="79FA6BF1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">AUD-011
+w14:paraId="170BEC92" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Tables et données parfois décrites sans propriétaire suffisamment explicite
+w14:paraId="3F7F65CB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Appliquer une propriété exclusive par microservice
+w14:paraId="2BD5B177" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">AUD-012
+w14:paraId="4005E7C4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Critères de qualité et de sécurité trop généraux
+w14:paraId="3D991342" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Définir les contrôles obligatoires de livraison
+w14:paraId="60465100" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">L'ancien document SIGPE_Responsabilites_detaillees_des_12_microservices.docx est désormais considéré comme obsolète. Il ne doit plus servir de document de référence pour l'implémentation. 
+w14:paraId="049E5A66" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">SIGPE_Responsabilites_detaillees_des_12_microservices.docx
+w14:paraId="49FEB606" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">1.2 Règle générale de propriété des données
+w14:paraId="4B99DC25" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Je fixe une règle absolue :
+w14:paraId="689F5AB8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Un seul microservice est propriétaire et seul écrivain de chaque donnée métier maîtresse.
+w14:paraId="44683888" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les autres services peuvent consulter, conserver des projections ou transmettre des références, mais ils ne peuvent pas modifier directement la donnée source.
+w14:paraId="6D4DA4A0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Cette règle s'applique également aux données partagées entre ministères.
+w14:paraId="56B18B8E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">2. Architecture générale définitivement retenue
+w14:paraId="7443A31F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">2.1 Stack technique
+w14:paraId="61D5C29D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Voici la stack de référence à utiliser.
+w14:paraId="6097DFAB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Couche
+w14:paraId="3D6C8CC5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Technologie retenue
+w14:paraId="08613FC1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Fonction
+w14:paraId="0993F731" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Frontend
+w14:paraId="0C7ED065" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">React.js
+w14:paraId="780D7201" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Interface web
+w14:paraId="1D51DE5D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Backend
+w14:paraId="68CC527A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Laravel
+w14:paraId="0184F11C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Applications métier
+w14:paraId="174A8ADA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Langage backend
+w14:paraId="21BD9940" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">PHP
+w14:paraId="01ACEDBE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Logique métier
+w14:paraId="62F1E178" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Architecture
+w14:paraId="74639726" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Microservices indépendants
+w14:paraId="2BAA95DA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Séparation des domaines
+w14:paraId="1BCD6C6A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Base de données
+w14:paraId="32C4EE75" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">PostgreSQL
+w14:paraId="47FCD113" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Persistance métier
+w14:paraId="600D4292" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Communication synchrone
+w14:paraId="77BFD1A6" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">REST / HTTPS
+w14:paraId="14DABBC1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Requêtes et commandes immédiates
+w14:paraId="062C999A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Communication asynchrone
+w14:paraId="780D62DD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">RabbitMQ / AMQP 0-9-1
+w14:paraId="3496A1C9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Événements interservices
+w14:paraId="774B5B25" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">API Gateway
+w14:paraId="20F4909B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Apache APISIX OSS
+w14:paraId="615C4F04" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Entrée et routage des API
+w14:paraId="7A18978A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Fournisseur d'identité
+w14:paraId="1C7A872A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Keycloak
+w14:paraId="23A01DD1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Authentification centralisée et OIDC
+w14:paraId="56A6D82E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Stockage documentaire
+w14:paraId="59C0429D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Stockage objet privé compatible S3
+w14:paraId="3FC85C13" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Documents et fichiers
+w14:paraId="66C1E4FF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Stockage local de développement
+w14:paraId="377B0538" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">MinIO
+w14:paraId="0584157B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Simulation du stockage objet
+w14:paraId="17E5EA98" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Conteneurisation
+w14:paraId="6A65908C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Docker
+w14:paraId="55674810" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Packaging
+w14:paraId="3C48C0CF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Orchestration locale
+w14:paraId="4E19AAE0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Docker Compose
+w14:paraId="49BD3FDF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Environnement de développement
+w14:paraId="7744A6D4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Observabilité
+w14:paraId="1FC11851" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">OpenTelemetry, Prometheus, Grafana, Loki et Tempo
+w14:paraId="4DCE944C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Logs, métriques et traces
+w14:paraId="11AA1360" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Documentation API
+w14:paraId="44B60CB6" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">OpenAPI 3.1
+w14:paraId="17127CDC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Contrats REST
+w14:paraId="08F3B7EE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Documentation événementielle
+w14:paraId="08E3D1D2" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">AsyncAPI 3.0
+w14:paraId="26F52D26" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Contrats RabbitMQ
+w14:paraId="589A3506" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Validation des messages
+w14:paraId="2EF10E95" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">JSON Schema
+w14:paraId="70C93714" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Contrôle des structures de données
+w14:paraId="71C1DD8C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Décision de conception retenue
+w14:paraId="355D2C63" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Pourquoi Apache APISIX ?
+w14:paraId="527C946D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Je retiens Apache APISIX Community Edition comme API Gateway de référence.
+w14:paraId="1056F7DC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Il permettra notamment :
+w14:paraId="736F79BA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Le routage des requêtes vers les services.
+w14:paraId="169DC75D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">La validation des jetons d'authentification.
+w14:paraId="3DF5F8C0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">La limitation du nombre de requêtes.
+w14:paraId="2054BFE9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">La gestion des accès et des politiques d'entrée.
+w14:paraId="6E52FF2B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">La configuration centralisée des routes.
+w14:paraId="0114174D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">La supervision des API.
+w14:paraId="7ACE900E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">La gestion des délais d'attente et des erreurs de connexion.
+w14:paraId="617953EF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Le choix de la version communautaire évite de rendre le projet dépendant d'une licence commerciale pour les fonctions de base.
+w14:paraId="0695DDF5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Pourquoi Keycloak ?
+w14:paraId="3E70A338" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Keycloak sera un composant d'infrastructure d'identité, et non un 14ᵉ microservice métier.
+w14:paraId="0232836C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">La séparation sera la suivante :
+w14:paraId="66E8852C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Keycloak : authentification, fédération d'identité, MFA, sessions et émission des jetons OIDC.
+w14:paraId="0149D902" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Identity Service : comptes fonctionnels SIGPÉ, profils, rôles métier, permissions, délégations et périmètres d'accès.
+w14:paraId="0916DB0D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">API Gateway : contrôle d'entrée et validation des jetons.
+w14:paraId="4CDE337A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Chaque microservice : contrôle final des autorisations sur ses propres ressources, notamment les règles ABAC.
+w14:paraId="0369A5AE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les droits métier ne seront jamais considérés comme valides uniquement parce qu'un utilisateur a réussi à s'authentifier.
+w14:paraId="0705B19F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">2.2 Architecture logique
+w14:paraId="007BD717" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">FRONTEND SIGPÉ
+w14:paraId="29F734EB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">React.js — Interface nationale et ministérielle
+w14:paraId="0BB5F19E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">API GATEWAY — APISIX
+w14:paraId="5E02FBFF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Routage, sécurité, limitation de débit et observabilité
+w14:paraId="338A53AC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">13 MICROSERVICES LARAVEL
+w14:paraId="5CB8AA2D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Identity
+w14:paraId="33655F22" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Organization
+w14:paraId="52FF6C93" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset
+w14:paraId="2BF51959" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Inventory
+w14:paraId="74DA2BEB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Movement
+w14:paraId="70D3C63D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Workflow
+w14:paraId="0768F359" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Maintenance
+w14:paraId="604C4112" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Document
+w14:paraId="68694207" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Finance
+w14:paraId="2916F55D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Reporting
+w14:paraId="70CFBD0F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Audit
+w14:paraId="6C94E534" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Notification
+w14:paraId="2729E65E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acquisition
+w14:paraId="0D775BF9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">PostgreSQL
+w14:paraId="37101F4C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">13 bases logiques isolées
+w14:paraId="008D7729" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">RabbitMQ
+w14:paraId="4E211D7C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Événements et files durables
+w14:paraId="677503B9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Services transversaux d'infrastructure
+w14:paraId="0F1CC82C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Keycloak · Stockage objet privé · Supervision · Sauvegardes · Docker
+w14:paraId="5E37EC0A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Le frontend communique uniquement avec la Gateway pour les API métier. Aucun navigateur ne doit accéder directement aux bases PostgreSQL, à RabbitMQ ou au stockage interne.
+w14:paraId="22673458" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">3. Les 13 microservices : frontières définitives
+w14:paraId="6C4FDF58" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Je confirme les 13 services suivants.
+w14:paraId="4F3828D5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">N°
+w14:paraId="38834294" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Microservice
+w14:paraId="1E9E0162" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Propriété principale
+w14:paraId="75E500E6" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">01
+w14:paraId="6D606B04" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Identity Service
+w14:paraId="26F67536" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Identités fonctionnelles, rôles et permissions
+w14:paraId="612129AE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">02
+w14:paraId="5048D772" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Organization Service
+w14:paraId="157E0516" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Institutions et structures organisationnelles
+w14:paraId="75E10C73" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">03
+w14:paraId="55A798E1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset Service
+w14:paraId="19A0C862" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Registre maître des biens et cycle patrimonial
+w14:paraId="0EEA77D4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">04
+w14:paraId="5403C83F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Inventory Service
+w14:paraId="3025F6A0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Campagnes et constats d'inventaire
+w14:paraId="48E6F53A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">05
+w14:paraId="5F5A93C6" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Movement Service
+w14:paraId="30E40DBD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Affectations, transferts, prêts et gardiens
+w14:paraId="0797E472" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">06
+w14:paraId="69239CAA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Workflow Service
+w14:paraId="163E08E4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Circuits et décisions de validation
+w14:paraId="2C787B72" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">07
+w14:paraId="25249ABC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Maintenance Service
+w14:paraId="0850DB5E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Interventions, stocks et prestataires
+w14:paraId="0C176158" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">08
+w14:paraId="77FE1E6B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Document Service
+w14:paraId="6AE1EA93" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Documents, versions, accès et archives
+w14:paraId="7469584B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">09
+w14:paraId="086D3CA5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Finance Service
+w14:paraId="61BC421B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Valorisation, amortissements et données financières
+w14:paraId="6EBE9C33" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">10
+w14:paraId="217B4A37" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Reporting Service
+w14:paraId="11DAD2DC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Projections, tableaux de bord et rapports
+w14:paraId="03D9A59E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">11
+w14:paraId="4FB34343" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Audit Service
+w14:paraId="2B284944" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Traces protégées et preuves
+w14:paraId="7523BD6F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">12
+w14:paraId="7727399E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Notification Service
+w14:paraId="36DA4AA0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Envois, accusés et relances
+w14:paraId="5CFC2CA5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">13
+w14:paraId="5149A1C3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acquisition Service
+w14:paraId="10CF9E4B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Dossier d'acquisition de bout en bout
+w14:paraId="5E547B2B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">3.1 Décisions de frontière désormais fermées
+w14:paraId="6A061189" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Registre maître du bien
+w14:paraId="05DBAAB6" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset Service
+w14:paraId="5730B7D8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Aucun autre service ne crée ou ne modifie directement la fiche maître.
+w14:paraId="0309CE5C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">QR codes et étiquettes
+w14:paraId="2A3E60B0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset Service
+w14:paraId="360FFB6F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Inventory assure les opérations de scan et de constat.
+w14:paraId="1E2DA459" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Localisations physiques
+w14:paraId="5806A7B2" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset Service
+w14:paraId="125C4ECE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Organization conserve les unités administratives.
+w14:paraId="7A47E0F7" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Affectations et gardiens
+w14:paraId="328E6369" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Movement Service
+w14:paraId="1B887A67" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset conserve les informations patrimoniales maîtresses.
+w14:paraId="5DCC914A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Dossier de réforme
+w14:paraId="0BEEB5DA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset Service
+w14:paraId="5FC32A3C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Workflow valide ; Finance valorise la sortie ; Document conserve les preuves.
+w14:paraId="5D3828EB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Prestataires de maintenance
+w14:paraId="4E86B981" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Maintenance Service
+w14:paraId="2187668D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les relations et contrats ministériels sont cloisonnés par institution.
+w14:paraId="6275FD25" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Coûts des biens partagés
+w14:paraId="637D710C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Finance Service
+w14:paraId="5E66B5D2" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Movement gère les bénéficiaires et les périodes d'utilisation.
+w14:paraId="255A18AD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Dossier d'acquisition
+w14:paraId="0C716118" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acquisition Service
+w14:paraId="74A68AB1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Workflow, Document, Finance et Asset interviennent chacun dans leur domaine.
+w14:paraId="34239240" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Cette répartition ferme les anciens arbitrages de propriété concernant les QR codes, les lieux physiques, les réformes, les biens partagés et les prestataires.
+w14:paraId="53AE7518" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">3.2 Règles particulières
+w14:paraId="66CEFD5F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset est le seul service qui crée le asset_id et attribue le code patrimonial.
+w14:paraId="2DDB15AE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Movement est le seul service qui gère les opérations de mouvement.
+w14:paraId="48DB8AD4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Workflow n'est pas un moteur de gestion de tous les dossiers métier : il gère les validations.
+w14:paraId="2969BFF5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acquisition ne crée pas directement les fiches patrimoniales.
+w14:paraId="58F5E4C8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Reporting ne modifie jamais les données sources.
+w14:paraId="6C56B122" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Audit ne remplace pas les journaux techniques d'exploitation.
+w14:paraId="54D65571" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Notification ne décide jamais de l'approbation d'une opération.
+w14:paraId="3D98C610" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">4. Architecture des données et conventions définitives
+w14:paraId="28F330E0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">4.1 Bases de données
+w14:paraId="14A6CBC8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Je retiens 13 bases logiques PostgreSQL, une par microservice.
+w14:paraId="5DE4794B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Microservice
+w14:paraId="210E1095" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Base logique
+w14:paraId="73B31996" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Identity
+w14:paraId="38E97432" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">sigpe_identity
+w14:paraId="0D28FBC3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Organization
+w14:paraId="784F1FCF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">sigpe_organization
+w14:paraId="020B9E11" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset
+w14:paraId="12BB9818" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">sigpe_asset
+w14:paraId="774620C9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Inventory
+w14:paraId="5864B375" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">sigpe_inventory
+w14:paraId="45799489" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Movement
+w14:paraId="644423A9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">sigpe_movement
+w14:paraId="47577F33" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Workflow
+w14:paraId="02B7B261" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">sigpe_workflow
+w14:paraId="0DB68ADD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Maintenance
+w14:paraId="2EFA0778" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">sigpe_maintenance
+w14:paraId="38DFB139" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Document
+w14:paraId="789EBBBC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">sigpe_document
+w14:paraId="7C5E9113" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Finance
+w14:paraId="52F06EBA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">sigpe_finance
+w14:paraId="3706990F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Reporting
+w14:paraId="132A9CE8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">sigpe_reporting
+w14:paraId="706A1057" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Audit
+w14:paraId="3001C401" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">sigpe_audit
+w14:paraId="177D0539" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Notification
+w14:paraId="323E09A4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">sigpe_notification
+w14:paraId="787A8FDD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acquisition
+w14:paraId="10EE1084" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">sigpe_acquisition
+w14:paraId="475EF02E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Chaque service dispose :
+w14:paraId="2030FC30" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">De sa propre base.
+w14:paraId="1247915C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">D'un utilisateur PostgreSQL dédié.
+w14:paraId="5EA03AAE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">De ses migrations.
+w14:paraId="43F81142" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">De ses modèles Eloquent.
+w14:paraId="1EBAE7F8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">De ses index.
+w14:paraId="0361EA84" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">De ses contraintes.
+w14:paraId="5E6E8020" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">De ses sauvegardes.
+w14:paraId="503631FA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">De ses politiques d'accès.
+w14:paraId="4A28224E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Une même instance PostgreSQL physique peut héberger plusieurs bases en développement. La topologie physique de production sera dimensionnée selon les exigences de sécurité, de capacité et de disponibilité.
+w14:paraId="00B8E60D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Aucune clé étrangère SQL entre microservices. Aucun accès direct à la base d'un autre service.
+w14:paraId="505E40C9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">4.2 Identifiants
+w14:paraId="4AE84479" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Je tranche le point qui était encore ambigu dans le catalogue :
+w14:paraId="4B97B903" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">asset_id : UUIDv7, stable et immuable.
+w14:paraId="16A186E1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Identifiants des autres entités : UUIDv7.
+w14:paraId="4DC01099" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">institution_id : référence logique vers Organization.
+w14:paraId="5C499386" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">code_patrimonial : code administratif unique dans le périmètre d'une institution.
+w14:paraId="0DAD62A2" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">La contrainte d'unicité est :
+w14:paraId="4FADAA5B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">UNIQUE (institution_id, code_patrimonial)
+w14:paraId="546D462A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Le changement de ministère ne modifie jamais le asset_id.
+w14:paraId="7F29A2AE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">4.3 Conventions de données
+w14:paraId="7B52DCDA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les conventions suivantes deviennent obligatoires :
+w14:paraId="34EF89E9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Élément
+w14:paraId="648A8D14" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Standard
+w14:paraId="3AD2E5FC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Nommage des tables
+w14:paraId="47CDD4C1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">snake_case, pluriel
+w14:paraId="3008D850" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Nommage des colonnes
+w14:paraId="5E5F3CC4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">snake_case
+w14:paraId="6EB2F1B4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Identifiants
+w14:paraId="61EF6D0A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">UUIDv7
+w14:paraId="10E6253F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Dates et heures
+w14:paraId="682F9B34" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">ISO 8601, stockage UTC
+w14:paraId="1F4DBF5E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Devise de référence
+w14:paraId="04B33E3C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">XOF, sous réserve des règles financières applicables
+w14:paraId="7477EACD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Valeurs monétaires
+w14:paraId="3777BA60" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">NUMERIC, jamais FLOAT ou DOUBLE
+w14:paraId="36A41004" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Références interservices
+w14:paraId="4F07320F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">UUID sans FK interbases
+w14:paraId="57E89EE8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Historisation
+w14:paraId="1225156F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Avant/après, auteur, date, motif
+w14:paraId="189A38F6" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Suppression métier sensible
+w14:paraId="6F87E70B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Logique et autorisée, jamais physique par défaut
+w14:paraId="58FFE93E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Versionnement
+w14:paraId="6CA3C2B1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Migrations versionnées et contrôlées
+w14:paraId="44FF7FB3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les montants envoyés dans les contrats JSON seront représentés de façon décimale non ambiguë, et non par des nombres flottants susceptibles de provoquer des erreurs d'arrondi.
+w14:paraId="18D2D03E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">5. API REST et API Gateway
+w14:paraId="6A8BA8AC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">5.1 Standards API arrêtés
+w14:paraId="0AD2B9A3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Je fixe les règles communes suivantes :
+w14:paraId="51284BF3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Préfixe : /api/v1.
+w14:paraId="11F689CA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Format : JSON.
+w14:paraId="3A10BC10" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Transport : HTTPS.
+w14:paraId="2F0B75B3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Authentification : OIDC avec Keycloak.
+w14:paraId="65AF1D3B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Autorisation : RBAC + ABAC.
+w14:paraId="0A014C09" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Identifiant de corrélation : X-Correlation-ID.
+w14:paraId="6ECEA273" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Identifiant de requête : X-Request-ID.
+w14:paraId="083B03ED" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Opérations sensibles : clé d'idempotence lorsque nécessaire.
+w14:paraId="5B124F2C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Modifications concurrentes sensibles : contrôle de version par ETag / If-Match.
+w14:paraId="68742E0A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Pagination obligatoire pour les listes volumineuses.
+w14:paraId="4C17146B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Gestion homogène des erreurs suivant le format Problem Details, RFC 9457.
+w14:paraId="2C771E18" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Versionnement des API sans rupture silencieuse de compatibilité.
+w14:paraId="70CA54A9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">5.2 Règle sur les routes
+w14:paraId="1D1EBE59" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les routes du catalogue restent des routes indicatives jusqu'à la production des contrats OpenAPI.
+w14:paraId="3F7925FD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Il est interdit de développer des endpoints contradictoires avec les responsabilités définies au chapitre 3.
+w14:paraId="25B32398" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Chaque microservice doit produire son propre fichier :
+w14:paraId="64693909" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">openapi.yaml
+w14:paraId="33BDFEAA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les routes consolidées seront ensuite enregistrées dans la configuration de l'API Gateway.
+w14:paraId="1ADF84EB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">5.3 Sécurité des API
+w14:paraId="0BFAF7F4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Chaque requête devra être contrôlée sur plusieurs niveaux :
+w14:paraId="3606F12E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Jeton valide.
+w14:paraId="435F4BA0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Identité active.
+w14:paraId="39E511C4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Permission métier.
+w14:paraId="23E76179" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Périmètre institutionnel.
+w14:paraId="7E932D8E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Périmètre organisationnel.
+w14:paraId="6F478F2D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Sensibilité de la ressource.
+w14:paraId="274CB573" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Délégation valide si elle est utilisée.
+w14:paraId="44D9B93F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Workflow requis lorsque l'opération l'impose.
+w14:paraId="6FA46FC3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Un utilisateur autorisé à consulter les biens de son ministère ne pourra pas automatiquement consulter ceux d'un autre ministère.
+w14:paraId="12608FCB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">6. RabbitMQ : règles définitives
+w14:paraId="1D790D47" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">C'est l'un des chapitres les plus importants pour éviter les incohérences dans une architecture distribuée.
+w14:paraId="47FF2EEA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">6.1 Topologie retenue
+w14:paraId="23B7A3D9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Je fixe :
+w14:paraId="57157154" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Un exchange principal de type topic : sigpe.events.v1.
+w14:paraId="6CA997E0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Des files durables par consommateur.
+w14:paraId="41346FF3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Des routing keys structurées.
+w14:paraId="13B7959F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Des messages persistants.
+w14:paraId="04F3AE29" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Des publisher confirms.
+w14:paraId="136D139E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Des accusés de réception manuels.
+w14:paraId="5A965B21" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Des files de retry.
+w14:paraId="5532ECCF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Des Dead Letter Queues.
+w14:paraId="1DB3A9A7" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Des droits RabbitMQ limités par service.
+w14:paraId="10802717" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Exemple de routing key :
+w14:paraId="1F685268" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">asset.registered.v1
+w14:paraId="002E2A57" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">movement.transfer.requested.v1
+w14:paraId="061AF4D2" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">workflow.task.assigned.v1
+w14:paraId="532ECC05" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">maintenance.intervention.completed.v1
+w14:paraId="4555B8B7" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">6.2 Enveloppe événementielle obligatoire
+w14:paraId="049C1076" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Tous les événements doivent respecter une enveloppe commune :
+w14:paraId="72303962" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">{
+w14:paraId="3F165F7C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">  "event_id": "uuid",
+w14:paraId="5859EDB0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">  "event_type": "asset.registered",
+w14:paraId="0D006A62" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">  "event_version": 1,
+w14:paraId="63FDE53A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">  "occurred_at": "2026-11-12T10:00:00Z",
+w14:paraId="1E4FC1AE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">  "producer": "asset-service",
+w14:paraId="74C6015B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">  "aggregate_id": "uuid",
+w14:paraId="6B2EF565" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">  "correlation_id": "uuid",
+w14:paraId="03890EEB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">  "causation_id": "uuid",
+w14:paraId="3C0DFE26" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">  "institution_id": "uuid",
+w14:paraId="7FDBDB28" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">  "actor": {
+w14:paraId="30738831" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">    "type": "user",
+w14:paraId="5B3C809D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">    "id": "uuid"
+w14:paraId="3B1EE572" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">  },
+w14:paraId="2B551B29" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">  "data": {}
+w14:paraId="7AFFB813" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">}
+w14:paraId="3F45BC58" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les champs institutionnels et acteur sont renseignés lorsqu'ils sont pertinents. Aucun secret, mot de passe ou document confidentiel ne doit être intégré directement dans les événements.
+w14:paraId="71575727" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">6.3 Fiabilité des messages
+w14:paraId="3EB7758B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Je rends obligatoires :
+w14:paraId="1F25316F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Transactional Outbox.
+w14:paraId="70E6444A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Inbox avec unicité de event_id par consommateur.
+w14:paraId="4CD6CA56" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Idempotence.
+w14:paraId="671D1E08" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Retry avec backoff exponentiel.
+w14:paraId="6315FC1C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">DLQ après épuisement des tentatives.
+w14:paraId="5D75AAE4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Supervision des files.
+w14:paraId="0629DC2D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Journalisation des échecs.
+w14:paraId="0EF05AAE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Procédure de rejeu contrôlé.
+w14:paraId="35D37EC2" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Corrélation des opérations distribuées.
+w14:paraId="0DB29F23" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">La garantie retenue est at-least-once : un message peut être livré plusieurs fois, mais son traitement métier doit être idempotent.
+w14:paraId="188FC035" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Nous ne prétendrons pas garantir une livraison exactement une fois.
+w14:paraId="5DCD7776" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">6.4 Correction essentielle du transfert interministériel
+w14:paraId="2E6CCB46" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Le catalogue contenait une séquence incorrecte : il présentait la finalisation du transfert par Movement avant le changement de rattachement dans Asset.
+w14:paraId="1EBF1B5E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Cette séquence est interdite.
+w14:paraId="24899DF2" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">La séquence correcte est :
+w14:paraId="4E7D1A9D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Audit/NotificationFinanceAssetWorkflowMovementAudit/NotificationFinanceAssetWorkflowMovement#chatgpt-mermaid-_r_5kk_{font-family:-apple-system-body,ui-sans-serif,-apple-system,system-ui,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";font-size:16px;fill:rgb(237, 237, 237);}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#chatgpt-mermaid-_r_5kk_ .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#chatgpt-mermaid-_r_5kk_ .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#chatgpt-mermaid-_r_5kk_ .error-icon{fill:rgb(48, 48, 48);}#chatgpt-mermaid-_r_5kk_ .error-text{fill:rgb(237, 237, 237);stroke:rgb(237, 237, 237);}#chatgpt-mermaid-_r_5kk_ .edge-thickness-normal{stroke-width:1px;}#chatgpt-mermaid-_r_5kk_ .edge-thickness-thick{stroke-width:3.5px;}#chatgpt-mermaid-_r_5kk_ .edge-pattern-solid{stroke-dasharray:0;}#chatgpt-mermaid-_r_5kk_ .edge-thickness-invisible{stroke-width:0;fill:none;}#chatgpt-mermaid-_r_5kk_ .edge-pattern-dashed{stroke-dasharray:3;}#chatgpt-mermaid-_r_5kk_ .edge-pattern-dotted{stroke-dasharray:2;}#chatgpt-mermaid-_r_5kk_ .marker{fill:rgb(175, 175, 175);stroke:rgb(175, 175, 175);}#chatgpt-mermaid-_r_5kk_ .marker.cross{stroke:rgb(175, 175, 175);}#chatgpt-mermaid-_r_5kk_ svg{font-family:-apple-system-body,ui-sans-serif,-apple-system,system-ui,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";font-size:16px;}#chatgpt-mermaid-_r_5kk_ p{margin:0;}#chatgpt-mermaid-_r_5kk_ .actor{stroke:rgb(31, 78, 148);fill:rgb(9, 23, 44);stroke-width:1;}#chatgpt-mermaid-_r_5kk_ rect.actor.outer-path[data-look="neo"]{filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-_r_5kk_ rect.note[data-look="neo"]{stroke:rgb(58, 132, 63);fill:rgb(48, 48, 48);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-_r_5kk_ text.actor&gt;tspan{fill:rgb(237, 237, 237);stroke:none;}#chatgpt-mermaid-_r_5kk_ .actor-line{stroke:rgb(175, 175, 175);}#chatgpt-mermaid-_r_5kk_ .innerArc{stroke-width:1.5;stroke-dasharray:none;}#chatgpt-mermaid-_r_5kk_ .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:rgb(175, 175, 175);}#chatgpt-mermaid-_r_5kk_ .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:rgb(175, 175, 175);}#chatgpt-mermaid-_r_5kk_ [id$="-arrowhead"] path{fill:rgb(175, 175, 175);stroke:rgb(175, 175, 175);}#chatgpt-mermaid-_r_5kk_ .sequenceNumber{fill:#505050;}#chatgpt-mermaid-_r_5kk_ [id$="-sequencenumber"]{fill:rgb(175, 175, 175);}#chatgpt-mermaid-_r_5kk_ [id$="-crosshead"] path{fill:rgb(175, 175, 175);stroke:rgb(175, 175, 175);}#chatgpt-mermaid-_r_5kk_ .messageText{fill:rgb(237, 237, 237);stroke:none;}#chatgpt-mermaid-_r_5kk_ .labelBox{stroke:rgba(255, 255, 255, 0.15);fill:rgb(0, 0, 0);filter:none;}#chatgpt-mermaid-_r_5kk_ .labelText,#chatgpt-mermaid-_r_5kk_ .labelText&gt;tspan{fill:rgb(237, 237, 237);stroke:none;}#chatgpt-mermaid-_r_5kk_ .loopText,#chatgpt-mermaid-_r_5kk_ .loopText&gt;tspan{fill:rgb(237, 237, 237);stroke:none;}#chatgpt-mermaid-_r_5kk_ .sectionTitle,#chatgpt-mermaid-_r_5kk_ .sectionTitle&gt;tspan{fill:rgb(237, 237, 237);stroke:none;}#chatgpt-mermaid-_r_5kk_ .loopLine{stroke-width:2px;stroke-dasharray:2,2;stroke:rgba(255, 255, 255, 0.15);fill:rgba(255, 255, 255, 0.15);}#chatgpt-mermaid-_r_5kk_ .note{stroke:rgb(58, 132, 63);fill:rgb(48, 48, 48);}#chatgpt-mermaid-_r_5kk_ .noteText,#chatgpt-mermaid-_r_5kk_ .noteText&gt;tspan{fill:rgb(237, 237, 237);stroke:none;font-weight:normal;}#chatgpt-mermaid-_r_5kk_ .activation0{fill:rgb(48, 48, 48);stroke:hsl(0, 0%, 8.8235294118%);}#chatgpt-mermaid-_r_5kk_ .activation1{fill:rgb(48, 48, 48);stroke:hsl(0, 0%, 8.8235294118%);}#chatgpt-mermaid-_r_5kk_ .activation2{fill:rgb(48, 48, 48);stroke:hsl(0, 0%, 8.8235294118%);}#chatgpt-mermaid-_r_5kk_ .actorPopupMenu{position:absolute;}#chatgpt-mermaid-_r_5kk_ .actorPopupMenuPanel{position:absolute;fill:rgb(9, 23, 44);box-shadow:0px 8px 16px 0px rgba(0,0,0,0.2);filter:drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));}#chatgpt-mermaid-_r_5kk_ .actor-man circle,#chatgpt-mermaid-_r_5kk_ line{fill:rgb(9, 23, 44);stroke-width:2px;}#chatgpt-mermaid-_r_5kk_ g rect.rect{filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));stroke:rgb(31, 78, 148);}#chatgpt-mermaid-_r_5kk_ .node .neo-node{stroke:rgb(31, 78, 148);}#chatgpt-mermaid-_r_5kk_ [data-look="neo"].node rect,#chatgpt-mermaid-_r_5kk_ [data-look="neo"].cluster rect,#chatgpt-mermaid-_r_5kk_ [data-look="neo"].node polygon{stroke:url(#chatgpt-mermaid-_r_5kk_-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-_r_5kk_ [data-look="neo"].swimlane.cluster rect{filter:none;}#chatgpt-mermaid-_r_5kk_ [data-look="neo"].node path{stroke:url(#chatgpt-mermaid-_r_5kk_-gradient);stroke-width:1px;}#chatgpt-mermaid-_r_5kk_ [data-look="neo"].node .outer-path{filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-_r_5kk_ [data-look="neo"].node .neo-line path{stroke:rgb(31, 78, 148);filter:none;}#chatgpt-mermaid-_r_5kk_ [data-look="neo"].node circle{stroke:url(#chatgpt-mermaid-_r_5kk_-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-_r_5kk_ [data-look="neo"].node circle .state-start{fill:#000000;}#chatgpt-mermaid-_r_5kk_ [data-look="neo"].icon-shape .icon{fill:url(#chatgpt-mermaid-_r_5kk_-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-_r_5kk_ [data-look="neo"].icon-shape .icon-neo path{stroke:url(#chatgpt-mermaid-_r_5kk_-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#chatgpt-mermaid-_r_5kk_ :root{--mermaid-font-family:-apple-system-body,ui-sans-serif,-apple-system,system-ui,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";}Demande de validation du transfertValidation de sortie origineDemande de confirmation destinationConfirmation de réception destinationCommande de changement de rattachementChangement institution + nouveau codeasset.institutional_attachment.changedClôture du transfertÉvénement de transfert confirméTraçabilité et notifications
+w14:paraId="3072E0BD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Règle absolue : tant que Asset n'a pas confirmé le changement de rattachement et l'attribution du nouveau code, Movement ne peut pas publier movement.interministerial_transfer.completed.
+w14:paraId="4224751F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Si Asset est indisponible, Movement conserve un état intermédiaire et reprend le traitement de manière idempotente.
+w14:paraId="0BAE0486" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">7. Les autres scénarios interservices
+w14:paraId="2DF04F7D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Je fixe également les scénarios de référence suivants.
+w14:paraId="77263AD5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Scénario
+w14:paraId="10AC0813" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Service initiateur
+w14:paraId="32BE7CC5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Service propriétaire du résultat principal
+w14:paraId="4176DDCA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Création d'un bien après acquisition
+w14:paraId="08276035" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acquisition
+w14:paraId="69A29237" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset
+w14:paraId="7A744704" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Réception partielle
+w14:paraId="59D54FC0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acquisition
+w14:paraId="676156C8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acquisition pour le dossier ; Asset pour les biens acceptés
+w14:paraId="0C480A50" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Affectation initiale
+w14:paraId="42C05BE8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Movement
+w14:paraId="689299A3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Movement
+w14:paraId="006BD1A5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Transfert interne
+w14:paraId="4356607D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Movement
+w14:paraId="63C06211" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Movement
+w14:paraId="348EC454" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Transfert interministériel
+w14:paraId="640E9B36" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Movement
+w14:paraId="1F655883" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset pour le rattachement et le code
+w14:paraId="638050A3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Campagne d'inventaire
+w14:paraId="4CA276F9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Inventory
+w14:paraId="0FBB0EAB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Inventory pour les constats
+w14:paraId="0EE35541" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Correction d'une fiche patrimoniale
+w14:paraId="424A6652" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset
+w14:paraId="3B442B1C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset
+w14:paraId="693464CB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Intervention de maintenance
+w14:paraId="1A0BBA1B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Maintenance
+w14:paraId="4EEF6909" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Maintenance
+w14:paraId="1E666388" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Enregistrement d'une valeur
+w14:paraId="59052A4D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Finance
+w14:paraId="3634BA45" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Finance
+w14:paraId="22DC3957" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Réforme d'un bien
+w14:paraId="75908004" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset
+w14:paraId="438C093F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset
+w14:paraId="63E123B9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Prêt temporaire
+w14:paraId="4F245FA0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Movement
+w14:paraId="41755AC9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Movement
+w14:paraId="097A483C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Bien partagé
+w14:paraId="3331E0C4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset / Movement selon l'opération
+w14:paraId="1B88972C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset pour la fiche maître ; Movement pour les droits d'utilisation
+w14:paraId="6E667E3E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">7.1 Acquisition : correction du cycle
+w14:paraId="6D05FBBE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">La réception d'un bien doit respecter cette séquence :
+w14:paraId="1997A588" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acquisition enregistre la livraison.
+w14:paraId="69B60F78" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acquisition contrôle quantité, caractéristiques et conformité.
+w14:paraId="087C7039" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les biens acceptés sont transmis à Asset.
+w14:paraId="28E9F753" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset crée les fiches patrimoniales.
+w14:paraId="32C202F8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Finance enregistre les valeurs connues ou leur caractère indéterminé.
+w14:paraId="57F8B970" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Movement gère l'affectation initiale.
+w14:paraId="7BEED341" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Audit et Notification reçoivent les événements utiles.
+w14:paraId="142B4F17" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acquisition clôture le dossier après les confirmations nécessaires.
+w14:paraId="5C85DD2D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Un bien refusé ou non conforme ne doit pas être immatriculé comme un bien accepté.
+w14:paraId="1682ED8D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">7.2 Réforme
+w14:paraId="37E00AC5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset possède le dossier de réforme et son état patrimonial.
+w14:paraId="290A0B86" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Workflow exécute les validations. Finance transmet les informations de valeur. Document conserve les justificatifs. Audit trace les décisions.
+w14:paraId="0168D300" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">La sortie définitive ne doit intervenir qu'après la décision compétente.
+w14:paraId="2D7346C5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">8. Sécurité, gouvernance et protection des données
+w14:paraId="3A6ECE02" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les décisions de sécurité déjà prises sont conservées et rendues obligatoires dans l'implémentation.
+w14:paraId="47E1EAEB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">8.1 Contrôle d'accès
+w14:paraId="40FE26C4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">RBAC + ABAC.
+w14:paraId="71220E88" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Principe du moindre privilège.
+w14:paraId="429475BC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Séparation des pouvoirs.
+w14:paraId="547590BA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Périmètres ministériels.
+w14:paraId="3D3E0AD5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Périmètres organisationnels.
+w14:paraId="1032705D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">MFA pour les comptes et opérations sensibles.
+w14:paraId="7A0D513C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Délégations limitées dans le temps et dans leur périmètre.
+w14:paraId="6BF26680" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Révocation des sessions.
+w14:paraId="4D533881" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Protection contre l'élévation de privilèges.
+w14:paraId="0CAB9E62" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Traçabilité des accès sensibles.
+w14:paraId="2EE7D032" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">8.2 Chiffrement et secrets
+w14:paraId="0E2AE9A8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TLS pour les communications.
+w14:paraId="1F527D31" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Chiffrement des données au repos.
+w14:paraId="3A998C41" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Chiffrement des sauvegardes.
+w14:paraId="2FA67015" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Gestion centralisée des clés.
+w14:paraId="1F26A0A2" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Rotation des secrets.
+w14:paraId="27ED39E0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Aucun secret dans Git.
+w14:paraId="52D203BE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Aucun secret dans les logs.
+w14:paraId="5DE660CB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Aucun accès direct public à PostgreSQL ou RabbitMQ.
+w14:paraId="6A1C449A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">8.3 Documents
+w14:paraId="5980C79F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les documents sont répartis en huit catégories nationales :
+w14:paraId="3C770C62" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acquisition.
+w14:paraId="3E22DB7A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Propriété.
+w14:paraId="5A4AA2EC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Technique.
+w14:paraId="7C591C23" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Administratif.
+w14:paraId="019953D8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Maintenance.
+w14:paraId="723232F3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Inventaire.
+w14:paraId="0AD977F0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Financier.
+w14:paraId="53DAE12B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Réforme.
+w14:paraId="0EFD0431" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les niveaux de confidentialité retenus sont :
+w14:paraId="1B968FEA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Public administratif.
+w14:paraId="7A1BBBC0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Interne.
+w14:paraId="14FEBA5A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Confidentiel.
+w14:paraId="0B3FBD14" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Hautement sensible.
+w14:paraId="27456C74" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Chaque fichier doit faire l'objet d'un contrôle du format réel, de la taille, d'un contrôle antivirus et d'une empreinte cryptographique.
+w14:paraId="2D5E5CDB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">8.4 Audit
+w14:paraId="181D18AD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">L'Audit Service conserve les événements sensibles avec :
+w14:paraId="2F485388" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acteur.
+w14:paraId="04B9421B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Date.
+w14:paraId="5229B40A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Opération.
+w14:paraId="24ECC03F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Ressource.
+w14:paraId="2997F7D8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Institution.
+w14:paraId="460BF3D5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Ancienne valeur si nécessaire.
+w14:paraId="53960E77" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Nouvelle valeur si nécessaire.
+w14:paraId="3EB5CE23" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Motif.
+w14:paraId="5FB1E590" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Résultat.
+w14:paraId="46C09EC7" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Identifiant de corrélation.
+w14:paraId="66980D7C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Empreinte des preuves si applicable.
+w14:paraId="724A3C0A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Une correction d'un journal ne doit jamais être une modification silencieuse.
+w14:paraId="24EE3E5A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">9. Infrastructure et déploiement
+w14:paraId="62DAB9C4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">9.1 Environnement de développement
+w14:paraId="7C158172" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Je retiens un monorepo de référence pour faciliter le développement initial, sans supprimer l'autonomie des applications.
+w14:paraId="6013EC2C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">sigpe-platform/
+w14:paraId="77583444" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│
+w14:paraId="0DD9FE35" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">├── frontend/
+w14:paraId="7EF9E123" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   └── sigpe-web/
+w14:paraId="533EEA29" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│
+w14:paraId="2FA9F6D8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">├── gateway/
+w14:paraId="266F8F0B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   └── apisix/
+w14:paraId="20CF52EB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│
+w14:paraId="4CACC482" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">├── infrastructure/
+w14:paraId="1AFB7F7A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── docker/
+w14:paraId="3D563367" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── rabbitmq/
+w14:paraId="2EFEC638" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── postgres/
+w14:paraId="7F0716F9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── keycloak/
+w14:paraId="4E095D58" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── storage/
+w14:paraId="584EE1CB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── monitoring/
+w14:paraId="65390701" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   └── deployment/
+w14:paraId="57CE9E88" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│
+w14:paraId="2CA4BA33" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">├── services/
+w14:paraId="4687F47E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── identity-service/
+w14:paraId="68BB67ED" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── organization-service/
+w14:paraId="788EED59" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── asset-service/
+w14:paraId="1E347202" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── inventory-service/
+w14:paraId="5D06882C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── movement-service/
+w14:paraId="5EA2EAD5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── workflow-service/
+w14:paraId="2B17C7F8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── maintenance-service/
+w14:paraId="4A5F3FB9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── document-service/
+w14:paraId="431C72C0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── finance-service/
+w14:paraId="356B01B9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── reporting-service/
+w14:paraId="652DE51B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── audit-service/
+w14:paraId="2CBB20EA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── notification-service/
+w14:paraId="21EA7E43" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   └── acquisition-service/
+w14:paraId="3BFA8E3B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│
+w14:paraId="162F48A0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">├── contracts/
+w14:paraId="2F01D7C6" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── openapi/
+w14:paraId="74BFA2DD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── asyncapi/
+w14:paraId="76D7F39D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── json-schemas/
+w14:paraId="55A9CDA3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── events/
+w14:paraId="6E42CCF0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   └── permissions/
+w14:paraId="13BD1484" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│
+w14:paraId="57C8D335" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">├── tests/
+w14:paraId="4E5B8E7D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── integration/
+w14:paraId="29764361" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── contract/
+w14:paraId="39039E48" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   ├── security/
+w14:paraId="5ADBF2EB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│   └── e2e/
+w14:paraId="4302F524" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│
+w14:paraId="638342C3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">├── docker-compose.yml
+w14:paraId="3DA52721" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">│
+w14:paraId="03DAF33C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">└── README.md
+w14:paraId="01B1FAE6" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Chaque microservice possède son propre composer.json, composer.lock, .env.example, Dockerfile, ses migrations et ses tests.
+w14:paraId="23F30294" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Le monorepo ne signifie pas que les applications partagent leurs modèles ou leurs classes métier.
+w14:paraId="3CB6A403" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">9.2 Environnements
+w14:paraId="45BED311" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Environnement
+w14:paraId="44B4140F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Usage
+w14:paraId="7CA59ABC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Local
+w14:paraId="782E0FBC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Développement individuel
+w14:paraId="23E542BB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Intégration
+w14:paraId="2D3DCFCF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Vérification des interactions interservices
+w14:paraId="1350B3E1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Test
+w14:paraId="1A118181" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Tests automatisés et fonctionnels
+w14:paraId="58FF36C0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Préproduction
+w14:paraId="51E4580A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Simulation des conditions de production
+w14:paraId="194266D7" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Production
+w14:paraId="236FFF21" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Exploitation officielle
+w14:paraId="53881FC5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Docker Compose est retenu pour le développement et la recette locale. Je ne fixe pas arbitrairement Kubernetes ou Docker Compose comme orchestrateur de production nationale : ce choix dépendra de l'infrastructure officiellement disponible.
+w14:paraId="2837B284" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">9.3 Sauvegardes et restauration
+w14:paraId="7BC845A5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les sauvegardes doivent couvrir :
+w14:paraId="4D24C706" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les 13 bases PostgreSQL.
+w14:paraId="16F4033B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les fichiers du stockage objet.
+w14:paraId="2A2C9DF1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les configurations nécessaires à la restauration.
+w14:paraId="0CB3E02D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les données de configuration du système.
+w14:paraId="6BABC59C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les éléments nécessaires à la reprise du broker.
+w14:paraId="37C8D268" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Elles doivent être chiffrées, versionnées et restaurées périodiquement dans le cadre d'exercices documentés.
+w14:paraId="2E3CA671" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les valeurs RPO et RTO seront déterminées selon la criticité et les moyens de l'infrastructure.
+w14:paraId="67C9FB8A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">10. Tests et critères obligatoires de qualité
+w14:paraId="4AC3C9B4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Je fixe huit niveaux de tests.
+w14:paraId="541DDFCC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Niveau
+w14:paraId="191F740C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Contrôle
+w14:paraId="156D313C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">1
+w14:paraId="19068C23" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Tests unitaires
+w14:paraId="0C43E59C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">2
+w14:paraId="23CC587B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Tests d'intégration avec PostgreSQL et RabbitMQ
+w14:paraId="38949D80" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">3
+w14:paraId="386B19BB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Tests de contrats REST et événements
+w14:paraId="0F69B8F1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">4
+w14:paraId="65E8A115" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Tests de sécurité et d'isolation ministérielle
+w14:paraId="345C95F6" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">5
+w14:paraId="5EF1CB3E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Tests de charge et de performance
+w14:paraId="414BE067" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">6
+w14:paraId="16ECA98F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Tests de résilience et de reprise
+w14:paraId="59F2D341" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">7
+w14:paraId="539F5AB3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Tests de migrations et de données
+w14:paraId="51362ABB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">8
+w14:paraId="26123050" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Tests end-to-end des scénarios métier
+w14:paraId="3F167E20" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Technologies de test de référence
+w14:paraId="5CF15BCD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">PHPUnit pour les tests Laravel.
+w14:paraId="325BC0EF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Vitest et React Testing Library pour React.
+w14:paraId="0505552A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Playwright pour les parcours end-to-end.
+w14:paraId="38A0D28C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">OpenAPI et JSON Schema pour les contrats.
+w14:paraId="0CBA17BC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Tests d'intégration sur des environnements isolés.
+w14:paraId="5A2D36BA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Analyse statique et contrôle automatisé du code dans la CI.
+w14:paraId="13995697" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Critères non négociables
+w14:paraId="7C9B8A3C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Un service ne peut pas être considéré comme livrable si :
+w14:paraId="76132684" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Ses règles métier critiques ne sont pas testées.
+w14:paraId="57B98692" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Ses permissions ne sont pas contrôlées.
+w14:paraId="036C692F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Ses migrations ne sont pas vérifiées.
+w14:paraId="710BD0E4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Ses contrats ne sont pas conformes.
+w14:paraId="6D59AA18" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Ses événements ne sont pas idempotents.
+w14:paraId="23DF50E2" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Ses erreurs ne sont pas correctement gérées.
+w14:paraId="492EB2D0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Ses journaux ne permettent pas de reconstituer les opérations sensibles.
+w14:paraId="1F8E9EB2" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">11. Registre de clôture des décisions techniques
+w14:paraId="3D6AD0EE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les décisions de cadrage métier RG-001 à RG-130 sont conservées avec leur statut d'origine. Je complète le registre technique avec les arbitrages suivants.
+w14:paraId="45DE1221" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Référence
+w14:paraId="736A4364" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Décision de conception retenue
+w14:paraId="4EA85780" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Statut
+w14:paraId="2CB576DD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-001
+w14:paraId="489DB801" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Apache APISIX OSS comme Gateway de référence
+w14:paraId="65A8CF49" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Arrêtée
+w14:paraId="5F1578B6" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-002
+w14:paraId="55C4CC7C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Keycloak comme fournisseur d'identité OIDC
+w14:paraId="79E5A03D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Arrêtée
+w14:paraId="55591304" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-003
+w14:paraId="553B73C4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Identity Service reste propriétaire des profils et habilitations métier
+w14:paraId="64D514F2" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Arrêtée
+w14:paraId="300C1C02" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-004
+w14:paraId="5B9B3C63" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">UUIDv7 pour les identifiants techniques
+w14:paraId="6D687CA0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Arrêtée
+w14:paraId="01FD647E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-005
+w14:paraId="7104E8B9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">13 bases logiques PostgreSQL isolées
+w14:paraId="6460EED4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Arrêtée
+w14:paraId="0D9C10BB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-006
+w14:paraId="373A94CD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">OpenAPI 3.1 pour les contrats REST
+w14:paraId="5D6B3F28" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Arrêtée
+w14:paraId="48869179" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-007
+w14:paraId="6D879C81" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">AsyncAPI 3.0 pour les contrats événementiels
+w14:paraId="068C00FF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Arrêtée
+w14:paraId="08F94613" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-008
+w14:paraId="5E020C82" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">JSON Schema pour la validation des payloads
+w14:paraId="0FA6CD9E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Arrêtée
+w14:paraId="3FE9B891" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-009
+w14:paraId="045A5631" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Exchange RabbitMQ principal de type topic
+w14:paraId="18A93C2B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Arrêtée
+w14:paraId="5AAF1DC1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-010
+w14:paraId="0B154E82" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Outbox/Inbox et livraison at-least-once
+w14:paraId="4B717917" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Arrêtée
+w14:paraId="22988527" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-011
+w14:paraId="5038E3B0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Monorepo avec applications Laravel indépendantes
+w14:paraId="3183AB75" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Retenue
+w14:paraId="21AEE5E3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-012
+w14:paraId="4DB5E917" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Docker Compose pour développement et recette locale
+w14:paraId="56BBF6F7" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Arrêtée
+w14:paraId="49F2B0B6" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-013
+w14:paraId="7E722130" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Stockage objet privé compatible S3
+w14:paraId="7B701DED" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Retenue
+w14:paraId="045E021A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-014
+w14:paraId="25834775" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">OpenTelemetry pour la traçabilité distribuée
+w14:paraId="38592D32" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Arrêtée
+w14:paraId="1A6E4B30" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-015
+w14:paraId="14473DEB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">PHPUnit, Vitest et Playwright pour les tests
+w14:paraId="0C1F0CCF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Retenue
+w14:paraId="59EE7587" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-016
+w14:paraId="2C1FB3C8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">RFC 9457 pour le format commun des erreurs HTTP
+w14:paraId="5740BD2C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Arrêtée
+w14:paraId="251AB9EC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-017
+w14:paraId="0D5B4670" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Confirmation Asset obligatoire avant clôture d'un transfert interministériel
+w14:paraId="01A9F6E8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Arrêtée
+w14:paraId="5836BB43" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-018
+w14:paraId="46BAEC81" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acquisition Service propriétaire du dossier d'acquisition
+w14:paraId="0C0FF1AD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Confirmée
+w14:paraId="3E7B3009" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-019
+w14:paraId="16EE93FA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset propriétaire du dossier de réforme et du registre maître
+w14:paraId="59AF94F7" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Confirmée
+w14:paraId="5E210230" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">TEC-020
+w14:paraId="335DCC05" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset propriétaire des QR et localisations physiques
+w14:paraId="3068BAD4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Confirmée
+w14:paraId="2F7AC03D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les choix TEC-001 à TEC-016 sont des décisions d'architecture de référence prises pour fermer les arbitrages techniques. Ils ne constituent pas une approbation institutionnelle des produits ou de l'infrastructure.
+w14:paraId="132DA5E0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">12. Points qui restent soumis à validation officielle
+w14:paraId="59414150" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">La finalisation technique ne permet pas de prendre des décisions à la place des autorités compétentes.
+w14:paraId="37738A15" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les éléments suivants restent à confirmer :
+w14:paraId="6685104F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Domaine
+w14:paraId="19CF87E2" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Élément à confirmer
+w14:paraId="1B90E483" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Gouvernance
+w14:paraId="209B422B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Autorités et organismes officiellement compétents
+w14:paraId="43CCE998" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Patrimoine
+w14:paraId="272A44DC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Textes et procédures de gestion patrimoniale applicables
+w14:paraId="77890366" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Transferts
+w14:paraId="5E544EA6" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Autorités habilitées à approuver chaque catégorie de transfert
+w14:paraId="11BFA664" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Réforme
+w14:paraId="005F0D3E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Seuils, procédures et niveaux d'autorisation
+w14:paraId="61261F18" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Finance
+w14:paraId="0E83B8C8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Taux, durées et méthodes réglementaires d'amortissement
+w14:paraId="3ECD7673" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Maintenance
+w14:paraId="6B45F81C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Seuils officiels de validation des dépenses
+w14:paraId="65FF4B84" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Archives
+w14:paraId="0E00F9AC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Durées légales de conservation et règles d'élimination
+w14:paraId="2C413EF6" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Signature
+w14:paraId="5E193AE2" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Valeur juridique des signatures électroniques utilisées
+w14:paraId="32D9E9E1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Données
+w14:paraId="6CEE1F59" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Obligations légales de protection et de traitement
+w14:paraId="4E5070F9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Hébergement
+w14:paraId="7F0ACDA1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Infrastructure nationale et exigences de souveraineté
+w14:paraId="26BC271A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Continuité
+w14:paraId="1B34CCB1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">RPO et RTO officiels
+w14:paraId="562A0261" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Interopérabilité
+w14:paraId="24AA16EF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Conventions d'échange avec les systèmes publics externes
+w14:paraId="7A3B3A8A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Ces réserves ne doivent pas être transformées en règles inventées dans le code. Les paramètres correspondants devront être configurables et versionnés.
+w14:paraId="4D41BC5D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">13. Ordre de développement définitif
+w14:paraId="6DE41BEA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Je recommande l'ordre suivant, en respectant les dépendances entre services.
+w14:paraId="630FE1EF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Phase 0 — Socle technique
+w14:paraId="735B6676" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Dépôt Git.
+w14:paraId="1476B880" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Docker Compose.
+w14:paraId="2990D540" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">PostgreSQL.
+w14:paraId="3451CE6B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">RabbitMQ.
+w14:paraId="4168B45D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">APISIX.
+w14:paraId="68DC374A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Keycloak.
+w14:paraId="6341F41D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Stockage objet.
+w14:paraId="743EDB64" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Observabilité.
+w14:paraId="2A7389E2" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">CI/CD.
+w14:paraId="2D7D7500" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Contrats communs.
+w14:paraId="40FE48EE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Phase 1 — Identité et organisation
+w14:paraId="7640BAAF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Identity Service.
+w14:paraId="2C46BED1" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Organization Service.
+w14:paraId="3113197D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Objectif : maîtriser les utilisateurs, les institutions, les structures et les permissions.
+w14:paraId="44C5A7C7" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Phase 2 — Registre patrimonial
+w14:paraId="6DC24F30" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Asset Service.
+w14:paraId="5264D2BB" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Document Service.
+w14:paraId="00F5382A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Audit Service.
+w14:paraId="5A7849C5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Objectif : créer le registre maître, les pièces et la traçabilité.
+w14:paraId="53B2F258" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Phase 3 — Validation et mouvements
+w14:paraId="1307EEDE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Workflow Service.
+w14:paraId="32636668" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Movement Service.
+w14:paraId="2A5C809E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Objectif : gérer les validations, les affectations, les transferts et les prêts.
+w14:paraId="39BF0943" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Phase 4 — Acquisition et opérations
+w14:paraId="70D31D56" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Acquisition Service.
+w14:paraId="6E196FD0" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Inventory Service.
+w14:paraId="60E37D44" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Maintenance Service.
+w14:paraId="1249798A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Objectif : gérer les entrées, les inventaires et l'entretien du patrimoine.
+w14:paraId="27C862D3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Phase 5 — Finances et restitution
+w14:paraId="4D83FB43" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Finance Service.
+w14:paraId="5B4B2589" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Notification Service.
+w14:paraId="6CEBDDB2" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Reporting Service.
+w14:paraId="2FA4E934" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Objectif : compléter la valorisation, les alertes et les tableaux de bord.
+w14:paraId="64934D53" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Phase 6 — Intégration et pilote
+w14:paraId="020A5667" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Tests globaux.
+w14:paraId="61A15A73" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Migration des données.
+w14:paraId="0617CDFE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Sécurité.
+w14:paraId="5A463614" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Tests de charge.
+w14:paraId="52958EEE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Recette métier.
+w14:paraId="4E992F5B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Déploiement pilote.
+w14:paraId="65BA894D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Cet ordre n'interdit pas le développement parallèle : dès que les contrats d'un groupe de services sont stables, plusieurs équipes peuvent travailler simultanément.
+w14:paraId="4032479C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">14. Conditions de réception du catalogue technique v1.1
+w14:paraId="63F1F014" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Pour que le catalogue soit réellement exploitable, je distingue désormais deux choses :
+w14:paraId="5394293F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Le référentiel d'architecture : ses décisions de conception sont arrêtées dans cette version.
+w14:paraId="75FF4AFF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les artefacts d'implémentation : les fichiers OpenAPI, AsyncAPI, JSON Schema, migrations Laravel, configurations Gateway, Dockerfiles et tests seront produits au fur et à mesure, conformément au référentiel.
+w14:paraId="5DED152B" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Il ne faut pas confondre un catalogue finalisé avec une plateforme déjà développée.
+w14:paraId="6B51E843" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Les artefacts suivants sont les premiers livrables obligatoires de la phase 0 :
+w14:paraId="404843C8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Livrable
+w14:paraId="2F5D29CC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Contenu
+w14:paraId="77778C26" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">docker-compose.yml
+w14:paraId="404883E4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Socle local complet
+w14:paraId="35FFAF35" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">openapi.yaml
+w14:paraId="2CF14644" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Contrats REST par service
+w14:paraId="023F9C7E" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">asyncapi.yaml
+w14:paraId="5D633196" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Contrats RabbitMQ
+w14:paraId="5732ABFA" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">json-schemas/
+w14:paraId="4DFC7FC5" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Schémas des messages
+w14:paraId="28B1EC0F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">gateway/
+w14:paraId="4CB9CD7F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Configuration APISIX
+w14:paraId="0DCFA15A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">infrastructure/keycloak/
+w14:paraId="716DA0F4" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Configuration OIDC
+w14:paraId="36C99452" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">contracts/permissions/
+w14:paraId="6E4BCC47" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Matrice RBAC/ABAC
+w14:paraId="35294D45" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">contracts/events/
+w14:paraId="0C860FAF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Matrice producteurs/consommateurs
+w14:paraId="3FEEF64C" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">tests/contract/
+w14:paraId="4D6BA62A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Tests de conformité des contrats
+w14:paraId="6437A788" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">docs/adr/
+w14:paraId="4622E9D7" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Décisions d'architecture formalisées
+w14:paraId="5C6CB217" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Le catalogue v1.0 prévoyait déjà ces livrables ; la version 1.1 leur donne maintenant un socle de décisions cohérent. 
+w14:paraId="50F8FC90" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Texte collé(3).txt
+w14:paraId="7AFE02D7" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">15. Décision finale
+w14:paraId="7DBFECD6" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Catalogue technique v1.1 finalisé
+w14:paraId="46EDBBF6" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Référentiel de développement du SIGPÉ
+w14:paraId="2950ADB3" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">13 microservices définis.
+w14:paraId="172483FF" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Responsabilités et frontières corrigées.
+w14:paraId="6EE88A8D" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Architecture technique arrêtée.
+w14:paraId="6A1836E9" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Identifiants et données normalisés.
+w14:paraId="3DFF73DE" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Standards API définis.
+w14:paraId="0C0CE2B8" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">RabbitMQ et fiabilité distribuée définis.
+w14:paraId="656262DD" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Transferts et acquisitions corrigés.
+w14:paraId="0A77B711" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Sécurité et gouvernance consolidées.
+w14:paraId="2DB6C78A" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Infrastructure de développement définie.
+w14:paraId="5811D418" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Stratégie de tests établie.
+w14:paraId="3F028A30" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Réserve : visa institutionnel, juridique et réglementaire encore nécessaire.
+w14:paraId="5F7C3BBC" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Ma décision : le SIGPÉ peut maintenant entrer dans sa phase de développement technique.
+w14:paraId="3C0C9581" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">Il n'est plus nécessaire de recommencer le cadrage fonctionnel, les décisions déjà validées ou les maquettes. Les contrats détaillés et les migrations restent à construire comme livrables du développement, mais leur cadre est maintenant arrêté.
+w14:paraId="49D05985" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">La prochaine étape est la Phase 0 : construction du socle technique SIGPÉ, en commençant par le dépôt Git, Docker Compose, PostgreSQL, RabbitMQ, APISIX, Keycloak et les conventions communes.
+w14:paraId="59070D1F" w14:textId="77777777" w:rsidR="00882B93" w:rsidRPr="00882B93" w:rsidRDefault="00882B93" w:rsidP="00882B93">C'est sur cette version 1.1 que nous devons désormais nous appuyer pour écrire le code. 
+w14:paraId="3FF07163" w14:textId="77777777" w:rsidR="001E5C6B" w:rsidRDefault="001E5C6B"/>
