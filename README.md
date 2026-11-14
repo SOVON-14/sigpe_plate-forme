@@ -56,6 +56,38 @@ togolais, construite autour d'une architecture à 13 microservices.
 
 ## État du projet
 
-Phase 0 — consolidation du référentiel technique : documents sources intégrés,
-matrice des versions, ADR, conventions et modèles de contrats en cours de
-validation par le maître d'ouvrage. Aucun microservice n'est encore développé.
+Backend : les **13 microservices sont implémentés** (domaine + API REST
+`/api/v1` + événements outbox/inbox RabbitMQ + tests feature), leurs contrats
+OpenAPI/AsyncAPI/JSON Schema sont validés, et toutes les branches
+`service/*` + `contracts` sont fusionnées sur `main`.
+
+Infrastructure de développement : `compose.yaml` orchestre PostgreSQL
+(13 bases), RabbitMQ (vhost `sigpe`, exchange `sigpe.events.v1`), Keycloak
+(realm `sigpe` importé), MinIO (bucket `sigpe-documents`), APISIX
+(142 routes générées depuis les OpenAPI) et les 13 services + workers.
+
+### Démarrage local
+
+```bash
+cp .env.example .env   # puis renseigner les mots de passe et secrets
+# POSTGRES_PASSWORD, RABBITMQ_PASSWORD, KEYCLOAK_ADMIN_PASSWORD,
+# SIGPE_ADMIN_PASSWORD, SIGPE_KC_SECRET_* (13), MINIO_ROOT_PASSWORD
+
+docker compose up -d --build        # toute la pile
+docker compose logs -f apisix       # gateway : http://localhost:9080
+docker compose logs -f keycloak     # console : http://localhost:8081
+```
+
+- Gateway APISIX : `http://localhost:9080/api/v1/...` (routes générées par
+  `php gateway/apisix/generate-routes.php` depuis `contracts/openapi/`).
+- Realm Keycloak `sigpe` : client public `sigpe-web`, audience `sigpe-api`,
+  13 clients `*-service` en client_credentials, claim `sigpe-claims`
+  (permissions + institution_id + audience).
+- Worker par service : `queue:work` + boucle `sigpe:outbox:publish` (+ 
+  `sigpe:events:consume` pour les 7 consommateurs).
+- Exception de routage : la projection reporting des actifs est exposée via
+  `/api/v1/reporting/assets/{assetId}` (réécriture proxy) pour lever
+  l'ambiguïté avec le registre maître `/api/v1/assets/{assetId}`.
+
+Reste à faire : frontend React (`frontend/sigpe-web`), observabilité
+(`infrastructure/monitoring`), CI/CD et validation E2E de la pile.

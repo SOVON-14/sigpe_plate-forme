@@ -1,0 +1,243 @@
+{
+  "realm": "sigpe",
+  "enabled": true,
+  "displayName": "SIGPE",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "defaultRoles": ["offline_access", "uma_authorization", "sigpe-user"],
+  "roles": {
+    "realm": [
+      { "name": "sigpe-user", "description": "Utilisateur SIGPE de base" },
+      { "name": "sigpe-admin", "description": "Administrateur SIGPE" }
+    ]
+  },
+  "clientScopes": [
+    {
+      "name": "sigpe-claims",
+      "description": "Claims SIGPE : permissions + institution_id + audience sigpe-api",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" },
+      "protocolMappers": [
+        {
+          "name": "sigpe-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "sigpe-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "permissions",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "permissions",
+            "claim.name": "permissions",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "institution_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "institution_id",
+            "claim.name": "institution_id",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin@sigpe.local",
+      "email": "admin@sigpe.local",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "SIGPE",
+      "credentials": [{ "type": "password", "value": "${env.SIGPE_ADMIN_PASSWORD}", "temporary": false }],
+      "realmRoles": ["sigpe-admin"],
+      "attributes": {
+        "permissions": ["*"],
+        "institution_id": []
+      }
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "sigpe-web",
+      "name": "SIGPE Web (frontend React)",
+      "description": "Client public pour l'application web",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["http://localhost:5173/*", "http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:5173", "http://localhost:3000"],
+      "attributes": { "pkce.code.challenge.method": "S256" },
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "email", "sigpe-claims"],
+      "optionalClientScopes": ["address", "phone", "offline_access", "microprofile-jwt"]
+    },
+    {
+      "clientId": "sigpe-api",
+      "name": "SIGPE API (audience)",
+      "description": "Audience des jetons d'accès acceptés par les services",
+      "enabled": true,
+      "bearerOnly": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": false
+    },
+    {
+      "clientId": "identity-service",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "${env.SIGPE_KC_SECRET_IDENTITY}",
+      "defaultClientScopes": ["sigpe-claims"]
+    },
+    {
+      "clientId": "organization-service",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "${env.SIGPE_KC_SECRET_ORGANIZATION}",
+      "defaultClientScopes": ["sigpe-claims"]
+    },
+    {
+      "clientId": "asset-service",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "${env.SIGPE_KC_SECRET_ASSET}",
+      "defaultClientScopes": ["sigpe-claims"]
+    },
+    {
+      "clientId": "inventory-service",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "${env.SIGPE_KC_SECRET_INVENTORY}",
+      "defaultClientScopes": ["sigpe-claims"]
+    },
+    {
+      "clientId": "movement-service",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "${env.SIGPE_KC_SECRET_MOVEMENT}",
+      "defaultClientScopes": ["sigpe-claims"]
+    },
+    {
+      "clientId": "workflow-service",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "${env.SIGPE_KC_SECRET_WORKFLOW}",
+      "defaultClientScopes": ["sigpe-claims"]
+    },
+    {
+      "clientId": "acquisition-service",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "${env.SIGPE_KC_SECRET_ACQUISITION}",
+      "defaultClientScopes": ["sigpe-claims"]
+    },
+    {
+      "clientId": "maintenance-service",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "${env.SIGPE_KC_SECRET_MAINTENANCE}",
+      "defaultClientScopes": ["sigpe-claims"]
+    },
+    {
+      "clientId": "audit-service",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "${env.SIGPE_KC_SECRET_AUDIT}",
+      "defaultClientScopes": ["sigpe-claims"]
+    },
+    {
+      "clientId": "document-service",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "${env.SIGPE_KC_SECRET_DOCUMENT}",
+      "defaultClientScopes": ["sigpe-claims"]
+    },
+    {
+      "clientId": "notification-service",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "${env.SIGPE_KC_SECRET_NOTIFICATION}",
+      "defaultClientScopes": ["sigpe-claims"]
+    },
+    {
+      "clientId": "finance-service",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "${env.SIGPE_KC_SECRET_FINANCE}",
+      "defaultClientScopes": ["sigpe-claims"]
+    },
+    {
+      "clientId": "reporting-service",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "${env.SIGPE_KC_SECRET_REPORTING}",
+      "defaultClientScopes": ["sigpe-claims"]
+    }
+  ]
+}

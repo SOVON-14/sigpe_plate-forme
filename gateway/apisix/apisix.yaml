@@ -1,0 +1,1013 @@
+# Fichier généré par gateway/apisix/generate-routes.php — ne pas éditer à la main.
+# Source : contracts/openapi/*.openapi.yaml
+
+routes:
+  - id: acquisition--acquisition-requests-234d77b712bf3dc5dc018f490f106377
+    uri: /api/v1/acquisition-requests
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "acquisition-service:8080": 1
+  - id: acquisition--acquisition-requests-requestid--261de98a0a60c5d74aa591e1ce9125d2
+    uri: /api/v1/acquisition-requests/:requestId
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "acquisition-service:8080": 1
+  - id: acquisition--acquisition-requests-requestid-submit-6153333d715fd000e420bc7e1a2e9ec3
+    uri: /api/v1/acquisition-requests/:requestId/submit
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "acquisition-service:8080": 1
+  - id: acquisition--acquisition-requests-requestid-select-833431827bf44bdac6e6e571eb27aa46
+    uri: /api/v1/acquisition-requests/:requestId/select
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "acquisition-service:8080": 1
+  - id: acquisition--acquisition-requests-requestid-order-98cfa2cda5fe1e0d7c3dd5ded2664dff
+    uri: /api/v1/acquisition-requests/:requestId/order
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "acquisition-service:8080": 1
+  - id: acquisition--acquisition-requests-requestid-deliveries-0640197b137558934b7ec3f2b0e3778a
+    uri: /api/v1/acquisition-requests/:requestId/deliveries
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "acquisition-service:8080": 1
+  - id: acquisition--deliveries-deliveryid-receptions-0e8219bee7c51d39d32cc6720c4e02f4
+    uri: /api/v1/deliveries/:deliveryId/receptions
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "acquisition-service:8080": 1
+  - id: acquisition--acquisition-requests-requestid-cancel-7c030d2e08613aec8d785c9b625a0f56
+    uri: /api/v1/acquisition-requests/:requestId/cancel
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "acquisition-service:8080": 1
+  - id: acquisition--acquisition-requests-requestid-history-077421571d60daa3ec66e5b4b5ee0b2b
+    uri: /api/v1/acquisition-requests/:requestId/history
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "acquisition-service:8080": 1
+  - id: asset--categories-88277aa5d283511643f997c32952cc22
+    uri: /api/v1/categories
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "asset-service:8080": 1
+  - id: asset--categories-categoryid-subcategories-323e8ec67dc25e23ff8efe470d75c0c3
+    uri: /api/v1/categories/:categoryId/subcategories
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "asset-service:8080": 1
+  - id: asset--institutions-institutionid-assets-61c686adc1de45c7af9e4717515c0188
+    uri: /api/v1/institutions/:institutionId/assets
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "asset-service:8080": 1
+  - id: asset--assets-assetid--6b5f3e79b2b18941c62a7ad319724edb
+    uri: /api/v1/assets/:assetId
+    methods: [GET, PATCH]
+    upstream:
+      type: roundrobin
+      nodes:
+        "asset-service:8080": 1
+  - id: asset--assets-assetid-status-bdf521ff95955f7a324e14b9a1a275a9
+    uri: /api/v1/assets/:assetId/status
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "asset-service:8080": 1
+  - id: asset--assets-assetid-physical-state-97376e53721a968124df9c03b85d9129
+    uri: /api/v1/assets/:assetId/physical-state
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "asset-service:8080": 1
+  - id: asset--assets-assetid-rattachement-2c1c745d42bbaa9b46d1fa48f32c2110
+    uri: /api/v1/assets/:assetId/rattachement
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "asset-service:8080": 1
+  - id: asset--assets-assetid-histories-b003271764b00340667a9b0b92311c08
+    uri: /api/v1/assets/:assetId/histories
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "asset-service:8080": 1
+  - id: audit--audit-entries-50dc1189711f0dd1c67d48a74291325b
+    uri: /api/v1/audit-entries
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "audit-service:8080": 1
+  - id: audit--audit-entries-id--d51bca43184437bdb044906c16779e83
+    uri: /api/v1/audit-entries/:id
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "audit-service:8080": 1
+  - id: audit--audit-entries-chain-verify-da158a6f6e0d04322575b23d39a93c8b
+    uri: /api/v1/audit-entries/chain/verify
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "audit-service:8080": 1
+  - id: audit--audit-entries-stats-15323ca10d53986f57d49ae7a9380f6a
+    uri: /api/v1/audit-entries/stats
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "audit-service:8080": 1
+  - id: document--document-categories-7b73ef3a127e791908ecc68261e6a0ca
+    uri: /api/v1/document-categories
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "document-service:8080": 1
+  - id: document--documents-0459ff79d8ac4f8f4363f1d8466bf9e3
+    uri: /api/v1/documents
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "document-service:8080": 1
+  - id: document--documents-id--5526798ff8a1360f8fc92e9d7eadb19a
+    uri: /api/v1/documents/:id
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "document-service:8080": 1
+  - id: document--documents-id-versions-45ef6dc27432e329385c60b00fb5366c
+    uri: /api/v1/documents/:id/versions
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "document-service:8080": 1
+  - id: document--documents-id-validate-7c89ff1336790397cb4acb43d584afce
+    uri: /api/v1/documents/:id/validate
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "document-service:8080": 1
+  - id: document--documents-id-download-8db5e1583cc545d126bbff593e23f893
+    uri: /api/v1/documents/:id/download
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "document-service:8080": 1
+  - id: document--documents-id-lifecycle-600b23a2c5440e2b86ce872197189877
+    uri: /api/v1/documents/:id/lifecycle
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "document-service:8080": 1
+  - id: document--documents-id-access-requests-9606aa69e815627cdd4662641d82471b
+    uri: /api/v1/documents/:id/access-requests
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "document-service:8080": 1
+  - id: document--access-requests-id-decision-d0b3dd5ba9e8a3be2c1de0856f9473bd
+    uri: /api/v1/access-requests/:id/decision
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "document-service:8080": 1
+  - id: document--documents-id-access-log-c34694418b1d35a8887e0809949183c9
+    uri: /api/v1/documents/:id/access-log
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "document-service:8080": 1
+  - id: finance--asset-valuations-0a6588dc4dcef95cf7abb749be1f329d
+    uri: /api/v1/asset-valuations
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "finance-service:8080": 1
+  - id: finance--asset-valuations-valuationid--ce65805863db46caff2df19c31f31798
+    uri: /api/v1/asset-valuations/:valuationId
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "finance-service:8080": 1
+  - id: finance--assets-assetid-valuation-16ef65ab37c8180ded47ed27e3018180
+    uri: /api/v1/assets/:assetId/valuation
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "finance-service:8080": 1
+  - id: finance--assets-assetid-depreciation-entries-b243c90b6bc4fac1957bf794da09a51e
+    uri: /api/v1/assets/:assetId/depreciation-entries
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "finance-service:8080": 1
+  - id: finance--asset-costs-6094b1fe9161dce9d6ee5c220c6daf68
+    uri: /api/v1/asset-costs
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "finance-service:8080": 1
+  - id: finance--asset-costs-costid--5c8448834910796933eef65a6d636070
+    uri: /api/v1/asset-costs/:costId
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "finance-service:8080": 1
+  - id: finance--assets-assetid-costs-80e1f0dd990f49d1b840a5c5f29bfdd0
+    uri: /api/v1/assets/:assetId/costs
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "finance-service:8080": 1
+  - id: finance--disposals-4aa56c28b6866ffbc4fdcfc9392ce042
+    uri: /api/v1/disposals
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "finance-service:8080": 1
+  - id: finance--disposals-disposalid--172cc0ca42a956040789bd7f1383f0eb
+    uri: /api/v1/disposals/:disposalId
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "finance-service:8080": 1
+  - id: finance--disposals-disposalid-submit-a9cc33cf73ffeb3726f3ae0de501fa07
+    uri: /api/v1/disposals/:disposalId/submit
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "finance-service:8080": 1
+  - id: finance--disposals-disposalid-execute-971900701ee900c43ed378878184be7c
+    uri: /api/v1/disposals/:disposalId/execute
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "finance-service:8080": 1
+  - id: finance--disposals-disposalid-close-c87d7f4735b624a26663b2e8db82c200
+    uri: /api/v1/disposals/:disposalId/close
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "finance-service:8080": 1
+  - id: finance--disposals-disposalid-resolve-investigation-7a6f62a821faf0229ecb4d23a47edce0
+    uri: /api/v1/disposals/:disposalId/resolve-investigation
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "finance-service:8080": 1
+  - id: finance--disposals-disposalid-cancel-940239ae9bb8b3929e1441e37855f8b8
+    uri: /api/v1/disposals/:disposalId/cancel
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "finance-service:8080": 1
+  - id: finance--disposals-disposalid-history-de4d9188e61ef6fc4639ab48cc5acf1d
+    uri: /api/v1/disposals/:disposalId/history
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "finance-service:8080": 1
+  - id: identity--accounts-1c53c3adca76451f8b8a422b0f6e257d
+    uri: /api/v1/accounts
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "identity-service:8080": 1
+  - id: identity--accounts-accountid--668f7d7f62abbdaf2cfaa041c6d2f384
+    uri: /api/v1/accounts/:accountId
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "identity-service:8080": 1
+  - id: identity--accounts-accountid-status-3492ac2d8cf4130dfef74e226ed0c7e5
+    uri: /api/v1/accounts/:accountId/status
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "identity-service:8080": 1
+  - id: identity--accounts-accountid-roles-e4680bc606e2f1da929bc98bb3e10517
+    uri: /api/v1/accounts/:accountId/roles
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "identity-service:8080": 1
+  - id: identity--accounts-accountid-roles-assignmentid--48dcad8b4b8fb227e9cdb9e19c894e7d
+    uri: /api/v1/accounts/:accountId/roles/:assignmentId
+    methods: [DELETE]
+    upstream:
+      type: roundrobin
+      nodes:
+        "identity-service:8080": 1
+  - id: identity--roles-a5c724c5f26692d2d29fa333cca88f73
+    uri: /api/v1/roles
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "identity-service:8080": 1
+  - id: identity--roles-roleid--b55e86696bfef29c5ce0aaca399e2faa
+    uri: /api/v1/roles/:roleId
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "identity-service:8080": 1
+  - id: identity--permissions-0581eb41cb3491fa803c70db39483ea6
+    uri: /api/v1/permissions
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "identity-service:8080": 1
+  - id: identity--delegations-71e458488aa2394af896464910e7ef4d
+    uri: /api/v1/delegations
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "identity-service:8080": 1
+  - id: identity--delegations-delegationid-revoke-8ced0e9ce085326fb9dd7a12ba57b57a
+    uri: /api/v1/delegations/:delegationId/revoke
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "identity-service:8080": 1
+  - id: identity--me-permissions-77383eab9fcb89f723d60d92451501a7
+    uri: /api/v1/me/permissions
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "identity-service:8080": 1
+  - id: inventory--institutions-institutionid-inventory-campaigns-7f415401802c2685ac499805d1833459
+    uri: /api/v1/institutions/:institutionId/inventory-campaigns
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "inventory-service:8080": 1
+  - id: inventory--inventory-campaigns-campaignid--7cfee46eea5142837e2eccceb4034415
+    uri: /api/v1/inventory-campaigns/:campaignId
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "inventory-service:8080": 1
+  - id: inventory--inventory-campaigns-campaignid-status-ae2cc05ef925db71381873312cbe9d5d
+    uri: /api/v1/inventory-campaigns/:campaignId/status
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "inventory-service:8080": 1
+  - id: inventory--inventory-campaigns-campaignid-agents-62335a3a0db9d1148a0a00bf4bc41c2b
+    uri: /api/v1/inventory-campaigns/:campaignId/agents
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "inventory-service:8080": 1
+  - id: inventory--inventory-campaigns-campaignid-agents-agentid--5b363ddcd10145aeab48593dd1c3e762
+    uri: /api/v1/inventory-campaigns/:campaignId/agents/:agentId
+    methods: [DELETE]
+    upstream:
+      type: roundrobin
+      nodes:
+        "inventory-service:8080": 1
+  - id: inventory--inventory-campaigns-campaignid-findings-49629d0a4c2e29cb1a7597e314bf7079
+    uri: /api/v1/inventory-campaigns/:campaignId/findings
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "inventory-service:8080": 1
+  - id: inventory--findings-findingid--b33367fb0467f2c280dcdde4cf5431c7
+    uri: /api/v1/findings/:findingId
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "inventory-service:8080": 1
+  - id: inventory--findings-findingid-verify-aeb1f622a3f49cba83ab8a3fe6f63633
+    uri: /api/v1/findings/:findingId/verify
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "inventory-service:8080": 1
+  - id: inventory--inventory-campaigns-campaignid-report-da9369f6211507ffee80f4d04c68a551
+    uri: /api/v1/inventory-campaigns/:campaignId/report
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "inventory-service:8080": 1
+  - id: maintenance--maintenance-requests-9e3d0dbf35ce38065670bea9a69c97ad
+    uri: /api/v1/maintenance-requests
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--maintenance-requests-id--423013e8c08afe4c4b653daa044c2a55
+    uri: /api/v1/maintenance-requests/:id
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--maintenance-requests-id-submit-8efdcc706b2ff2196e49cf42b3c0261c
+    uri: /api/v1/maintenance-requests/:id/submit
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--maintenance-requests-id-cancel-c22449ad3a44ee17ecf5a249dae164dc
+    uri: /api/v1/maintenance-requests/:id/cancel
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--maintenance-requests-id-history-aa5ec0512301d7abf02ccc81232ab11e
+    uri: /api/v1/maintenance-requests/:id/history
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--intervention-plans-727d7f6cabd8e99c6e59150881b099b2
+    uri: /api/v1/intervention-plans
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--intervention-plans-id--9640e179bb95de623f5ff9d6514427bd
+    uri: /api/v1/intervention-plans/:id
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--intervention-plans-id-execute-5d02f0b631e53cce4ed49593e120e0f9
+    uri: /api/v1/intervention-plans/:id/execute
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--interventions-4b23bb91db59da3554ca85fcc377cb2d
+    uri: /api/v1/interventions
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--interventions-id--bebc51af7f3896263f9d81b43f383d09
+    uri: /api/v1/interventions/:id
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--interventions-id-start-6aa1faa93da4d34a7b84af4858320285
+    uri: /api/v1/interventions/:id/start
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--interventions-id-complete-61487b1d381ae65ac9e16a0d3554bc8a
+    uri: /api/v1/interventions/:id/complete
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--interventions-id-interrupt-7cb5c21bc37d8fcf898b9469756e1418
+    uri: /api/v1/interventions/:id/interrupt
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--interventions-id-cancel-53ce18e218d597e925fa4d4a9c3167cd
+    uri: /api/v1/interventions/:id/cancel
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--suppliers-cfbbec5b68b4d87b632588f30f4ea5e4
+    uri: /api/v1/suppliers
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--suppliers-id--3ee4887b71bb35e686ef68568138eb8e
+    uri: /api/v1/suppliers/:id
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--suppliers-id-evaluate-735abdfa7a70469d81025888af58602b
+    uri: /api/v1/suppliers/:id/evaluate
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--spare-parts-ebfff178b01687ee446f543818e18477
+    uri: /api/v1/spare-parts
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--spare-parts-id--e712d8b541cc1a95a08895a654b9cb05
+    uri: /api/v1/spare-parts/:id
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--warehouses-d961a7d6bec59b7588ac080fe8194402
+    uri: /api/v1/warehouses
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--stock-movements-95311e1fa4b1eac9cbf7aa9e7b2dcc83
+    uri: /api/v1/stock-movements
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: maintenance--interventions-id-history-67c54d0ee4ccc84c7f101106cb16a187
+    uri: /api/v1/interventions/:id/history
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "maintenance-service:8080": 1
+  - id: movement--custody-c8a12ee40fecddac82420d33f6c98048
+    uri: /api/v1/custody
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "movement-service:8080": 1
+  - id: movement--custody-id-close-904cd7dd80239f8c9e3928a57894a983
+    uri: /api/v1/custody/:id/close
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "movement-service:8080": 1
+  - id: movement--operations-382c87039a0139632f685876ba814d6a
+    uri: /api/v1/operations
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "movement-service:8080": 1
+  - id: movement--operations-id--3e6765ace605450cd5b59bfc650e2396
+    uri: /api/v1/operations/:id
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "movement-service:8080": 1
+  - id: movement--operations-id-submit-6cf8aa49d609dc26aa992d1017b5366b
+    uri: /api/v1/operations/:id/submit
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "movement-service:8080": 1
+  - id: movement--operations-id-confirm-departure-716a169309e616f617f17a37954c9526
+    uri: /api/v1/operations/:id/confirm-departure
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "movement-service:8080": 1
+  - id: movement--operations-id-confirm-reception-0358b86015a97c62241059b3ba241ff6
+    uri: /api/v1/operations/:id/confirm-reception
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "movement-service:8080": 1
+  - id: movement--operations-id-return-292f18e5a61f1a6ef477bf925ff90e5f
+    uri: /api/v1/operations/:id/return
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "movement-service:8080": 1
+  - id: movement--operations-id-incident-0af2b6ab2ee7522b9b9e8321b198c3f2
+    uri: /api/v1/operations/:id/incident
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "movement-service:8080": 1
+  - id: movement--operations-id-cancel-200a2ac8d99050187c9a689bc611773b
+    uri: /api/v1/operations/:id/cancel
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "movement-service:8080": 1
+  - id: movement--operations-id-history-64128df5cbc2165a5c053d3bd6b0ea8b
+    uri: /api/v1/operations/:id/history
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "movement-service:8080": 1
+  - id: movement--assets-assetid-movements-2f195a4371628732c73ea05f7c9bea9a
+    uri: /api/v1/assets/:assetId/movements
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "movement-service:8080": 1
+  - id: movement--shared-rights-453f50715d9ccee63e90c8b666ba7829
+    uri: /api/v1/shared-rights
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "movement-service:8080": 1
+  - id: movement--shared-rights-id-suspend-608539d9477e9a4fc78ddf44058691ca
+    uri: /api/v1/shared-rights/:id/suspend
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "movement-service:8080": 1
+  - id: movement--shared-rights-id-terminate-3789f1f4970a1fc652a2d35f263f9152
+    uri: /api/v1/shared-rights/:id/terminate
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "movement-service:8080": 1
+  - id: notification--notifications-2eafc5a3730bbca8d4a841c08619ec5e
+    uri: /api/v1/notifications
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "notification-service:8080": 1
+  - id: notification--notifications-unread-count-07f518e62905ce9dc7428b79ae77fd5f
+    uri: /api/v1/notifications/unread-count
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "notification-service:8080": 1
+  - id: notification--notifications-id--e9b7e7f4d4951d4fcb36095bbff7536f
+    uri: /api/v1/notifications/:id
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "notification-service:8080": 1
+  - id: notification--notifications-id-read-42b3cae892167fd41677853f27616f2d
+    uri: /api/v1/notifications/:id/read
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "notification-service:8080": 1
+  - id: notification--notifications-id-acknowledge-fe59fa15e9285c486f188af3f82dd94b
+    uri: /api/v1/notifications/:id/acknowledge
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "notification-service:8080": 1
+  - id: notification--notifications-id-deliveries-89a4a38b4036dddd3df4b2be73996079
+    uri: /api/v1/notifications/:id/deliveries
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "notification-service:8080": 1
+  - id: notification--notification-preferences-4ed7617b62dc4a5df0f7f2919760b941
+    uri: /api/v1/notification-preferences
+    methods: [GET, PUT]
+    upstream:
+      type: roundrobin
+      nodes:
+        "notification-service:8080": 1
+  - id: notification--notification-templates-a4a565b871fb2ad447e0e02dadc6fb09
+    uri: /api/v1/notification-templates
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "notification-service:8080": 1
+  - id: organization--institutions-7e111e603e1b7ed4515009fc12e86317
+    uri: /api/v1/institutions
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "organization-service:8080": 1
+  - id: organization--institutions-institutionid--d63b127562ea2aaf66602ddf8ae9077e
+    uri: /api/v1/institutions/:institutionId
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "organization-service:8080": 1
+  - id: organization--institutions-institutionid-status-6670da21f49a270df66ea8f557cd4dbd
+    uri: /api/v1/institutions/:institutionId/status
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "organization-service:8080": 1
+  - id: organization--institutions-institutionid-unit-types-23a301155e39c910ad60e82f7d7fe976
+    uri: /api/v1/institutions/:institutionId/unit-types
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "organization-service:8080": 1
+  - id: organization--institutions-institutionid-units-bea14cf10e925877b3be541abcdc9b72
+    uri: /api/v1/institutions/:institutionId/units
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "organization-service:8080": 1
+  - id: organization--units-unitid--4ebb116fa3d0ce17e761fd6884159944
+    uri: /api/v1/units/:unitId
+    methods: [GET, PATCH]
+    upstream:
+      type: roundrobin
+      nodes:
+        "organization-service:8080": 1
+  - id: organization--units-unitid-move-d1e55bf506217c21c0e5d7cdb30063c9
+    uri: /api/v1/units/:unitId/move
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "organization-service:8080": 1
+  - id: organization--units-unitid-status-32fd70389d1d994ed8007211fe7bc979
+    uri: /api/v1/units/:unitId/status
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "organization-service:8080": 1
+  - id: organization--units-unitid-positions-8698813029fded38d1809fa5ab8cc110
+    uri: /api/v1/units/:unitId/positions
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "organization-service:8080": 1
+  - id: organization--units-unitid-head-1f639fe874c4839102492342e6d0c681
+    uri: /api/v1/units/:unitId/head
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "organization-service:8080": 1
+  - id: organization--positions-positionid-responsible-cc398413aaf4e5b0778c7b3fbea81adc
+    uri: /api/v1/positions/:positionId/responsible
+    methods: [POST, DELETE]
+    upstream:
+      type: roundrobin
+      nodes:
+        "organization-service:8080": 1
+  - id: organization--institutions-institutionid-histories-cfe2ec14ff5b84cbff89f872bf75f65f
+    uri: /api/v1/institutions/:institutionId/histories
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "organization-service:8080": 1
+  - id: reporting--dashboard-b0c05eb1957bdffd68f6b8a01897af79
+    uri: /api/v1/dashboard
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "reporting-service:8080": 1
+  - id: reporting--assets-db08b6b4ce836b4a2eec3fd9d0f53952
+    uri: /api/v1/assets
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "reporting-service:8080": 1
+  - id: reporting--assets-assetid--e7ce2a98e0eebb09fe8b8c57815af084
+    uri: /api/v1/reporting/assets/:assetId
+    methods: [GET]
+    plugins:
+      - name: proxy-rewrite
+        config:
+          regex_uri: ["^/api/v1/reporting/assets/(.*)$", "/api/v1/assets/$1"]
+    upstream:
+      type: roundrobin
+      nodes:
+        "reporting-service:8080": 1
+  - id: reporting--indicators-9a0615e28c846bc9d89721493e8fe7e7
+    uri: /api/v1/indicators
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "reporting-service:8080": 1
+  - id: reporting--views-5cd2455f4850320f16d7e7fc0d991ee6
+    uri: /api/v1/views
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "reporting-service:8080": 1
+  - id: reporting--views-viewid--3e7ca2369827117aea55590bd2e1229d
+    uri: /api/v1/views/:viewId
+    methods: [DELETE]
+    upstream:
+      type: roundrobin
+      nodes:
+        "reporting-service:8080": 1
+  - id: reporting--reports-templates-a14be16387dcf80973efe1a397dd1704
+    uri: /api/v1/reports/templates
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "reporting-service:8080": 1
+  - id: reporting--reports-templatecode-run-eeec1d473aef3fef9791157753eb4e70
+    uri: /api/v1/reports/:templateCode/run
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "reporting-service:8080": 1
+  - id: reporting--report-runs-8eeb5a2104ea8db1c4d880ee65a7a45a
+    uri: /api/v1/report-runs
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "reporting-service:8080": 1
+  - id: reporting--report-runs-reportrunid--6c3e1a0d44a638ca890a0f1c06dc9e33
+    uri: /api/v1/report-runs/:reportRunId
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "reporting-service:8080": 1
+  - id: reporting--report-runs-reportrunid-export-8c212fc8bb91506873d713fa0a764865
+    uri: /api/v1/report-runs/:reportRunId/export
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "reporting-service:8080": 1
+  - id: workflow--workflows-b912128dde62e5fba5d9d0e3278347d8
+    uri: /api/v1/workflows
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "workflow-service:8080": 1
+  - id: workflow--workflows-workflowid--afc845470019679d2d7d8252c2964336
+    uri: /api/v1/workflows/:workflowId
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "workflow-service:8080": 1
+  - id: workflow--workflow-instances-2d4f2a5f093572c4a7f3d1fbb34e246c
+    uri: /api/v1/workflow-instances
+    methods: [GET, POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "workflow-service:8080": 1
+  - id: workflow--workflow-instances-instanceid--3e4f00b99cd50017a0e34b576379a003
+    uri: /api/v1/workflow-instances/:instanceId
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "workflow-service:8080": 1
+  - id: workflow--workflow-instances-instanceid-cancel-24a4b9e95b45e4b1eb1dcbf5a389a612
+    uri: /api/v1/workflow-instances/:instanceId/cancel
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "workflow-service:8080": 1
+  - id: workflow--workflow-instances-instanceid-tasks-a979902bda98ff230fa39300493ea03c
+    uri: /api/v1/workflow-instances/:instanceId/tasks
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "workflow-service:8080": 1
+  - id: workflow--tasks-taskid--e293c488c233d543e8ebfeb6b384275e
+    uri: /api/v1/tasks/:taskId
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "workflow-service:8080": 1
+  - id: workflow--tasks-taskid-decision-0328a371ca9c67cf9077e8fcd39ec236
+    uri: /api/v1/tasks/:taskId/decision
+    methods: [POST]
+    upstream:
+      type: roundrobin
+      nodes:
+        "workflow-service:8080": 1
+
+# Règle globale : CORS pour le frontend (origines locales de dev).
+global_rules:
+  - id: cors-global
+    plugins:
+      cors:
+        allow_origins: "http://localhost:5173,http://localhost:3000"
+        allow_methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+        allow_headers: "Authorization,Content-Type,Idempotency-Key,X-Correlation-Id"
+        expose_headers: "X-Correlation-Id,Idempotent-Replay"
+        max_age: 3600

@@ -13,6 +13,7 @@ services:
       - "127.0.0.1:${POSTGRES_HOST_PORT}:5432"
     volumes:
       - sigpe_postgres_data:/var/lib/postgresql
+      - ./infrastructure/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -43,8 +44,916 @@ services:
     networks:
       - sigpe_network
 
+
+  # --- SIGPE services (généré) ---
+  rabbitmq-init:
+    image: curlimages/curl:8.10.1
+    container_name: sigpe-rabbitmq-init
+    restart: "no"
+    environment:
+      SIGPE_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      RABBITMQ_ADMIN_USER: ${RABBITMQ_USER}
+      RABBITMQ_ADMIN_PASSWORD: ${RABBITMQ_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+    volumes:
+      - ./infrastructure/rabbitmq/init:/init:ro
+    entrypoint: ["sh", "/init/01-sigpe-rabbitmq.sh"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - sigpe_network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4.6
+    container_name: sigpe-keycloak
+    restart: unless-stopped
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME: http://localhost:8081
+      KC_HEALTH_ENABLED: "true"
+      SIGPE_ADMIN_PASSWORD: ${SIGPE_ADMIN_PASSWORD}
+      SIGPE_KC_SECRET_IDENTITY: ${SIGPE_KC_SECRET_IDENTITY}
+      SIGPE_KC_SECRET_ORGANIZATION: ${SIGPE_KC_SECRET_ORGANIZATION}
+      SIGPE_KC_SECRET_ASSET: ${SIGPE_KC_SECRET_ASSET}
+      SIGPE_KC_SECRET_INVENTORY: ${SIGPE_KC_SECRET_INVENTORY}
+      SIGPE_KC_SECRET_MOVEMENT: ${SIGPE_KC_SECRET_MOVEMENT}
+      SIGPE_KC_SECRET_WORKFLOW: ${SIGPE_KC_SECRET_WORKFLOW}
+      SIGPE_KC_SECRET_ACQUISITION: ${SIGPE_KC_SECRET_ACQUISITION}
+      SIGPE_KC_SECRET_MAINTENANCE: ${SIGPE_KC_SECRET_MAINTENANCE}
+      SIGPE_KC_SECRET_AUDIT: ${SIGPE_KC_SECRET_AUDIT}
+      SIGPE_KC_SECRET_DOCUMENT: ${SIGPE_KC_SECRET_DOCUMENT}
+      SIGPE_KC_SECRET_NOTIFICATION: ${SIGPE_KC_SECRET_NOTIFICATION}
+      SIGPE_KC_SECRET_FINANCE: ${SIGPE_KC_SECRET_FINANCE}
+      SIGPE_KC_SECRET_REPORTING: ${SIGPE_KC_SECRET_REPORTING}
+    volumes:
+      - ./infrastructure/keycloak:/opt/keycloak/data/import:ro
+    ports:
+      - "127.0.0.1:8081:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /realms/sigpe/.well-known/openid-configuration HTTP/1.0\r\n\r\n' >&3 && grep -q 'issuer' <&3"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    networks:
+      - sigpe_network
+
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    container_name: sigpe-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - sigpe_minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - sigpe_network
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+    container_name: sigpe-minio-init
+    restart: "no"
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD} &&
+      mc mb --ignore-existing local/sigpe-documents &&
+      mc anonymous set none local/sigpe-documents
+      "
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    networks:
+      - sigpe_network
+
+  apisix:
+    image: apache/apisix:3.14.1-debian
+    container_name: sigpe-apisix
+    restart: unless-stopped
+    volumes:
+      - ./gateway/apisix/config.yaml:/usr/local/apisix/conf/config.yaml:ro
+      - ./gateway/apisix/apisix.yaml:/usr/local/apisix/conf/apisix.yaml:ro
+    ports:
+      - "127.0.0.1:9080:9080"
+      - "127.0.0.1:9443:9443"
+    depends_on:
+      - identity-service
+    networks:
+      - sigpe_network
+
+  identity-service:
+    build:
+      context: ./services/identity-service
+    image: sigpe/identity-service:dev
+    container_name: sigpe-identity
+    restart: unless-stopped
+    env_file:
+      - ./services/identity-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_IDENTITY}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit((int)!@fsockopen('127.0.0.1', 8080));\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - sigpe_network
+
+  identity-worker:
+    image: sigpe/identity-service:dev
+    container_name: sigpe-identity-worker
+    restart: unless-stopped
+    env_file:
+      - ./services/identity-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_IDENTITY}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan queue:work database --sleep=3 --tries=3 &  while true; do php artisan sigpe:outbox:publish || true; sleep 5; done"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    networks:
+      - sigpe_network
+  organization-service:
+    build:
+      context: ./services/organization-service
+    image: sigpe/organization-service:dev
+    container_name: sigpe-organization
+    restart: unless-stopped
+    env_file:
+      - ./services/organization-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_ORGANIZATION}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit((int)!@fsockopen('127.0.0.1', 8080));\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - sigpe_network
+
+  organization-worker:
+    image: sigpe/organization-service:dev
+    container_name: sigpe-organization-worker
+    restart: unless-stopped
+    env_file:
+      - ./services/organization-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_ORGANIZATION}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan queue:work database --sleep=3 --tries=3 &  while true; do php artisan sigpe:outbox:publish || true; sleep 5; done"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    networks:
+      - sigpe_network
+  asset-service:
+    build:
+      context: ./services/asset-service
+    image: sigpe/asset-service:dev
+    container_name: sigpe-asset
+    restart: unless-stopped
+    env_file:
+      - ./services/asset-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_ASSET}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit((int)!@fsockopen('127.0.0.1', 8080));\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - sigpe_network
+
+  asset-worker:
+    image: sigpe/asset-service:dev
+    container_name: sigpe-asset-worker
+    restart: unless-stopped
+    env_file:
+      - ./services/asset-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_ASSET}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan queue:work database --sleep=3 --tries=3 &  while true; do php artisan sigpe:outbox:publish || true; sleep 5; done"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    networks:
+      - sigpe_network
+  inventory-service:
+    build:
+      context: ./services/inventory-service
+    image: sigpe/inventory-service:dev
+    container_name: sigpe-inventory
+    restart: unless-stopped
+    env_file:
+      - ./services/inventory-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_INVENTORY}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit((int)!@fsockopen('127.0.0.1', 8080));\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - sigpe_network
+
+  inventory-worker:
+    image: sigpe/inventory-service:dev
+    container_name: sigpe-inventory-worker
+    restart: unless-stopped
+    env_file:
+      - ./services/inventory-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_INVENTORY}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan queue:work database --sleep=3 --tries=3 &  while true; do php artisan sigpe:outbox:publish || true; sleep 5; done"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    networks:
+      - sigpe_network
+  movement-service:
+    build:
+      context: ./services/movement-service
+    image: sigpe/movement-service:dev
+    container_name: sigpe-movement
+    restart: unless-stopped
+    env_file:
+      - ./services/movement-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_MOVEMENT}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit((int)!@fsockopen('127.0.0.1', 8080));\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - sigpe_network
+
+  movement-worker:
+    image: sigpe/movement-service:dev
+    container_name: sigpe-movement-worker
+    restart: unless-stopped
+    env_file:
+      - ./services/movement-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_MOVEMENT}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan queue:work database --sleep=3 --tries=3 & php artisan sigpe:events:consume & while true; do php artisan sigpe:outbox:publish || true; sleep 5; done"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    networks:
+      - sigpe_network
+  workflow-service:
+    build:
+      context: ./services/workflow-service
+    image: sigpe/workflow-service:dev
+    container_name: sigpe-workflow
+    restart: unless-stopped
+    env_file:
+      - ./services/workflow-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_WORKFLOW}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit((int)!@fsockopen('127.0.0.1', 8080));\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - sigpe_network
+
+  workflow-worker:
+    image: sigpe/workflow-service:dev
+    container_name: sigpe-workflow-worker
+    restart: unless-stopped
+    env_file:
+      - ./services/workflow-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_WORKFLOW}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan queue:work database --sleep=3 --tries=3 &  while true; do php artisan sigpe:outbox:publish || true; sleep 5; done"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    networks:
+      - sigpe_network
+  acquisition-service:
+    build:
+      context: ./services/acquisition-service
+    image: sigpe/acquisition-service:dev
+    container_name: sigpe-acquisition
+    restart: unless-stopped
+    env_file:
+      - ./services/acquisition-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_ACQUISITION}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit((int)!@fsockopen('127.0.0.1', 8080));\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - sigpe_network
+
+  acquisition-worker:
+    image: sigpe/acquisition-service:dev
+    container_name: sigpe-acquisition-worker
+    restart: unless-stopped
+    env_file:
+      - ./services/acquisition-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_ACQUISITION}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan queue:work database --sleep=3 --tries=3 & php artisan sigpe:events:consume & while true; do php artisan sigpe:outbox:publish || true; sleep 5; done"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    networks:
+      - sigpe_network
+  maintenance-service:
+    build:
+      context: ./services/maintenance-service
+    image: sigpe/maintenance-service:dev
+    container_name: sigpe-maintenance
+    restart: unless-stopped
+    env_file:
+      - ./services/maintenance-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_MAINTENANCE}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit((int)!@fsockopen('127.0.0.1', 8080));\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - sigpe_network
+
+  maintenance-worker:
+    image: sigpe/maintenance-service:dev
+    container_name: sigpe-maintenance-worker
+    restart: unless-stopped
+    env_file:
+      - ./services/maintenance-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_MAINTENANCE}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan queue:work database --sleep=3 --tries=3 & php artisan sigpe:events:consume & while true; do php artisan sigpe:outbox:publish || true; sleep 5; done"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    networks:
+      - sigpe_network
+  audit-service:
+    build:
+      context: ./services/audit-service
+    image: sigpe/audit-service:dev
+    container_name: sigpe-audit
+    restart: unless-stopped
+    env_file:
+      - ./services/audit-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_AUDIT}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit((int)!@fsockopen('127.0.0.1', 8080));\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - sigpe_network
+
+  audit-worker:
+    image: sigpe/audit-service:dev
+    container_name: sigpe-audit-worker
+    restart: unless-stopped
+    env_file:
+      - ./services/audit-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_AUDIT}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan queue:work database --sleep=3 --tries=3 & php artisan sigpe:events:consume & while true; do php artisan sigpe:outbox:publish || true; sleep 5; done"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    networks:
+      - sigpe_network
+  document-service:
+    build:
+      context: ./services/document-service
+    image: sigpe/document-service:dev
+    container_name: sigpe-document
+    restart: unless-stopped
+    env_file:
+      - ./services/document-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_DOCUMENT}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit((int)!@fsockopen('127.0.0.1', 8080));\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - sigpe_network
+
+  document-worker:
+    image: sigpe/document-service:dev
+    container_name: sigpe-document-worker
+    restart: unless-stopped
+    env_file:
+      - ./services/document-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_DOCUMENT}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan queue:work database --sleep=3 --tries=3 &  while true; do php artisan sigpe:outbox:publish || true; sleep 5; done"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    networks:
+      - sigpe_network
+  notification-service:
+    build:
+      context: ./services/notification-service
+    image: sigpe/notification-service:dev
+    container_name: sigpe-notification
+    restart: unless-stopped
+    env_file:
+      - ./services/notification-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_NOTIFICATION}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit((int)!@fsockopen('127.0.0.1', 8080));\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - sigpe_network
+
+  notification-worker:
+    image: sigpe/notification-service:dev
+    container_name: sigpe-notification-worker
+    restart: unless-stopped
+    env_file:
+      - ./services/notification-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_NOTIFICATION}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan queue:work database --sleep=3 --tries=3 & php artisan sigpe:events:consume & while true; do php artisan sigpe:outbox:publish || true; sleep 5; done"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    networks:
+      - sigpe_network
+  finance-service:
+    build:
+      context: ./services/finance-service
+    image: sigpe/finance-service:dev
+    container_name: sigpe-finance
+    restart: unless-stopped
+    env_file:
+      - ./services/finance-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_FINANCE}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit((int)!@fsockopen('127.0.0.1', 8080));\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - sigpe_network
+
+  finance-worker:
+    image: sigpe/finance-service:dev
+    container_name: sigpe-finance-worker
+    restart: unless-stopped
+    env_file:
+      - ./services/finance-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_FINANCE}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan queue:work database --sleep=3 --tries=3 & php artisan sigpe:events:consume & while true; do php artisan sigpe:outbox:publish || true; sleep 5; done"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    networks:
+      - sigpe_network
+  reporting-service:
+    build:
+      context: ./services/reporting-service
+    image: sigpe/reporting-service:dev
+    container_name: sigpe-reporting
+    restart: unless-stopped
+    env_file:
+      - ./services/reporting-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_REPORTING}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit((int)!@fsockopen('127.0.0.1', 8080));\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - sigpe_network
+
+  reporting-worker:
+    image: sigpe/reporting-service:dev
+    container_name: sigpe-reporting-worker
+    restart: unless-stopped
+    env_file:
+      - ./services/reporting-service/.env
+    environment:
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_ISSUER: http://localhost:8081/realms/sigpe
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sigpe/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/sigpe/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_SECRET: ${SIGPE_KC_SECRET_REPORTING}
+      APP_ENV: local
+    command: ["sh", "-c", "php artisan queue:work database --sleep=3 --tries=3 & php artisan sigpe:events:consume & while true; do php artisan sigpe:outbox:publish || true; sleep 5; done"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    networks:
+      - sigpe_network
 volumes:
   sigpe_postgres_data:
+  sigpe_minio_data:
   sigpe_rabbitmq_data:
 
 networks:
