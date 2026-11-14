@@ -51,7 +51,7 @@
   }
 
   /* ---------- Modal ---------- */
-  function modal({ title, body, footer, size = '' }) {
+  function modal({ title, body, footer, size = '', onOpen }) {
     return new Promise((resolve) => {
       const backdrop = document.createElement('div');
       backdrop.className = 'modal-backdrop';
@@ -71,6 +71,7 @@
       backdrop.addEventListener('mousedown', (e) => { if (e.target === backdrop) close(); });
       const confirmBtn = backdrop.querySelector('[data-confirm]');
       if (confirmBtn) confirmBtn.onclick = () => { const v = confirmBtn.dataset.value; backdrop.remove(); resolve(v); };
+      if (onOpen) onOpen(backdrop);
     });
   }
   const confirmDialog = (title, message, { confirmLabel = 'Confirmer', danger = false } = {}) =>

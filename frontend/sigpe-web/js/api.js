@@ -47,6 +47,28 @@
     return data;
   }
 
+  /** Upload multipart/form-data (documents). `fields` = champs texte, `file` = {file, fieldName?}. */
+  async function upload(path, { fields = {}, file, fieldName = 'file' } = {}) {
+    const url = new URL(base + path);
+    const headers = { Accept: 'application/json' };
+    const token = await window.SigpeAuth.getAccessToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    headers['Idempotency-Key'] = uuid();
+
+    const form = new FormData();
+    Object.entries(fields).forEach(([k, v]) => v != null && form.append(k, v));
+    if (file) form.append(fieldName, file);
+
+    const res = await fetch(url, { method: 'POST', headers, body: form });
+    const text = await res.text();
+    let data = null;
+    if (text) { try { data = JSON.parse(text); } catch { data = { raw: text }; } }
+    if (!res.ok) {
+      throw new ApiError(res.status, data?.type?.includes('problem') ? data : { title: data?.message || res.statusText, status: res.status });
+    }
+    return data;
+  }
+
   window.SigpeApi = {
     get: (p, q) => request(p, { query: q }),
     post: (p, body, opts = {}) => request(p, { method: 'POST', body, idempotent: true, ...opts }),
@@ -54,5 +76,6 @@
     put: (p, body, opts = {}) => request(p, { method: 'PUT', body, idempotent: true, ...opts }),
     del: (p, opts = {}) => request(p, { method: 'DELETE', ...opts }),
     ApiError,
+    upload,
   };
 })();
