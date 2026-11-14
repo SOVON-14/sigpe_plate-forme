@@ -1,0 +1,87 @@
+asyncapi: 3.0.0
+info:
+  title: Document Service — Contrat événementiel
+  version: 1.0.0-draft
+  description: |
+    CONTRAT Document Service — événements produits vers l'exchange
+    topic sigpe.events.v1 (AMQP 0-9-1).
+    Sources : CDC v1.0 §4.9, catalogue technique v1.1 §8.3,
+    ADR-006/ADR-007, enveloppe
+    contracts/json-schemas/enveloppe-evenementiel.schema.json.
+    Règles : messages persistants, publisher confirms, routing keys
+    domaine.action.vN, livraison at-least-once, consommateurs idempotents.
+    document.access_logged.v1 alimente Audit (journalisation des
+    consultations) ; document.validated.v1 peut alimenter Workflow
+    pour les circuits de validation documentaire.
+    Aucun consommateur entrant requis en v1 : les references
+    asset_id/institution_id sont des UUID sans FK.
+    Statut : BROUILLON EN ATTENTE DE VALIDATION MOA.
+defaultContentType: application/json
+servers:
+  rabbitmq:
+    host: rabbitmq://rabbitmq:5672
+    protocol: amqp
+    description: Broker RabbitMQ (AMQP 0-9-1)
+channels:
+  documentCreated:
+    address: sigpe.events.v1/document.created.v1
+    title: document.created.v1
+    messages:
+      documentCreatedV1:
+        $ref: '#/components/messages/documentCreatedV1'
+  versionAdded:
+    address: sigpe.events.v1/document.version_added.v1
+    title: document.version_added.v1
+    messages:
+      versionAddedV1:
+        $ref: '#/components/messages/versionAddedV1'
+  documentValidated:
+    address: sigpe.events.v1/document.validated.v1
+    title: document.validated.v1
+    messages:
+      documentValidatedV1:
+        $ref: '#/components/messages/documentValidatedV1'
+  accessLogged:
+    address: sigpe.events.v1/document.access_logged.v1
+    title: document.access_logged.v1
+    messages:
+      accessLoggedV1:
+        $ref: '#/components/messages/accessLoggedV1'
+  lifecycleChanged:
+    address: sigpe.events.v1/document.lifecycle_changed.v1
+    title: document.lifecycle_changed.v1
+    messages:
+      lifecycleChangedV1:
+        $ref: '#/components/messages/lifecycleChangedV1'
+components:
+  messages:
+    documentCreatedV1:
+      name: DocumentCreatedV1
+      title: document.created.v1
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/document-created.v1.schema.json'
+    versionAddedV1:
+      name: VersionAddedV1
+      title: document.version_added.v1
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/document-version-added.v1.schema.json'
+    documentValidatedV1:
+      name: DocumentValidatedV1
+      title: document.validated.v1
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/document-validated.v1.schema.json'
+    accessLoggedV1:
+      name: AccessLoggedV1
+      title: document.access_logged.v1
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/document-access-logged.v1.schema.json'
+    lifecycleChangedV1:
+      name: LifecycleChangedV1
+      title: document.lifecycle_changed.v1
+      contentType: application/json
+      payload:
+        $ref: '../json-schemas/document-lifecycle-changed.v1.schema.json'

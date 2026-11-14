@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sigpe.local/schemas/document-created.v1.schema.json",
+  "title": "document.created.v1 — payload data",
+  "type": "object",
+  "required": ["document_id", "reference", "title", "category_id", "confidentiality", "created_at"],
+  "properties": {
+    "document_id": { "type": "string", "format": "uuid" },
+    "reference": { "type": "string" },
+    "title": { "type": "string" },
+    "category_id": { "type": "string", "format": "uuid" },
+    "institution_id": { "type": ["string", "null"], "format": "uuid" },
+    "unit_id": { "type": ["string", "null"], "format": "uuid" },
+    "asset_id": { "type": ["string", "null"], "format": "uuid" },
+    "confidentiality": { "type": "string", "enum": ["public_administratif", "interne", "confidentiel", "hautement_sensible"] },
+    "has_file": { "type": "boolean" },
+    "uploaded_by": { "type": ["string", "null"], "format": "uuid" },
+    "created_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

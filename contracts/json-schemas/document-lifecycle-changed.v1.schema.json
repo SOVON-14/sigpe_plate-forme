@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sigpe.local/schemas/document-lifecycle-changed.v1.schema.json",
+  "title": "document.lifecycle_changed.v1 — payload data",
+  "type": "object",
+  "required": ["document_id", "from_stage", "to_stage", "changed_by", "changed_at"],
+  "properties": {
+    "document_id": { "type": "string", "format": "uuid" },
+    "from_stage": { "type": "string", "enum": ["active", "archives_intermediaires", "archives_definitives", "eliminated"] },
+    "to_stage": { "type": "string", "enum": ["archives_intermediaires", "archives_definitives", "eliminated"] },
+    "motif": { "type": "string" },
+    "changed_by": { "type": "string", "format": "uuid" },
+    "changed_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

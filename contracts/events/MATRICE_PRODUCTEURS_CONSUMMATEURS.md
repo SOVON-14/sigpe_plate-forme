@@ -97,3 +97,8 @@ Issus du catalogue §7 (scénarios) — **noms indicatifs, à formaliser** :
 2. Tout nouvel événement exige : producteur, liste des consommateurs, déclencheur, schéma, test de contrat.
 3. Les événements marqués `[À CONFIRMER]` dans les sources ne sont pas implémentables.
 | audit.integrity_check_completed | audit.integrity_check_completed.v1 | audit-service | reporting-service, notification-service | Verification de chaine de hachage du journal | CONTRACTÉ (draft) |
+| document.created | document.created.v1 | document-service | audit-service, reporting-service | Document depose | CONTRACTÉ (draft) |
+| document.version_added | document.version_added.v1 | document-service | audit-service, reporting-service | Nouvelle version ajoutee (jamais d'ecrasement) | CONTRACTÉ (draft) |
+| document.validated | document.validated.v1 | document-service | audit-service, workflow-service, reporting-service | Validation interne electronique | CONTRACTÉ (draft) |
+| document.access_logged | document.access_logged.v1 | document-service | audit-service | Consultation/telechargement journalise | CONTRACTÉ (draft) — critique |
+| document.lifecycle_changed | document.lifecycle_changed.v1 | document-service | audit-service, reporting-service | Transition archivistique ou elimination autorisee | CONTRACTÉ (draft) |

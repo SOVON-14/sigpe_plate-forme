@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sigpe.local/schemas/document-access-logged.v1.schema.json",
+  "title": "document.access_logged.v1 — payload data",
+  "type": "object",
+  "required": ["document_id", "action", "actor_id", "logged_at"],
+  "properties": {
+    "document_id": { "type": "string", "format": "uuid" },
+    "version_id": { "type": ["string", "null"], "format": "uuid" },
+    "action": { "type": "string", "enum": ["view", "download", "validate", "access_request", "decision"] },
+    "actor_id": { "type": ["string", "null"], "format": "uuid" },
+    "confidentiality": { "type": "string" },
+    "via_grant_id": { "type": ["string", "null"], "format": "uuid" },
+    "logged_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

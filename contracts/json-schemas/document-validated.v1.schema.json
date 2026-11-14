@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sigpe.local/schemas/document-validated.v1.schema.json",
+  "title": "document.validated.v1 — payload data",
+  "type": "object",
+  "required": ["document_id", "version_id", "validated_by", "validated_at"],
+  "properties": {
+    "document_id": { "type": "string", "format": "uuid" },
+    "version_id": { "type": "string", "format": "uuid" },
+    "validated_by": { "type": "string", "format": "uuid" },
+    "comment": { "type": ["string", "null"] },
+    "validated_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}
