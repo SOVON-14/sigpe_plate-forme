@@ -105,3 +105,9 @@ Issus du catalogue §7 (scénarios) — **noms indicatifs, à formaliser** :
 | notification.created | notification.created.v1 | notification-service | audit-service, reporting-service | Notification creee (tous canaux) | CONTRACTÉ (draft) |
 | notification.acknowledged | notification.acknowledged.v1 | notification-service | audit-service, reporting-service | Accuse de prise en compte critique | CONTRACTÉ (draft) — critique |
 | notification.delivery_failed | notification.delivery_failed.v1 | notification-service | audit-service, reporting-service | Echec definitif apres tentatives | CONTRACTÉ (draft) |
+| finance.valuation_recorded | finance.valuation_recorded.v1 | finance-service | reporting-service, audit-service, notification-service | Valorisation de bien enregistree (connue ou indeterminee) | CONTRACTÉ (draft) |
+| finance.depreciation_recorded | finance.depreciation_recorded.v1 | finance-service | reporting-service, audit-service | Amortissement calcule et enregistre | CONTRACTÉ (draft) |
+| finance.cost_recorded | finance.cost_recorded.v1 | finance-service | reporting-service, audit-service, notification-service | Depense/cout associe a un bien (repartition biens partages incluse) | CONTRACTÉ (draft) |
+| finance.disposal_approved | finance.disposal_approved.v1 | finance-service | asset-service, reporting-service, audit-service, notification-service | Sortie definitive approuvee par l'autorite competente | CONTRACTÉ (draft) — critique |
+| finance.disposal_executed | finance.disposal_executed.v1 | finance-service | asset-service, reporting-service, audit-service, notification-service | Sortie definitive executee | CONTRACTÉ (draft) — critique |
+| finance.disposal_closed | finance.disposal_closed.v1 | finance-service | asset-service, reporting-service, audit-service | Dossier de sortie cloture (preuve conservee par Document) | CONTRACTÉ (draft) |

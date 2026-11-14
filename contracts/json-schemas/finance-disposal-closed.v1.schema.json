@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sigpe.local/schemas/finance-disposal-closed.v1.schema.json",
+  "title": "finance.disposal_closed.v1",
+  "type": "object",
+  "required": ["disposal_id", "asset_id", "disposal_type", "closed_at", "closed_by"],
+  "properties": {
+    "disposal_id": { "type": "string", "format": "uuid" },
+    "asset_id": { "type": "string", "format": "uuid" },
+    "institution_id": { "type": ["string", "null"], "format": "uuid" },
+    "disposal_type": { "type": "string" },
+    "final_value": { "type": ["number", "null"] },
+    "closed_by": { "type": "string", "format": "uuid" },
+    "closed_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": true
+}

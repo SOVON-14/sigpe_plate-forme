@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sigpe.local/schemas/finance-valuation-recorded.v1.schema.json",
+  "title": "finance.valuation_recorded.v1",
+  "type": "object",
+  "required": ["valuation_id", "asset_id", "valuation_type", "valuation_date", "is_determinate", "recorded_at"],
+  "properties": {
+    "valuation_id": { "type": "string", "format": "uuid" },
+    "asset_id": { "type": "string", "format": "uuid" },
+    "institution_id": { "type": ["string", "null"], "format": "uuid" },
+    "valuation_type": { "type": "string", "enum": ["acquisition", "current", "net_book", "replacement"] },
+    "valuation_date": { "type": "string", "format": "date" },
+    "amount": { "type": ["number", "null"], "minimum": 0 },
+    "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+    "is_determinate": { "type": "boolean" },
+    "depreciation_method": { "type": ["string", "null"] },
+    "recorded_by": { "type": "string", "format": "uuid" },
+    "recorded_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": true
+}

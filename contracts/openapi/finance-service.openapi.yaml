@@ -1,0 +1,771 @@
+openapi: 3.1.0
+info:
+  title: Finance Service API
+  version: 1.0.0-draft
+  description: >-
+    Valorisation des biens (acquisition, valeur actuelle, valeur nette
+    comptable, valeur de remplacement), amortissements selon le cadre
+    national et parametres autorises, suivi des depenses et couts
+    associes aux biens (y compris biens partages), sorties definitives
+    par procedure selon nature et valeur (reforme, vente, destruction,
+    perte, vol, donation). Perte ou vol : maintien au registre pendant
+    l'investigation, pas de sortie automatique. Sortie definitive
+    uniquement apres decision de l'autorite competente (CDC §4.11,
+    catalogue §3.1, §7.2).
+  contact:
+    name: SIGPE Platform
+  license:
+    name: Proprietaire — usage restreint
+servers:
+  - url: /api/v1
+    description: API Gateway (Apache APISIX)
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Sonde de sante (sans authentification)
+      security: []
+      responses:
+        '200':
+          description: Service operationnel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  service: { type: string, example: finance-service }
+                  version: { type: string, example: 1.0.0-draft }
+  /asset-valuations:
+    get:
+      tags: [valuations]
+      operationId: listAssetValuations
+      summary: Liste des valorisations (filtres asset_id, institution_id, type)
+      security:
+        - bearerAuth: []
+      parameters:
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PerPage' }
+        - name: asset_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: institution_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: valuation_type
+          in: query
+          schema: { type: string, enum: [acquisition, current, net_book, replacement] }
+      responses:
+        '200': { $ref: '#/components/responses/PaginatedValuations' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [valuations]
+      operationId: createAssetValuation
+      summary: Enregistre une valorisation (valeur connue ou indeterminee)
+      description: >-
+        La reception d'un bien peut enregistrer une valeur connnue ou
+        son caractere indetermine. Chaque valorisation est historisee,
+        jamais ecrasee.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssetValuationInput' }
+      responses:
+        '201': { $ref: '#/components/responses/ValuationCreated' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /asset-valuations/{valuationId}:
+    get:
+      tags: [valuations]
+      operationId: getAssetValuation
+      summary: Detail d'une valorisation
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ValuationId'
+      responses:
+        '200': { $ref: '#/components/responses/ValuationDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /assets/{assetId}/valuation:
+    get:
+      tags: [valuations]
+      operationId: getAssetValuationView
+      summary: Vue valorisation courante d'un bien (derniere valorisation par type + VNC calculee)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+      responses:
+        '200': { $ref: '#/components/responses/AssetValuationView' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /assets/{assetId}/depreciation-entries:
+    get:
+      tags: [depreciation]
+      operationId: listDepreciationEntries
+      summary: Historique des amortissements d'un bien
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PerPage' }
+      responses:
+        '200': { $ref: '#/components/responses/PaginatedDepreciationEntries' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [depreciation]
+      operationId: recordDepreciationEntry
+      summary: Enregistre une dotation aux amortissements (periode + montant ou taux)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DepreciationEntryInput' }
+      responses:
+        '201': { $ref: '#/components/responses/DepreciationEntryCreated' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /asset-costs:
+    get:
+      tags: [costs]
+      operationId: listAssetCosts
+      summary: Liste des depenses et couts (filtres asset_id, institution_id, source)
+      security:
+        - bearerAuth: []
+      parameters:
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PerPage' }
+        - name: asset_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: institution_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: source_type
+          in: query
+          schema: { type: string, enum: [acquisition, maintenance, movement, manual, other] }
+      responses:
+        '200': { $ref: '#/components/responses/PaginatedAssetCosts' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [costs]
+      operationId: createAssetCost
+      summary: Enregistre manuellement un cout associe a un bien
+      description: >-
+        Les couts issus d'evenements (intervention de maintenance,
+        acquisition) sont enregistres automatiquement par les
+        consommateurs ; cet endpoint couvre les saisies manuelles
+        et les repartitions de couts de biens partages.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssetCostInput' }
+      responses:
+        '201': { $ref: '#/components/responses/AssetCostCreated' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /asset-costs/{costId}:
+    get:
+      tags: [costs]
+      operationId: getAssetCost
+      summary: Detail d'un cout
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: costId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { $ref: '#/components/responses/AssetCostDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /assets/{assetId}/costs:
+    get:
+      tags: [costs]
+      operationId: listAssetCostsForAsset
+      summary: Couts cumules d'un bien (total par devise et categorie)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AssetId'
+      responses:
+        '200': { $ref: '#/components/responses/AssetCostSummary' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /disposals:
+    get:
+      tags: [disposals]
+      operationId: listDisposals
+      summary: Liste des sorties definitives (filtres asset_id, institution_id, status, type)
+      security:
+        - bearerAuth: []
+      parameters:
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PerPage' }
+        - name: asset_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: institution_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { type: string, enum: [draft, pending_validation, under_investigation, approved, executed, closed, rejected, cancelled] }
+        - name: disposal_type
+          in: query
+          schema: { type: string, enum: [reform, sale, destruction, loss, theft, donation, other] }
+      responses:
+        '200': { $ref: '#/components/responses/PaginatedDisposals' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [disposals]
+      operationId: createDisposal
+      summary: Cree un dossier de sortie definitive
+      description: >-
+        Motifs : reforme, vente, destruction, perte, vol, donation/cession
+        ou autre motif justifie. Pour perte/vol, le dossier passe en
+        investigation : le bien reste au registre, aucune sortie
+        automatique.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DisposalInput' }
+      responses:
+        '201': { $ref: '#/components/responses/DisposalCreated' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /disposals/{disposalId}:
+    get:
+      tags: [disposals]
+      operationId: getDisposal
+      summary: Detail d'un dossier de sortie (valeur, competence requise, historique)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DisposalId'
+      responses:
+        '200': { $ref: '#/components/responses/DisposalDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /disposals/{disposalId}/submit:
+    post:
+      tags: [disposals]
+      operationId: submitDisposal
+      summary: Soumet le dossier au circuit de validation Workflow
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DisposalId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workflow_instance_id: { type: string, format: uuid }
+      responses:
+        '200': { $ref: '#/components/responses/DisposalDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /disposals/{disposalId}/execute:
+    post:
+      tags: [disposals]
+      operationId: executeDisposal
+      summary: Execute la sortie apres decision competente (approved requis)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DisposalId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200': { $ref: '#/components/responses/DisposalDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /disposals/{disposalId}/close:
+    post:
+      tags: [disposals]
+      operationId: closeDisposal
+      summary: Cloture le dossier execute (preuve de sortie conservee par Document)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DisposalId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200': { $ref: '#/components/responses/DisposalDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /disposals/{disposalId}/resolve-investigation:
+    post:
+      tags: [disposals]
+      operationId: resolveInvestigation
+      summary: Resout une investigation perte/vol (retrouve -> cloture registre ; confirme -> retour validation)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DisposalId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [resolution]
+              properties:
+                resolution: { type: string, enum: [asset_found, loss_confirmed, theft_confirmed] }
+                comment: { type: string, maxLength: 2000 }
+      responses:
+        '200': { $ref: '#/components/responses/DisposalDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /disposals/{disposalId}/cancel:
+    post:
+      tags: [disposals]
+      operationId: cancelDisposal
+      summary: Annule un dossier non execute
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DisposalId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string, maxLength: 2000 }
+      responses:
+        '200': { $ref: '#/components/responses/DisposalDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /disposals/{disposalId}/history:
+    get:
+      tags: [disposals]
+      operationId: getDisposalHistory
+      summary: Historique complet du dossier (toutes transitions, y compris annulations)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DisposalId'
+      responses:
+        '200': { $ref: '#/components/responses/DisposalHistory' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton OIDC Keycloak (claim permissions, institution_id)
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PerPage:
+      name: per_page
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, minLength: 8, maxLength: 128 }
+    AssetId:
+      name: assetId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ValuationId:
+      name: valuationId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    DisposalId:
+      name: disposalId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  schemas:
+    AssetValuationInput:
+      type: object
+      required: [asset_id, valuation_type, valuation_date]
+      properties:
+        asset_id: { type: string, format: uuid }
+        valuation_type: { type: string, enum: [acquisition, current, net_book, replacement] }
+        valuation_date: { type: string, format: date }
+        amount:
+          type: [number, "null"]
+          minimum: 0
+          description: Valeur ; null = caractere indetermine
+        currency: { type: string, minLength: 3, maxLength: 3, default: XOF }
+        depreciation_method: { type: [string, "null"], enum: [linear, declining_balance, none, null] }
+        depreciation_rate_annual: { type: [number, "null"], minimum: 0, maximum: 100 }
+        useful_life_months: { type: [integer, "null"], minimum: 1 }
+        notes: { type: [string, "null"], maxLength: 2000 }
+    DepreciationEntryInput:
+      type: object
+      required: [period_start, period_end]
+      properties:
+        period_start: { type: string, format: date }
+        period_end: { type: string, format: date }
+        amount:
+          type: number
+          minimum: 0
+          description: Montant de la dotation ; si absent, calcule selon la methode enregistree
+        method: { type: [string, "null"], enum: [linear, declining_balance, null] }
+        notes: { type: [string, "null"], maxLength: 2000 }
+    AssetCostInput:
+      type: object
+      required: [asset_id, category, amount, incurred_at]
+      properties:
+        asset_id: { type: string, format: uuid }
+        category: { type: string, enum: [acquisition_cost, maintenance_cost, repair, transport, insurance, shared_cost_share, other] }
+        source_type: { type: string, enum: [acquisition, maintenance, movement, manual, other], default: manual }
+        source_id: { type: [string, "null"], format: uuid }
+        amount: { type: number, minimum: 0 }
+        currency: { type: string, minLength: 3, maxLength: 3, default: XOF }
+        incurred_at: { type: string, format: date }
+        beneficiary_account_id:
+          type: [string, "null"]
+          format: uuid
+          description: Partage de cout pour un bien partage (beneficiaire)
+        description: { type: string, maxLength: 2000 }
+    DisposalInput:
+      type: object
+      required: [asset_id, disposal_type, reason]
+      properties:
+        asset_id: { type: string, format: uuid }
+        disposal_type: { type: string, enum: [reform, sale, destruction, loss, theft, donation, other] }
+        reason: { type: string, minLength: 10, maxLength: 4000 }
+        estimated_value:
+          type: [number, "null"]
+          minimum: 0
+          description: Valeur estimee ; null = indeterminee
+        currency: { type: string, minLength: 3, maxLength: 3, default: XOF }
+        incident_reported_at:
+          type: [string, "null"]
+          format: date-time
+          description: Date de declaration (obligatoire pour perte/vol)
+    AssetValuation:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        asset_id: { type: string, format: uuid }
+        institution_id: { type: [string, "null"], format: uuid }
+        valuation_type: { type: string, enum: [acquisition, current, net_book, replacement] }
+        valuation_date: { type: string, format: date }
+        amount: { type: [number, "null"] }
+        currency: { type: string }
+        is_determinate: { type: boolean }
+        depreciation_method: { type: [string, "null"] }
+        depreciation_rate_annual: { type: [number, "null"] }
+        useful_life_months: { type: [integer, "null"] }
+        notes: { type: [string, "null"] }
+        recorded_by: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }
+    AssetCost:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        asset_id: { type: string, format: uuid }
+        institution_id: { type: [string, "null"], format: uuid }
+        category: { type: string }
+        source_type: { type: string }
+        source_id: { type: [string, "null"], format: uuid }
+        amount: { type: number }
+        currency: { type: string }
+        incurred_at: { type: string, format: date }
+        beneficiary_account_id: { type: [string, "null"], format: uuid }
+        description: { type: string }
+        created_at: { type: string, format: date-time }
+    Disposal:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        asset_id: { type: string, format: uuid }
+        institution_id: { type: [string, "null"], format: uuid }
+        disposal_type: { type: string, enum: [reform, sale, destruction, loss, theft, donation, other] }
+        reason: { type: string }
+        status: { type: string, enum: [draft, pending_validation, under_investigation, approved, executed, closed, rejected, cancelled] }
+        estimated_value: { type: [number, "null"] }
+        currency: { type: string }
+        net_book_value: { type: [number, "null"] }
+        is_value_determinate: { type: boolean }
+        required_competence_level: { type: string, enum: [institutional, ministerial, national] }
+        workflow_instance_id: { type: [string, "null"], format: uuid }
+        decided_by: { type: [string, "null"], format: uuid }
+        decided_at: { type: [string, "null"], format: date-time }
+        executed_at: { type: [string, "null"], format: date-time }
+        closed_at: { type: [string, "null"], format: date-time }
+        created_at: { type: string, format: date-time }
+    DisposalHistoryEntry:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        disposal_id: { type: string, format: uuid }
+        from_status: { type: [string, "null"] }
+        to_status: { type: string }
+        actor_id: { type: string, format: uuid }
+        comment: { type: [string, "null"] }
+        created_at: { type: string, format: date-time }
+    Problem:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        correlation_id: { type: string, format: uuid }
+    PaginationMeta:
+      type: object
+      properties:
+        current_page: { type: integer }
+        per_page: { type: integer }
+        total: { type: integer }
+        last_page: { type: integer }
+  responses:
+    Unauthorized:
+      description: Jeton absent ou invalide
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Forbidden:
+      description: Permission insuffisante ou hors perimetre institutionnel
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Conflict:
+      description: Conflit d'etat ou cle d'idempotence reutilisee avec une charge differente
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    ValidationError:
+      description: Charge utile invalide
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    PaginatedValuations:
+      description: Page de valorisations
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: { type: array, items: { $ref: '#/components/schemas/AssetValuation' } }
+              meta: { $ref: '#/components/schemas/PaginationMeta' }
+    ValuationCreated:
+      description: Valorisation enregistree
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: { $ref: '#/components/schemas/AssetValuation' }
+    ValuationDetail:
+      description: Valorisation detaillee
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: { $ref: '#/components/schemas/AssetValuation' }
+    AssetValuationView:
+      description: Vue valorisation du bien
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  asset_id: { type: string, format: uuid }
+                  acquisition_value: { type: [number, "null"] }
+                  current_value: { type: [number, "null"] }
+                  net_book_value: { type: [number, "null"] }
+                  replacement_value: { type: [number, "null"] }
+                  accumulated_depreciation: { type: number }
+                  total_costs: { type: number }
+                  is_fully_determinate: { type: boolean }
+                  latest_valuation_at: { type: [string, "null"], format: date-time }
+    PaginatedDepreciationEntries:
+      description: Page d'amortissements
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: string, format: uuid }
+                    asset_id: { type: string, format: uuid }
+                    period_start: { type: string, format: date }
+                    period_end: { type: string, format: date }
+                    amount: { type: number }
+                    method: { type: string }
+                    created_at: { type: string, format: date-time }
+              meta: { $ref: '#/components/schemas/PaginationMeta' }
+    DepreciationEntryCreated:
+      description: Amortissement enregistre
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  id: { type: string, format: uuid }
+                  asset_id: { type: string, format: uuid }
+                  amount: { type: number }
+                  period_start: { type: string, format: date }
+                  period_end: { type: string, format: date }
+                  method: { type: string }
+    PaginatedAssetCosts:
+      description: Page de couts
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: { type: array, items: { $ref: '#/components/schemas/AssetCost' } }
+              meta: { $ref: '#/components/schemas/PaginationMeta' }
+    AssetCostCreated:
+      description: Cout enregistre
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: { $ref: '#/components/schemas/AssetCost' }
+    AssetCostDetail:
+      description: Cout detaille
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: { $ref: '#/components/schemas/AssetCost' }
+    AssetCostSummary:
+      description: Synthese des couts du bien
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  asset_id: { type: string, format: uuid }
+                  total_amount: { type: number }
+                  currency: { type: string }
+                  by_category:
+                    type: object
+                    additionalProperties: { type: number }
+                  cost_count: { type: integer }
+    PaginatedDisposals:
+      description: Page de sorties
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: { type: array, items: { $ref: '#/components/schemas/Disposal' } }
+              meta: { $ref: '#/components/schemas/PaginationMeta' }
+    DisposalCreated:
+      description: Dossier cree
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: { $ref: '#/components/schemas/Disposal' }
+    DisposalDetail:
+      description: Dossier detaille
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: { $ref: '#/components/schemas/Disposal' }
+    DisposalHistory:
+      description: Historique du dossier
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items: { $ref: '#/components/schemas/DisposalHistoryEntry' }

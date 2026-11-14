@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sigpe.local/schemas/finance-disposal-approved.v1.schema.json",
+  "title": "finance.disposal_approved.v1",
+  "type": "object",
+  "required": ["disposal_id", "asset_id", "disposal_type", "net_book_value", "is_value_determinate", "required_competence_level", "decided_by", "decided_at"],
+  "properties": {
+    "disposal_id": { "type": "string", "format": "uuid" },
+    "asset_id": { "type": "string", "format": "uuid" },
+    "institution_id": { "type": ["string", "null"], "format": "uuid" },
+    "disposal_type": { "type": "string" },
+    "net_book_value": { "type": ["number", "null"] },
+    "is_value_determinate": { "type": "boolean" },
+    "required_competence_level": { "type": "string" },
+    "decided_by": { "type": "string", "format": "uuid" },
+    "decided_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": true
+}

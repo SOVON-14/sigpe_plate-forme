@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sigpe.local/schemas/finance-cost-recorded.v1.schema.json",
+  "title": "finance.cost_recorded.v1",
+  "type": "object",
+  "required": ["cost_id", "asset_id", "category", "source_type", "amount", "currency", "incurred_at", "recorded_at"],
+  "properties": {
+    "cost_id": { "type": "string", "format": "uuid" },
+    "asset_id": { "type": "string", "format": "uuid" },
+    "institution_id": { "type": ["string", "null"], "format": "uuid" },
+    "category": { "type": "string" },
+    "source_type": { "type": "string" },
+    "source_id": { "type": ["string", "null"], "format": "uuid" },
+    "amount": { "type": "number", "minimum": 0 },
+    "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+    "incurred_at": { "type": "string", "format": "date" },
+    "beneficiary_account_id": { "type": ["string", "null"], "format": "uuid" },
+    "description": { "type": "string" },
+    "recorded_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": true
+}
